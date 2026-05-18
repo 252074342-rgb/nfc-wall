@@ -1,0 +1,1128 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>云端照片墙</title>
+  <style>
+    :root {
+      --bg: #f5efe6;
+      --paper: rgba(255, 251, 245, 0.92);
+      --paper-strong: #fffaf4;
+      --ink: #2a1f17;
+      --muted: #6b5747;
+      --accent: #bf5a39;
+      --accent-deep: #8c4028;
+      --line: rgba(74, 52, 36, 0.15);
+      --shadow: 0 18px 45px rgba(56, 34, 19, 0.16);
+      --radius: 26px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Trebuchet MS", "Microsoft YaHei", "PingFang SC", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255, 213, 170, 0.9), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(195, 106, 79, 0.18), transparent 28%),
+        linear-gradient(135deg, #f8f2ea 0%, #f2e8dc 52%, #e9ddcf 100%);
+    }
+
+    .page {
+      width: min(1140px, calc(100% - 28px));
+      margin: 26px auto 42px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 30px;
+      border: 1px solid var(--line);
+      border-radius: 34px;
+      background: linear-gradient(145deg, rgba(255, 252, 247, 0.96), rgba(247, 239, 228, 0.84));
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -34px;
+      bottom: -54px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(191, 90, 57, 0.2), rgba(191, 90, 57, 0));
+      pointer-events: none;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(34px, 5vw, 60px);
+      line-height: 0.96;
+      letter-spacing: -0.04em;
+      max-width: 10ch;
+    }
+
+    .hero-subtitle {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+      max-width: 760px;
+    }
+
+    .hero-description {
+      margin: 14px 0 0;
+      color: var(--muted);
+      line-height: 1.8;
+      max-width: 760px;
+      white-space: pre-wrap;
+    }
+
+    .tap-target {
+      display: inline-flex;
+      margin-top: 18px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(107, 87, 71, 0.18);
+      background: rgba(255, 248, 240, 0.88);
+      color: var(--muted);
+      font-size: 13px;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    .music-toggle {
+      margin-top: 12px;
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 14px;
+      background: rgba(191, 90, 57, 0.12);
+      color: var(--accent-deep);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .notice {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255, 248, 239, 0.92);
+      border: 1px solid rgba(107, 87, 71, 0.16);
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .gallery-card {
+      margin-top: 24px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .gallery-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .gallery-head h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .gallery-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .status {
+      min-height: 24px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+    }
+
+    .empty {
+      padding: 34px;
+      border: 1px dashed rgba(107, 87, 71, 0.22);
+      border-radius: 22px;
+      text-align: center;
+      background: rgba(255, 251, 246, 0.82);
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .tile {
+      overflow: hidden;
+      border-radius: 22px;
+      border: 1px solid rgba(107, 87, 71, 0.14);
+      background: rgba(255, 251, 246, 0.82);
+      box-shadow: 0 10px 28px rgba(56, 35, 20, 0.1);
+      cursor: pointer;
+    }
+
+    .tile img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
+      background: #eadfce;
+    }
+
+    .tile-footer {
+      padding: 10px 12px 12px;
+      color: var(--muted);
+      font-size: 13px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: 18px;
+      background: rgba(23, 15, 11, 0.82);
+      z-index: 20;
+    }
+
+    .overlay.open {
+      display: grid;
+    }
+
+    .overlay figure {
+      margin: 0;
+      width: min(980px, 100%);
+    }
+
+    .overlay img {
+      display: block;
+      width: 100%;
+      max-height: 78vh;
+      object-fit: contain;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .overlay figcaption {
+      margin-top: 12px;
+      color: #f8eee3;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .editor {
+      position: fixed;
+      inset: 0 0 0 auto;
+      width: min(460px, 100%);
+      padding: 18px;
+      background: rgba(250, 244, 236, 0.96);
+      border-left: 1px solid rgba(107, 87, 71, 0.16);
+      box-shadow: -18px 0 44px rgba(39, 23, 14, 0.16);
+      transform: translateX(100%);
+      transition: transform 0.24s ease;
+      z-index: 30;
+      overflow-y: auto;
+      backdrop-filter: blur(12px);
+    }
+
+    .editor.open {
+      transform: translateX(0);
+    }
+
+    .editor-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .editor-head h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .editor-close {
+      border: 0;
+      border-radius: 14px;
+      padding: 10px 12px;
+      background: rgba(191, 90, 57, 0.12);
+      color: var(--accent-deep);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .panel {
+      padding: 18px;
+      border: 1px solid rgba(107, 87, 71, 0.14);
+      border-radius: 22px;
+      background: rgba(255, 251, 246, 0.86);
+      margin-bottom: 16px;
+    }
+
+    .panel h3 {
+      margin: 0 0 12px;
+      font-size: 17px;
+    }
+
+    .panel p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .field input,
+    .field textarea {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1px solid rgba(107, 87, 71, 0.2);
+      border-radius: 16px;
+      background: rgba(255, 252, 248, 0.96);
+      color: var(--ink);
+      font: inherit;
+      outline: none;
+    }
+
+    .field input:focus,
+    .field textarea:focus {
+      border-color: rgba(191, 90, 57, 0.54);
+      box-shadow: 0 0 0 4px rgba(191, 90, 57, 0.12);
+    }
+
+    .field textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 16px;
+      background: var(--accent);
+      color: #fffaf3;
+      font: inherit;
+      cursor: pointer;
+      transition: transform 0.18s ease, background 0.18s ease, opacity 0.18s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      background: var(--accent-deep);
+    }
+
+    button.secondary {
+      background: rgba(255, 251, 246, 0.96);
+      color: var(--ink);
+      border: 1px solid rgba(107, 87, 71, 0.16);
+    }
+
+    button.secondary:hover {
+      background: var(--paper-strong);
+    }
+
+    button.small {
+      padding: 9px 12px;
+      border-radius: 12px;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .session-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255, 248, 240, 0.88);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .manage-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .manage-card {
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr);
+      gap: 12px;
+      padding: 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(107, 87, 71, 0.14);
+      background: rgba(255, 251, 246, 0.88);
+    }
+
+    .manage-card img {
+      display: block;
+      width: 72px;
+      height: 72px;
+      object-fit: cover;
+      border-radius: 14px;
+      background: #eadfce;
+    }
+
+    .manage-card .field {
+      margin-bottom: 8px;
+    }
+
+    .manage-empty {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 720px) {
+      .page {
+        width: min(100%, calc(100% - 18px));
+      }
+
+      .hero {
+        padding: 24px;
+      }
+
+      .gallery-card {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <h1 id="wallTitle">照片墙</h1>
+      <p class="hero-subtitle" id="wallSubtitle">轻触钥匙扣，打开这一页。</p>
+      <p class="hero-description" id="wallDescription">标题区域连续点三下，可以进入隐藏编辑面板。</p>
+      <div class="tap-target" id="tapTarget">标题区域连点三下进入编辑</div>
+      <div>
+        <button class="music-toggle" id="musicToggle" type="button" hidden>播放背景音乐</button>
+      </div>
+      <div class="notice" id="setupNotice">
+        这个页面还没有接入 Supabase。先按文件夹里的《云端照片墙搭建说明》填入项目地址和匿名 Key，再部署到 GitHub Pages。
+      </div>
+    </section>
+
+    <section class="gallery-card">
+      <div class="gallery-head">
+        <div>
+          <h2>照片墙</h2>
+          <p id="countText">当前 0 张</p>
+        </div>
+      </div>
+
+      <div class="status" id="statusText">等待加载。</div>
+      <div class="empty" id="emptyState">还没有图片。等你从隐藏编辑面板上传第一张照片。</div>
+      <div class="gallery" id="gallery"></div>
+    </section>
+  </main>
+
+  <div class="overlay" id="lightbox">
+    <figure>
+      <img id="lightboxImage" alt="">
+      <figcaption id="lightboxCaption"></figcaption>
+    </figure>
+  </div>
+
+  <aside class="editor" id="editorPanel" aria-hidden="true">
+    <div class="editor-head">
+      <h2>编辑面板</h2>
+      <button class="editor-close" id="closeEditor" type="button">关闭</button>
+    </div>
+
+    <section class="panel">
+      <h3>管理员登录</h3>
+      <p>这个面板只在你点标题区域三下后出现。建议在 Supabase 里关闭公开注册，只保留你自己的管理员账号。</p>
+
+      <div class="session-line" id="sessionLine">
+        <span id="sessionText">未登录</span>
+        <button class="secondary small" id="signOutBtn" type="button" hidden>退出</button>
+      </div>
+
+      <form id="loginForm">
+        <div class="field">
+          <label for="emailInput">邮箱</label>
+          <input id="emailInput" type="email" autocomplete="username">
+        </div>
+        <div class="field">
+          <label for="passwordInput">密码</label>
+          <input id="passwordInput" type="password" autocomplete="current-password">
+        </div>
+        <div class="row">
+          <button id="signInBtn" type="submit">登录</button>
+        </div>
+      </form>
+      <div class="status" id="authStatus"></div>
+    </section>
+
+    <section class="panel">
+      <h3>相册文案</h3>
+      <p>这里改的是照片墙标题、说明和背景音乐链接。保存后，别人再次碰 NFC 也会看到最新内容。</p>
+
+      <div class="field">
+        <label for="titleInput">标题</label>
+        <input id="titleInput" type="text" maxlength="40">
+      </div>
+      <div class="field">
+        <label for="subtitleInput">副标题</label>
+        <input id="subtitleInput" type="text" maxlength="80">
+      </div>
+      <div class="field">
+        <label for="descriptionInput">说明文字</label>
+        <textarea id="descriptionInput" maxlength="240"></textarea>
+      </div>
+      <div class="field">
+        <label for="musicInput">背景音乐直链（可选）</label>
+        <input id="musicInput" type="url" placeholder="https://example.com/music.mp3">
+      </div>
+      <div class="row">
+        <button id="saveSettingsBtn" type="button">保存文案</button>
+      </div>
+      <div class="status" id="settingsStatus"></div>
+    </section>
+
+    <section class="panel">
+      <h3>上传照片</h3>
+      <p>登录后可以直接在手机上加图。上传完成后，照片墙会自动刷新。</p>
+
+      <div class="field">
+        <label for="uploadInput">选择图片</label>
+        <input id="uploadInput" type="file" accept="image/*" multiple>
+      </div>
+      <div class="row">
+        <button id="uploadBtn" type="button">上传到云端</button>
+      </div>
+      <div class="status" id="uploadStatus"></div>
+    </section>
+
+    <section class="panel">
+      <h3>管理现有图片</h3>
+      <p>你可以改图片标题、调整前后顺序，或者直接删除。</p>
+      <div class="manage-list" id="manageList"></div>
+      <div class="manage-empty" id="manageEmpty">还没有图片。</div>
+      <div class="status" id="manageStatus"></div>
+    </section>
+  </aside>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+    const CONFIG = {
+      SUPABASE_URL: "https://pnzbcsnoqrmtdkxyxfms.supabase.co",
+      SUPABASE_ANON_KEY: "sb_publishable_BZMrBawoq266rDTBEcIXRQ_yCrQPJ8C",
+      ALBUM_SLUG: "main",
+      IMAGES_BUCKET: "wall-images",
+    };
+
+    const DEFAULT_SETTINGS = {
+      title: "照片墙",
+      subtitle: "轻触钥匙扣，打开这一页。",
+      description: "标题区域连续点三下，可以进入隐藏编辑面板。",
+      music_url: "",
+    };
+
+    const wallTitle = document.getElementById("wallTitle");
+    const wallSubtitle = document.getElementById("wallSubtitle");
+    const wallDescription = document.getElementById("wallDescription");
+    const setupNotice = document.getElementById("setupNotice");
+    const gallery = document.getElementById("gallery");
+    const emptyState = document.getElementById("emptyState");
+    const countText = document.getElementById("countText");
+    const statusText = document.getElementById("statusText");
+    const tapTarget = document.getElementById("tapTarget");
+    const musicToggle = document.getElementById("musicToggle");
+    const editorPanel = document.getElementById("editorPanel");
+    const closeEditor = document.getElementById("closeEditor");
+    const lightbox = document.getElementById("lightbox");
+    const lightboxImage = document.getElementById("lightboxImage");
+    const lightboxCaption = document.getElementById("lightboxCaption");
+    const loginForm = document.getElementById("loginForm");
+    const emailInput = document.getElementById("emailInput");
+    const passwordInput = document.getElementById("passwordInput");
+    const authStatus = document.getElementById("authStatus");
+    const sessionText = document.getElementById("sessionText");
+    const signOutBtn = document.getElementById("signOutBtn");
+    const titleInput = document.getElementById("titleInput");
+    const subtitleInput = document.getElementById("subtitleInput");
+    const descriptionInput = document.getElementById("descriptionInput");
+    const musicInput = document.getElementById("musicInput");
+    const saveSettingsBtn = document.getElementById("saveSettingsBtn");
+    const settingsStatus = document.getElementById("settingsStatus");
+    const uploadInput = document.getElementById("uploadInput");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const uploadStatus = document.getElementById("uploadStatus");
+    const manageList = document.getElementById("manageList");
+    const manageEmpty = document.getElementById("manageEmpty");
+    const manageStatus = document.getElementById("manageStatus");
+
+    const isConfigured = !CONFIG.SUPABASE_URL.includes("PASTE_") && !CONFIG.SUPABASE_ANON_KEY.includes("PASTE_");
+    let supabase = null;
+    let currentSession = null;
+    let currentSettings = { ...DEFAULT_SETTINGS };
+    let currentImages = [];
+    let audioElement = null;
+    let tapCount = 0;
+    let tapTimer = null;
+
+    bindUi();
+    updateAuthUi();
+    seedSettingsForm(DEFAULT_SETTINGS);
+
+    if (isConfigured) {
+      setupNotice.hidden = true;
+      supabase = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+      await refreshSession();
+      await loadWall();
+    } else {
+      setWallSettings(DEFAULT_SETTINGS);
+      setPageStatus("先填好 Supabase 配置，再重新打开这个页面。");
+    }
+
+    function bindUi() {
+      tapTarget.addEventListener("pointerup", onTapTarget);
+      closeEditor.addEventListener("click", closeEditorPanel);
+      lightbox.addEventListener("click", closeLightbox);
+      musicToggle.addEventListener("click", toggleMusicPlayback);
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          closeEditorPanel();
+          closeLightbox();
+        }
+      });
+
+      loginForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!supabase) {
+          setAuthStatus("还没有完成 Supabase 配置。");
+          return;
+        }
+
+        setAuthStatus("正在登录...");
+        const { error } = await supabase.auth.signInWithPassword({
+          email: emailInput.value.trim(),
+          password: passwordInput.value,
+        });
+
+        if (error) {
+          setAuthStatus(`登录失败：${error.message}`);
+          return;
+        }
+
+        passwordInput.value = "";
+        setAuthStatus("登录成功。");
+        await refreshSession();
+        await loadWall();
+      });
+
+      signOutBtn.addEventListener("click", async () => {
+        if (!supabase) {
+          return;
+        }
+        await supabase.auth.signOut();
+        currentSession = null;
+        updateAuthUi();
+        setAuthStatus("已退出登录。");
+      });
+
+      saveSettingsBtn.addEventListener("click", saveSettings);
+      uploadBtn.addEventListener("click", uploadImages);
+    }
+
+    function onTapTarget() {
+      tapCount += 1;
+      clearTimeout(tapTimer);
+      tapTimer = setTimeout(() => {
+        tapCount = 0;
+      }, 650);
+
+      if (tapCount >= 3) {
+        tapCount = 0;
+        openEditorPanel();
+      }
+    }
+
+    function openEditorPanel() {
+      editorPanel.classList.add("open");
+      editorPanel.setAttribute("aria-hidden", "false");
+    }
+
+    function closeEditorPanel() {
+      editorPanel.classList.remove("open");
+      editorPanel.setAttribute("aria-hidden", "true");
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove("open");
+      lightboxImage.src = "";
+      lightboxImage.alt = "";
+      lightboxCaption.textContent = "";
+    }
+
+    async function refreshSession() {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        setAuthStatus(`会话读取失败：${error.message}`);
+        return;
+      }
+      currentSession = data.session;
+      updateAuthUi();
+    }
+
+    function updateAuthUi() {
+      const loggedIn = Boolean(currentSession?.user);
+      sessionText.textContent = loggedIn ? `当前账号：${currentSession.user.email}` : "未登录";
+      signOutBtn.hidden = !loggedIn;
+      loginForm.hidden = loggedIn;
+      saveSettingsBtn.disabled = !loggedIn;
+      uploadBtn.disabled = !loggedIn;
+      uploadInput.disabled = !loggedIn;
+      renderManageList();
+    }
+
+    async function loadWall() {
+      if (!supabase) {
+        return;
+      }
+
+      setPageStatus("正在加载照片墙...");
+
+      const [settingsResult, imagesResult] = await Promise.all([
+        supabase
+          .from("album_settings")
+          .select("title, subtitle, description, music_url")
+          .eq("slug", CONFIG.ALBUM_SLUG)
+          .maybeSingle(),
+        supabase
+          .from("album_images")
+          .select("id, title, file_path, sort_order, created_at")
+          .eq("album_slug", CONFIG.ALBUM_SLUG)
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: true }),
+      ]);
+
+      if (settingsResult.error) {
+        setPageStatus(`读取相册文案失败：${settingsResult.error.message}`);
+      } else {
+        currentSettings = {
+          ...DEFAULT_SETTINGS,
+          ...(settingsResult.data || {}),
+        };
+        setWallSettings(currentSettings);
+        seedSettingsForm(currentSettings);
+      }
+
+      if (imagesResult.error) {
+        setPageStatus(`读取图片失败：${imagesResult.error.message}`);
+        return;
+      }
+
+      currentImages = (imagesResult.data || []).map((item) => ({
+        ...item,
+        publicUrl: toPublicUrl(item.file_path),
+      }));
+
+      renderGallery();
+      renderManageList();
+
+      if (!settingsResult.error) {
+        setPageStatus(`已加载 ${currentImages.length} 张图片。`);
+      }
+    }
+
+    function toPublicUrl(filePath) {
+      const { data } = supabase.storage.from(CONFIG.IMAGES_BUCKET).getPublicUrl(filePath);
+      return data.publicUrl;
+    }
+
+    function setWallSettings(settings) {
+      wallTitle.textContent = settings.title || DEFAULT_SETTINGS.title;
+      wallSubtitle.textContent = settings.subtitle || DEFAULT_SETTINGS.subtitle;
+      wallDescription.textContent = settings.description || DEFAULT_SETTINGS.description;
+      syncMusic(settings.music_url || "");
+    }
+
+    function seedSettingsForm(settings) {
+      titleInput.value = settings.title || "";
+      subtitleInput.value = settings.subtitle || "";
+      descriptionInput.value = settings.description || "";
+      musicInput.value = settings.music_url || "";
+    }
+
+    function syncMusic(url) {
+      if (audioElement) {
+        audioElement.remove();
+        audioElement = null;
+      }
+
+      if (!url) {
+        musicToggle.hidden = true;
+        musicToggle.textContent = "播放背景音乐";
+        return;
+      }
+
+      audioElement = document.createElement("audio");
+      audioElement.src = url;
+      audioElement.loop = true;
+      audioElement.preload = "none";
+      document.body.appendChild(audioElement);
+      musicToggle.hidden = false;
+      musicToggle.textContent = "播放背景音乐";
+    }
+
+    async function toggleMusicPlayback() {
+      if (!audioElement) {
+        return;
+      }
+
+      if (audioElement.paused) {
+        try {
+          await audioElement.play();
+          musicToggle.textContent = "暂停背景音乐";
+        } catch (error) {
+          alert("当前设备阻止了自动播放，请确认音频链接可访问后再试。");
+        }
+        return;
+      }
+
+      audioElement.pause();
+      musicToggle.textContent = "播放背景音乐";
+    }
+
+    function renderGallery() {
+      gallery.innerHTML = "";
+      countText.textContent = `当前 ${currentImages.length} 张`;
+      emptyState.hidden = currentImages.length > 0;
+
+      currentImages.forEach((image, index) => {
+        const tile = document.createElement("article");
+        tile.className = "tile";
+
+        const img = document.createElement("img");
+        img.src = image.publicUrl;
+        img.alt = image.title || `图片 ${index + 1}`;
+        img.loading = "lazy";
+
+        const footer = document.createElement("div");
+        footer.className = "tile-footer";
+        footer.textContent = image.title || `图片 ${index + 1}`;
+
+        tile.append(img, footer);
+        tile.addEventListener("click", () => openLightbox(image, index));
+        gallery.appendChild(tile);
+      });
+    }
+
+    function renderManageList() {
+      manageList.innerHTML = "";
+      const loggedIn = Boolean(currentSession?.user);
+      manageEmpty.hidden = currentImages.length > 0;
+
+      if (!loggedIn) {
+        manageEmpty.hidden = false;
+        manageEmpty.textContent = "先登录，再管理图片。";
+        return;
+      }
+
+      if (!currentImages.length) {
+        manageEmpty.hidden = false;
+        manageEmpty.textContent = "还没有图片。";
+        return;
+      }
+
+      manageEmpty.hidden = true;
+
+      currentImages.forEach((image, index) => {
+        const card = document.createElement("article");
+        card.className = "manage-card";
+
+        const preview = document.createElement("img");
+        preview.src = image.publicUrl;
+        preview.alt = image.title || `图片 ${index + 1}`;
+
+        const right = document.createElement("div");
+
+        const field = document.createElement("div");
+        field.className = "field";
+
+        const label = document.createElement("label");
+        label.textContent = `图片 ${index + 1} 标题`;
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = image.title || "";
+        input.maxLength = 80;
+
+        field.append(label, input);
+
+        const row = document.createElement("div");
+        row.className = "row";
+
+        const saveBtn = document.createElement("button");
+        saveBtn.className = "secondary small";
+        saveBtn.type = "button";
+        saveBtn.textContent = "保存标题";
+        saveBtn.addEventListener("click", async () => {
+          await updateImage(image.id, { title: input.value.trim() || `图片 ${index + 1}` }, "标题已保存。");
+        });
+
+        const upBtn = document.createElement("button");
+        upBtn.className = "secondary small";
+        upBtn.type = "button";
+        upBtn.textContent = "前移";
+        upBtn.disabled = index === 0;
+        upBtn.addEventListener("click", async () => {
+          await moveImage(index, index - 1);
+        });
+
+        const downBtn = document.createElement("button");
+        downBtn.className = "secondary small";
+        downBtn.type = "button";
+        downBtn.textContent = "后移";
+        downBtn.disabled = index === currentImages.length - 1;
+        downBtn.addEventListener("click", async () => {
+          await moveImage(index, index + 1);
+        });
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "small";
+        deleteBtn.type = "button";
+        deleteBtn.textContent = "删除";
+        deleteBtn.addEventListener("click", async () => {
+          await deleteImage(image);
+        });
+
+        row.append(saveBtn, upBtn, downBtn, deleteBtn);
+        right.append(field, row);
+        card.append(preview, right);
+        manageList.appendChild(card);
+      });
+    }
+
+    function openLightbox(image, index) {
+      lightboxImage.src = image.publicUrl;
+      lightboxImage.alt = image.title || `图片 ${index + 1}`;
+      lightboxCaption.textContent = image.title || `图片 ${index + 1}`;
+      lightbox.classList.add("open");
+    }
+
+    async function saveSettings() {
+      if (!currentSession?.user) {
+        setSettingsStatus("先登录，再保存文案。");
+        return;
+      }
+
+      setSettingsStatus("正在保存...");
+      const payload = {
+        slug: CONFIG.ALBUM_SLUG,
+        title: titleInput.value.trim() || DEFAULT_SETTINGS.title,
+        subtitle: subtitleInput.value.trim() || DEFAULT_SETTINGS.subtitle,
+        description: descriptionInput.value.trim() || DEFAULT_SETTINGS.description,
+        music_url: musicInput.value.trim(),
+      };
+
+      const { error } = await supabase.from("album_settings").upsert(payload, { onConflict: "slug" });
+      if (error) {
+        setSettingsStatus(`保存失败：${error.message}`);
+        return;
+      }
+
+      currentSettings = payload;
+      setWallSettings(payload);
+      setSettingsStatus("文案已保存。");
+    }
+
+    async function uploadImages() {
+      if (!currentSession?.user) {
+        setUploadStatus("先登录，再上传图片。");
+        return;
+      }
+
+      const files = Array.from(uploadInput.files || []).filter((file) => file.type.startsWith("image/"));
+      if (!files.length) {
+        setUploadStatus("先选择至少一张图片。");
+        return;
+      }
+
+      setUploadStatus("正在上传...");
+      const baseOrder = currentImages.length ? Math.max(...currentImages.map((item) => item.sort_order || 0)) + 1 : 1;
+
+      for (const [offset, file] of files.entries()) {
+        const filePath = `${CONFIG.ALBUM_SLUG}/${Date.now()}-${crypto.randomUUID()}-${sanitizeFileName(file.name)}`;
+
+        const uploadResult = await supabase.storage.from(CONFIG.IMAGES_BUCKET).upload(filePath, file, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+        if (uploadResult.error) {
+          setUploadStatus(`上传失败：${uploadResult.error.message}`);
+          return;
+        }
+
+        const insertResult = await supabase.from("album_images").insert({
+          album_slug: CONFIG.ALBUM_SLUG,
+          title: file.name,
+          file_path: filePath,
+          sort_order: baseOrder + offset,
+        });
+
+        if (insertResult.error) {
+          await supabase.storage.from(CONFIG.IMAGES_BUCKET).remove([filePath]);
+          setUploadStatus(`写入图片记录失败：${insertResult.error.message}`);
+          return;
+        }
+      }
+
+      uploadInput.value = "";
+      setUploadStatus(`已上传 ${files.length} 张图片。`);
+      await loadWall();
+    }
+
+    async function updateImage(id, patch, successMessage) {
+      if (!currentSession?.user) {
+        setManageStatus("先登录，再编辑图片。");
+        return;
+      }
+
+      setManageStatus("正在保存...");
+      const { error } = await supabase.from("album_images").update(patch).eq("id", id);
+      if (error) {
+        setManageStatus(`保存失败：${error.message}`);
+        return;
+      }
+
+      setManageStatus(successMessage);
+      await loadWall();
+    }
+
+    async function moveImage(fromIndex, toIndex) {
+      if (!currentSession?.user) {
+        setManageStatus("先登录，再调整顺序。");
+        return;
+      }
+
+      const source = currentImages[fromIndex];
+      const target = currentImages[toIndex];
+      if (!source || !target) {
+        return;
+      }
+
+      setManageStatus("正在调整顺序...");
+      const sourceOrder = source.sort_order || fromIndex + 1;
+      const targetOrder = target.sort_order || toIndex + 1;
+
+      const first = await supabase.from("album_images").update({ sort_order: targetOrder }).eq("id", source.id);
+      if (first.error) {
+        setManageStatus(`调整失败：${first.error.message}`);
+        return;
+      }
+
+      const second = await supabase.from("album_images").update({ sort_order: sourceOrder }).eq("id", target.id);
+      if (second.error) {
+        setManageStatus(`调整失败：${second.error.message}`);
+        return;
+      }
+
+      setManageStatus("顺序已更新。");
+      await loadWall();
+    }
+
+    async function deleteImage(image) {
+      if (!currentSession?.user) {
+        setManageStatus("先登录，再删除图片。");
+        return;
+      }
+
+      const confirmed = window.confirm(`确认删除“${image.title || "这张图片"}”吗？`);
+      if (!confirmed) {
+        return;
+      }
+
+      setManageStatus("正在删除...");
+      const removeResult = await supabase.storage.from(CONFIG.IMAGES_BUCKET).remove([image.file_path]);
+      if (removeResult.error) {
+        setManageStatus(`删除云端图片失败：${removeResult.error.message}`);
+        return;
+      }
+
+      const deleteResult = await supabase.from("album_images").delete().eq("id", image.id);
+      if (deleteResult.error) {
+        setManageStatus(`删除图片记录失败：${deleteResult.error.message}`);
+        return;
+      }
+
+      setManageStatus("图片已删除。");
+      await loadWall();
+    }
+
+    function sanitizeFileName(name) {
+      return name.replace(/[^a-zA-Z0-9._-]/g, "-");
+    }
+
+    function setPageStatus(message) {
+      statusText.textContent = message;
+    }
+
+    function setAuthStatus(message) {
+      authStatus.textContent = message;
+    }
+
+    function setSettingsStatus(message) {
+      settingsStatus.textContent = message;
+    }
+
+    function setUploadStatus(message) {
+      uploadStatus.textContent = message;
+    }
+
+    function setManageStatus(message) {
+      manageStatus.textContent = message;
+    }
+  </script>
+</body>
+</html>
