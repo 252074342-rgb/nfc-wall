@@ -3,181 +3,392 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>云端照片墙</title>
+  <title>星空照片墙</title>
   <style>
     :root {
-      --bg: #f5efe6;
-      --paper: rgba(255, 251, 245, 0.92);
-      --paper-strong: #fffaf4;
-      --ink: #2a1f17;
-      --muted: #6b5747;
-      --accent: #bf5a39;
-      --accent-deep: #8c4028;
-      --line: rgba(74, 52, 36, 0.15);
-      --shadow: 0 18px 45px rgba(56, 34, 19, 0.16);
-      --radius: 26px;
+      --bg: #030712;
+      --bg-deep: #02040a;
+      --panel: rgba(9, 15, 27, 0.72);
+      --panel-strong: rgba(12, 20, 38, 0.92);
+      --line: rgba(162, 180, 255, 0.14);
+      --text: #eef2ff;
+      --muted: #a4b0d2;
+      --accent: #9fb8ff;
+      --accent-strong: #f6b2ff;
+      --gold: #ffd6a8;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+      --radius: 28px;
     }
 
     * {
       box-sizing: border-box;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
-      color: var(--ink);
+      color: var(--text);
       font-family: "Trebuchet MS", "Microsoft YaHei", "PingFang SC", sans-serif;
       background:
-        radial-gradient(circle at top left, rgba(255, 213, 170, 0.9), transparent 30%),
-        radial-gradient(circle at bottom right, rgba(195, 106, 79, 0.18), transparent 28%),
-        linear-gradient(135deg, #f8f2ea 0%, #f2e8dc 52%, #e9ddcf 100%);
+        radial-gradient(circle at 18% 18%, rgba(108, 131, 255, 0.16), transparent 28%),
+        radial-gradient(circle at 82% 22%, rgba(241, 126, 255, 0.12), transparent 24%),
+        radial-gradient(circle at 50% 90%, rgba(86, 139, 255, 0.08), transparent 30%),
+        linear-gradient(180deg, #030712 0%, #050915 55%, #02040a 100%);
+      overflow-x: hidden;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    body::before {
+      background-image:
+        radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.95) 0 1.2px, transparent 1.4px),
+        radial-gradient(circle at 24% 72%, rgba(255, 255, 255, 0.75) 0 1.3px, transparent 1.5px),
+        radial-gradient(circle at 41% 34%, rgba(255, 255, 255, 0.85) 0 1px, transparent 1.3px),
+        radial-gradient(circle at 59% 18%, rgba(255, 255, 255, 0.8) 0 1.2px, transparent 1.5px),
+        radial-gradient(circle at 76% 62%, rgba(255, 255, 255, 0.78) 0 1.2px, transparent 1.5px),
+        radial-gradient(circle at 89% 27%, rgba(255, 255, 255, 0.88) 0 1px, transparent 1.3px),
+        radial-gradient(circle at 73% 85%, rgba(255, 255, 255, 0.66) 0 1.2px, transparent 1.4px),
+        radial-gradient(circle at 14% 88%, rgba(255, 255, 255, 0.7) 0 1px, transparent 1.2px);
+      animation: starDrift 22s linear infinite;
+      opacity: 0.85;
+    }
+
+    body::after {
+      background:
+        radial-gradient(circle at 50% 0%, rgba(164, 194, 255, 0.08), transparent 38%),
+        radial-gradient(circle at 50% 110%, rgba(255, 179, 240, 0.05), transparent 34%);
+      filter: blur(30px);
     }
 
     .page {
-      width: min(1140px, calc(100% - 28px));
-      margin: 26px auto 42px;
+      position: relative;
+      z-index: 1;
+      width: min(1180px, calc(100% - 28px));
+      margin: 24px auto 54px;
     }
 
     .hero {
       position: relative;
       overflow: hidden;
-      padding: 30px;
+      padding: 34px 34px 30px;
+      border-radius: 36px;
       border: 1px solid var(--line);
-      border-radius: 34px;
-      background: linear-gradient(145deg, rgba(255, 252, 247, 0.96), rgba(247, 239, 228, 0.84));
+      background:
+        linear-gradient(145deg, rgba(10, 16, 30, 0.88), rgba(7, 11, 22, 0.78)),
+        linear-gradient(180deg, rgba(159, 184, 255, 0.07), transparent 56%);
       box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      isolation: isolate;
     }
 
-    .hero::after {
+    .hero::before {
       content: "";
       position: absolute;
-      right: -34px;
-      bottom: -54px;
-      width: 220px;
-      height: 220px;
+      inset: auto -120px -120px auto;
+      width: 320px;
+      height: 320px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(191, 90, 57, 0.2), rgba(191, 90, 57, 0));
-      pointer-events: none;
+      background: radial-gradient(circle, rgba(152, 180, 255, 0.16), rgba(152, 180, 255, 0));
+      z-index: -1;
     }
 
-    .hero h1 {
-      margin: 0;
-      font-size: clamp(34px, 5vw, 60px);
+    .hero-copy {
+      max-width: 760px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(182, 197, 255, 0.18);
+      background: rgba(255, 255, 255, 0.04);
+      color: #c9d5ff;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 14px 0 10px;
+      font-size: clamp(38px, 6vw, 72px);
       line-height: 0.96;
-      letter-spacing: -0.04em;
-      max-width: 10ch;
+      letter-spacing: -0.05em;
+      text-wrap: balance;
     }
 
     .hero-subtitle {
-      margin: 12px 0 0;
-      color: var(--muted);
-      font-size: 16px;
-      line-height: 1.7;
-      max-width: 760px;
+      margin: 0;
+      max-width: 40rem;
+      color: #dae4ff;
+      font-size: 17px;
+      line-height: 1.75;
     }
 
     .hero-description {
       margin: 14px 0 0;
+      max-width: 42rem;
       color: var(--muted);
-      line-height: 1.8;
-      max-width: 760px;
+      font-size: 15px;
+      line-height: 1.9;
       white-space: pre-wrap;
     }
 
-    .tap-target {
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 22px;
+      align-items: center;
+    }
+
+    .secret-trigger {
       display: inline-flex;
-      margin-top: 18px;
-      padding: 9px 12px;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
       border-radius: 999px;
-      border: 1px solid rgba(107, 87, 71, 0.18);
-      background: rgba(255, 248, 240, 0.88);
+      border: 1px solid rgba(182, 197, 255, 0.16);
+      background: rgba(255, 255, 255, 0.04);
       color: var(--muted);
       font-size: 13px;
       user-select: none;
       -webkit-user-select: none;
       touch-action: manipulation;
-    }
-
-    .music-toggle {
-      margin-top: 12px;
-      border: 0;
-      border-radius: 999px;
-      padding: 11px 14px;
-      background: rgba(191, 90, 57, 0.12);
-      color: var(--accent-deep);
-      font: inherit;
       cursor: pointer;
     }
 
-    .notice {
+    .secret-trigger strong {
+      color: #edf1ff;
+      font-weight: 600;
+    }
+
+    .music-toggle,
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #93afff, #f2aaf7);
+      color: #07101f;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 12px 28px rgba(147, 175, 255, 0.22);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+    }
+
+    .music-toggle:hover,
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 34px rgba(147, 175, 255, 0.28);
+    }
+
+    button.secondary,
+    .editor-close {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      border: 1px solid rgba(182, 197, 255, 0.14);
+      box-shadow: none;
+    }
+
+    button.small {
+      padding: 9px 12px;
+      font-size: 13px;
+    }
+
+    button:disabled,
+    .music-toggle:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .notice,
+    .status-box {
       margin-top: 18px;
       padding: 14px 16px;
       border-radius: 18px;
-      background: rgba(255, 248, 239, 0.92);
-      border: 1px solid rgba(107, 87, 71, 0.16);
+      border: 1px solid rgba(182, 197, 255, 0.14);
+      background: rgba(255, 255, 255, 0.04);
       color: var(--muted);
-      line-height: 1.7;
+      line-height: 1.8;
       font-size: 14px;
+    }
+
+    .hero-planes {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .plane {
+      position: absolute;
+      width: 74px;
+      height: 30px;
+      opacity: 0;
+      filter: drop-shadow(0 4px 12px rgba(120, 142, 255, 0.16));
+      animation: planeGlide linear infinite;
+    }
+
+    .plane svg {
+      width: 100%;
+      height: 100%;
+      fill: rgba(241, 246, 255, 0.92);
+    }
+
+    .plane::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: -160px;
+      width: 170px;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(173, 199, 255, 0.75), rgba(255, 255, 255, 0));
+      transform: translateY(-50%);
+      opacity: 0.7;
+    }
+
+    .plane-1 {
+      top: 10%;
+      right: -100px;
+      animation-duration: 15s;
+      animation-delay: 0s;
+    }
+
+    .plane-2 {
+      top: 38%;
+      right: -120px;
+      width: 88px;
+      animation-duration: 18s;
+      animation-delay: 4s;
+    }
+
+    .plane-3 {
+      top: 72%;
+      right: -110px;
+      width: 64px;
+      animation-duration: 13s;
+      animation-delay: 8s;
     }
 
     .gallery-card {
       margin-top: 24px;
       padding: 22px;
-      border: 1px solid var(--line);
       border-radius: var(--radius);
-      background: var(--paper);
+      border: 1px solid var(--line);
+      background: var(--panel);
       box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
     }
 
     .gallery-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
       margin-bottom: 18px;
     }
 
     .gallery-head h2 {
       margin: 0;
-      font-size: 22px;
+      font-size: 24px;
+      letter-spacing: -0.02em;
     }
 
-    .gallery-head p {
+    .gallery-head p,
+    .status {
       margin: 0;
       color: var(--muted);
       font-size: 14px;
     }
 
-    .status {
-      min-height: 24px;
-      margin-top: 12px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
     .gallery {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 16px;
+      gap: 18px;
     }
 
     .empty {
-      padding: 34px;
-      border: 1px dashed rgba(107, 87, 71, 0.22);
-      border-radius: 22px;
+      padding: 42px 26px;
+      border-radius: 24px;
+      border: 1px dashed rgba(182, 197, 255, 0.18);
+      background: rgba(255, 255, 255, 0.03);
       text-align: center;
-      background: rgba(255, 251, 246, 0.82);
       color: var(--muted);
-      line-height: 1.7;
+      line-height: 1.8;
     }
 
     .tile {
+      --reveal-delay: 0ms;
+      position: relative;
       overflow: hidden;
-      border-radius: 22px;
-      border: 1px solid rgba(107, 87, 71, 0.14);
-      background: rgba(255, 251, 246, 0.82);
-      box-shadow: 0 10px 28px rgba(56, 35, 20, 0.1);
+      border-radius: 24px;
+      border: 1px solid rgba(184, 201, 255, 0.12);
+      background:
+        linear-gradient(180deg, rgba(11, 18, 31, 0.84), rgba(7, 10, 21, 0.98));
+      box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
       cursor: pointer;
+      opacity: 0;
+      transform: translateY(26px) scale(0.96);
+      will-change: opacity, transform;
+    }
+
+    .tile.visible {
+      animation: tileReveal 1.15s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+      animation-delay: var(--reveal-delay);
+    }
+
+    .tile::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(110deg, rgba(255, 255, 255, 0) 8%, rgba(140, 167, 255, 0.16) 38%, rgba(255, 255, 255, 0) 66%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0));
+      transform: translateX(-135%);
+      opacity: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .tile.visible::before {
+      opacity: 1;
+      animation: trailSweep 1.05s ease-out forwards;
+      animation-delay: var(--reveal-delay);
+    }
+
+    .tile-plane {
+      position: absolute;
+      top: 18px;
+      left: -56px;
+      width: 52px;
+      height: 20px;
+      z-index: 3;
+      opacity: 0;
+      pointer-events: none;
+      filter: drop-shadow(0 4px 10px rgba(151, 176, 255, 0.26));
+    }
+
+    .tile-plane svg {
+      width: 100%;
+      height: 100%;
+      fill: rgba(244, 247, 255, 0.95);
+    }
+
+    .tile.visible .tile-plane {
+      animation: tilePlaneFly 1.15s ease-out forwards;
+      animation-delay: var(--reveal-delay);
     }
 
     .tile img {
@@ -185,16 +396,43 @@
       width: 100%;
       aspect-ratio: 4 / 5;
       object-fit: cover;
-      background: #eadfce;
+      background: linear-gradient(180deg, #10192b, #070d18);
+      opacity: 0;
+      transform: scale(1.04);
+      transition: opacity 0.44s ease, transform 1.2s ease;
+    }
+
+    .tile.loaded img {
+      opacity: 1;
+      transform: scale(1);
     }
 
     .tile-footer {
-      padding: 10px 12px 12px;
-      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      position: relative;
+      z-index: 3;
+      background: linear-gradient(180deg, rgba(9, 14, 26, 0), rgba(7, 11, 22, 0.94) 32%);
+      color: #eef2ff;
       font-size: 13px;
+    }
+
+    .tile-footer span {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    .tile-dot {
+      flex: none;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff 0%, #d9c4ff 48%, #90adff 100%);
+      box-shadow: 0 0 16px rgba(159, 184, 255, 0.55);
     }
 
     .overlay {
@@ -203,8 +441,9 @@
       display: none;
       place-items: center;
       padding: 18px;
-      background: rgba(23, 15, 11, 0.82);
-      z-index: 20;
+      background: rgba(2, 4, 10, 0.88);
+      z-index: 24;
+      backdrop-filter: blur(10px);
     }
 
     .overlay.open {
@@ -221,15 +460,16 @@
       width: 100%;
       max-height: 78vh;
       object-fit: contain;
-      border-radius: 24px;
-      background: rgba(255, 255, 255, 0.06);
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(182, 197, 255, 0.12);
     }
 
     .overlay figcaption {
       margin-top: 12px;
-      color: #f8eee3;
       text-align: center;
-      line-height: 1.6;
+      color: #e9edff;
+      line-height: 1.7;
     }
 
     .editor {
@@ -237,14 +477,15 @@
       inset: 0 0 0 auto;
       width: min(460px, 100%);
       padding: 18px;
-      background: rgba(250, 244, 236, 0.96);
-      border-left: 1px solid rgba(107, 87, 71, 0.16);
-      box-shadow: -18px 0 44px rgba(39, 23, 14, 0.16);
+      background:
+        linear-gradient(180deg, rgba(7, 12, 24, 0.98), rgba(6, 10, 18, 0.98));
+      border-left: 1px solid rgba(182, 197, 255, 0.12);
+      box-shadow: -18px 0 40px rgba(0, 0, 0, 0.32);
       transform: translateX(100%);
       transition: transform 0.24s ease;
       z-index: 30;
       overflow-y: auto;
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(16px);
     }
 
     .editor.open {
@@ -264,22 +505,12 @@
       font-size: 22px;
     }
 
-    .editor-close {
-      border: 0;
-      border-radius: 14px;
-      padding: 10px 12px;
-      background: rgba(191, 90, 57, 0.12);
-      color: var(--accent-deep);
-      font: inherit;
-      cursor: pointer;
-    }
-
     .panel {
       padding: 18px;
-      border: 1px solid rgba(107, 87, 71, 0.14);
-      border-radius: 22px;
-      background: rgba(255, 251, 246, 0.86);
       margin-bottom: 16px;
+      border-radius: 22px;
+      border: 1px solid rgba(182, 197, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
     }
 
     .panel h3 {
@@ -287,11 +518,13 @@
       font-size: 17px;
     }
 
-    .panel p {
+    .panel p,
+    .manage-empty,
+    .status-note {
       margin: 0 0 14px;
       color: var(--muted);
       font-size: 13px;
-      line-height: 1.7;
+      line-height: 1.8;
     }
 
     .field {
@@ -309,22 +542,22 @@
     .field textarea {
       width: 100%;
       padding: 13px 14px;
-      border: 1px solid rgba(107, 87, 71, 0.2);
       border-radius: 16px;
-      background: rgba(255, 252, 248, 0.96);
-      color: var(--ink);
+      border: 1px solid rgba(182, 197, 255, 0.12);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
       font: inherit;
       outline: none;
     }
 
     .field input:focus,
     .field textarea:focus {
-      border-color: rgba(191, 90, 57, 0.54);
-      box-shadow: 0 0 0 4px rgba(191, 90, 57, 0.12);
+      border-color: rgba(159, 184, 255, 0.42);
+      box-shadow: 0 0 0 4px rgba(159, 184, 255, 0.12);
     }
 
     .field textarea {
-      min-height: 90px;
+      min-height: 96px;
       resize: vertical;
     }
 
@@ -335,51 +568,15 @@
       margin-top: 8px;
     }
 
-    button {
-      border: 0;
-      border-radius: 999px;
-      padding: 12px 16px;
-      background: var(--accent);
-      color: #fffaf3;
-      font: inherit;
-      cursor: pointer;
-      transition: transform 0.18s ease, background 0.18s ease, opacity 0.18s ease;
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      background: var(--accent-deep);
-    }
-
-    button.secondary {
-      background: rgba(255, 251, 246, 0.96);
-      color: var(--ink);
-      border: 1px solid rgba(107, 87, 71, 0.16);
-    }
-
-    button.secondary:hover {
-      background: var(--paper-strong);
-    }
-
-    button.small {
-      padding: 9px 12px;
-      border-radius: 12px;
-    }
-
-    button:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      transform: none;
-    }
-
     .session-line {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       padding: 12px 14px;
+      margin-bottom: 12px;
       border-radius: 16px;
-      background: rgba(255, 248, 240, 0.88);
+      background: rgba(255, 255, 255, 0.05);
       color: var(--muted);
       font-size: 13px;
     }
@@ -391,44 +588,161 @@
 
     .manage-card {
       display: grid;
-      grid-template-columns: 72px minmax(0, 1fr);
+      grid-template-columns: 74px minmax(0, 1fr);
       gap: 12px;
       padding: 12px;
       border-radius: 18px;
-      border: 1px solid rgba(107, 87, 71, 0.14);
-      background: rgba(255, 251, 246, 0.88);
+      border: 1px solid rgba(182, 197, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
     }
 
     .manage-card img {
       display: block;
-      width: 72px;
-      height: 72px;
+      width: 74px;
+      height: 74px;
       object-fit: cover;
       border-radius: 14px;
-      background: #eadfce;
+      background: rgba(255, 255, 255, 0.04);
     }
 
-    .manage-card .field {
-      margin-bottom: 8px;
-    }
-
-    .manage-empty {
+    .status {
+      min-height: 22px;
       color: var(--muted);
       font-size: 13px;
-      line-height: 1.7;
+      line-height: 1.6;
     }
 
-    @media (max-width: 720px) {
+    .loading-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      margin-left: 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .loading-badge::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #9fb8ff;
+      box-shadow: 0 0 14px rgba(159, 184, 255, 0.58);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @media (max-width: 760px) {
       .page {
         width: min(100%, calc(100% - 18px));
       }
 
       .hero {
-        padding: 24px;
+        padding: 26px 22px 22px;
       }
 
       .gallery-card {
         padding: 18px;
+      }
+
+      .gallery {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .plane-2,
+      .plane-3 {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+
+      .tile,
+      .tile img {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+    }
+
+    @keyframes starDrift {
+      from {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(8px);
+      }
+      to {
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes planeGlide {
+      0% {
+        transform: translate3d(14vw, -6px, 0) rotate(-8deg);
+        opacity: 0;
+      }
+      10%,
+      75% {
+        opacity: 1;
+      }
+      100% {
+        transform: translate3d(-126vw, 18px, 0) rotate(4deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes tileReveal {
+      0% {
+        opacity: 0;
+        transform: translateY(26px) scale(0.96);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes trailSweep {
+      0% {
+        transform: translateX(-135%);
+      }
+      100% {
+        transform: translateX(135%);
+      }
+    }
+
+    @keyframes tilePlaneFly {
+      0% {
+        opacity: 0;
+        transform: translate(-8px, 6px) rotate(-14deg);
+      }
+      18% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 0;
+        transform: translate(250px, -12px) rotate(8deg);
+      }
+    }
+
+    @keyframes pulse {
+      0%,
+      100% {
+        transform: scale(0.95);
+        opacity: 0.7;
+      }
+      50% {
+        transform: scale(1.15);
+        opacity: 1;
       }
     }
   </style>
@@ -436,24 +750,45 @@
 <body>
   <main class="page">
     <section class="hero">
-      <h1 id="wallTitle">照片墙</h1>
-      <p class="hero-subtitle" id="wallSubtitle">轻触钥匙扣，打开这一页。</p>
-      <p class="hero-description" id="wallDescription">标题区域连续点三下，可以进入隐藏编辑面板。</p>
-      <div class="tap-target" id="tapTarget">标题区域连点三下进入编辑</div>
-      <div>
+      <div class="hero-planes" aria-hidden="true">
+        <div class="plane plane-1">
+          <svg viewBox="0 0 74 30" aria-hidden="true"><path d="M2 14.5 72 1l-15.5 13.7 15.5 14.3-27.2-10.5-12.9 8.9 5.2-11.5L2 14.5Z"/></svg>
+        </div>
+        <div class="plane plane-2">
+          <svg viewBox="0 0 74 30" aria-hidden="true"><path d="M2 14.5 72 1l-15.5 13.7 15.5 14.3-27.2-10.5-12.9 8.9 5.2-11.5L2 14.5Z"/></svg>
+        </div>
+        <div class="plane plane-3">
+          <svg viewBox="0 0 74 30" aria-hidden="true"><path d="M2 14.5 72 1l-15.5 13.7 15.5 14.3-27.2-10.5-12.9 8.9 5.2-11.5L2 14.5Z"/></svg>
+        </div>
+      </div>
+
+      <div class="hero-copy">
+        <div class="eyebrow">Midnight Wall</div>
+        <h1 id="wallTitle">星空照片墙</h1>
+        <p class="hero-subtitle" id="wallSubtitle">轻触钥匙扣，像拆开一封晚到的情书。</p>
+        <p class="hero-description" id="wallDescription">标题区域连续点三下，会打开隐藏编辑面板。你可以在手机上继续上传照片，照片会同步给之后碰到 NFC 的所有人。</p>
+      </div>
+
+      <div class="hero-actions">
+        <div class="secret-trigger" id="tapTarget" role="button" tabindex="0" aria-label="连续点三下进入编辑">
+          <strong>隐藏入口</strong>
+          <span>标题区域连点三下进入编辑</span>
+        </div>
         <button class="music-toggle" id="musicToggle" type="button" hidden>播放背景音乐</button>
       </div>
+
       <div class="notice" id="setupNotice">
-        这个页面还没有接入 Supabase。先按文件夹里的《云端照片墙搭建说明》填入项目地址和匿名 Key，再部署到 GitHub Pages。
+        这个页面还没有完成 Supabase 配置。先把项目地址和 Publishable Key 填进配置，再重新发布到 GitHub Pages。
       </div>
     </section>
 
     <section class="gallery-card">
       <div class="gallery-head">
         <div>
-          <h2>照片墙</h2>
+          <h2>今夜照片墙</h2>
           <p id="countText">当前 0 张</p>
         </div>
+        <div class="loading-badge" id="loadingBadge" hidden>图片正在靠近</div>
       </div>
 
       <div class="status" id="statusText">等待加载。</div>
@@ -471,15 +806,15 @@
 
   <aside class="editor" id="editorPanel" aria-hidden="true">
     <div class="editor-head">
-      <h2>编辑面板</h2>
+      <h2>隐藏编辑面板</h2>
       <button class="editor-close" id="closeEditor" type="button">关闭</button>
     </div>
 
     <section class="panel">
       <h3>管理员登录</h3>
-      <p>这个面板只在你点标题区域三下后出现。建议在 Supabase 里关闭公开注册，只保留你自己的管理员账号。</p>
+      <p>建议只保留你自己的管理员账号，并在 Supabase 里关闭公开注册。这样别人就算知道入口，也无法编辑你的照片墙。</p>
 
-      <div class="session-line" id="sessionLine">
+      <div class="session-line">
         <span id="sessionText">未登录</span>
         <button class="secondary small" id="signOutBtn" type="button" hidden>退出</button>
       </div>
@@ -501,8 +836,8 @@
     </section>
 
     <section class="panel">
-      <h3>相册文案</h3>
-      <p>这里改的是照片墙标题、说明和背景音乐链接。保存后，别人再次碰 NFC 也会看到最新内容。</p>
+      <h3>文案与音乐</h3>
+      <p>这里改的是页面标题、副标题、说明文字和背景音乐链接。保存后，别人再次碰 NFC 也会看到最新内容。</p>
 
       <div class="field">
         <label for="titleInput">标题</label>
@@ -517,18 +852,18 @@
         <textarea id="descriptionInput" maxlength="240"></textarea>
       </div>
       <div class="field">
-        <label for="musicInput">背景音乐直链（可选）</label>
+        <label for="musicInput">背景音乐直链</label>
         <input id="musicInput" type="url" placeholder="https://example.com/music.mp3">
       </div>
       <div class="row">
-        <button id="saveSettingsBtn" type="button">保存文案</button>
+        <button id="saveSettingsBtn" type="button">保存设置</button>
       </div>
       <div class="status" id="settingsStatus"></div>
     </section>
 
     <section class="panel">
       <h3>上传照片</h3>
-      <p>登录后可以直接在手机上加图。上传完成后，照片墙会自动刷新。</p>
+      <p>上传前会自动在浏览器里压缩图片，默认将长边限制到 1600 像素并转成 WebP，这样上传和加载都会明显更快。旧图不会自动变小，想加速需要重新上传旧图。</p>
 
       <div class="field">
         <label for="uploadInput">选择图片</label>
@@ -537,12 +872,13 @@
       <div class="row">
         <button id="uploadBtn" type="button">上传到云端</button>
       </div>
+      <div class="status-note" id="uploadMeta">推荐单张原图控制在 10MB 以内。</div>
       <div class="status" id="uploadStatus"></div>
     </section>
 
     <section class="panel">
       <h3>管理现有图片</h3>
-      <p>你可以改图片标题、调整前后顺序，或者直接删除。</p>
+      <p>你可以改图片标题、调整顺序或直接删除。顺序调整后，照片墙的出场顺序也会跟着变化。</p>
       <div class="manage-list" id="manageList"></div>
       <div class="manage-empty" id="manageEmpty">还没有图片。</div>
       <div class="status" id="manageStatus"></div>
@@ -557,23 +893,27 @@
       SUPABASE_ANON_KEY: "sb_publishable_BZMrBawoq266rDTBEcIXRQ_yCrQPJ8C",
       ALBUM_SLUG: "main",
       IMAGES_BUCKET: "wall-images",
+      MAX_UPLOAD_EDGE: 1600,
+      UPLOAD_QUALITY: 0.82,
+      REVEAL_STEP_MS: 140,
     };
 
     const DEFAULT_SETTINGS = {
-      title: "照片墙",
-      subtitle: "轻触钥匙扣，打开这一页。",
-      description: "标题区域连续点三下，可以进入隐藏编辑面板。",
+      title: "星空照片墙",
+      subtitle: "轻触钥匙扣，像拆开一封晚到的情书。",
+      description: "标题区域连续点三下，会打开隐藏编辑面板。你可以在手机上继续上传照片，照片会同步给之后碰到 NFC 的所有人。",
       music_url: "",
     };
 
-    const wallTitle = document.getElementById("wallTitle");
-    const wallSubtitle = document.getElementById("wallSubtitle");
-    const wallDescription = document.getElementById("wallDescription");
-    const setupNotice = document.getElementById("setupNotice");
     const gallery = document.getElementById("gallery");
     const emptyState = document.getElementById("emptyState");
     const countText = document.getElementById("countText");
     const statusText = document.getElementById("statusText");
+    const loadingBadge = document.getElementById("loadingBadge");
+    const setupNotice = document.getElementById("setupNotice");
+    const wallTitle = document.getElementById("wallTitle");
+    const wallSubtitle = document.getElementById("wallSubtitle");
+    const wallDescription = document.getElementById("wallDescription");
     const tapTarget = document.getElementById("tapTarget");
     const musicToggle = document.getElementById("musicToggle");
     const editorPanel = document.getElementById("editorPanel");
@@ -581,12 +921,12 @@
     const lightbox = document.getElementById("lightbox");
     const lightboxImage = document.getElementById("lightboxImage");
     const lightboxCaption = document.getElementById("lightboxCaption");
+    const sessionText = document.getElementById("sessionText");
+    const signOutBtn = document.getElementById("signOutBtn");
     const loginForm = document.getElementById("loginForm");
     const emailInput = document.getElementById("emailInput");
     const passwordInput = document.getElementById("passwordInput");
     const authStatus = document.getElementById("authStatus");
-    const sessionText = document.getElementById("sessionText");
-    const signOutBtn = document.getElementById("signOutBtn");
     const titleInput = document.getElementById("titleInput");
     const subtitleInput = document.getElementById("subtitleInput");
     const descriptionInput = document.getElementById("descriptionInput");
@@ -601,6 +941,8 @@
     const manageStatus = document.getElementById("manageStatus");
 
     const isConfigured = !CONFIG.SUPABASE_URL.includes("PASTE_") && !CONFIG.SUPABASE_ANON_KEY.includes("PASTE_");
+    const planeSvg = '<svg viewBox="0 0 74 30" aria-hidden="true"><path d="M2 14.5 72 1l-15.5 13.7 15.5 14.3-27.2-10.5-12.9 8.9 5.2-11.5L2 14.5Z"/></svg>';
+
     let supabase = null;
     let currentSession = null;
     let currentSettings = { ...DEFAULT_SETTINGS };
@@ -608,6 +950,7 @@
     let audioElement = null;
     let tapCount = 0;
     let tapTimer = null;
+    let tileObserver = null;
 
     bindUi();
     updateAuthUi();
@@ -624,10 +967,16 @@
     }
 
     function bindUi() {
-      tapTarget.addEventListener("pointerup", onTapTarget);
+      tapTarget.addEventListener("pointerup", onSecretTap);
+      tapTarget.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSecretTap();
+        }
+      });
+      musicToggle.addEventListener("click", toggleMusicPlayback);
       closeEditor.addEventListener("click", closeEditorPanel);
       lightbox.addEventListener("click", closeLightbox);
-      musicToggle.addEventListener("click", toggleMusicPlayback);
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
           closeEditorPanel();
@@ -656,7 +1005,6 @@
         passwordInput.value = "";
         setAuthStatus("登录成功。");
         await refreshSession();
-        await loadWall();
       });
 
       signOutBtn.addEventListener("click", async () => {
@@ -673,12 +1021,12 @@
       uploadBtn.addEventListener("click", uploadImages);
     }
 
-    function onTapTarget() {
+    function onSecretTap() {
       tapCount += 1;
       clearTimeout(tapTimer);
       tapTimer = setTimeout(() => {
         tapCount = 0;
-      }, 650);
+      }, 700);
 
       if (tapCount >= 3) {
         tapCount = 0;
@@ -729,7 +1077,8 @@
         return;
       }
 
-      setPageStatus("正在加载照片墙...");
+      loadingBadge.hidden = false;
+      setPageStatus("正在从星空里取回照片...");
 
       const [settingsResult, imagesResult] = await Promise.all([
         supabase
@@ -757,6 +1106,7 @@
       }
 
       if (imagesResult.error) {
+        loadingBadge.hidden = true;
         setPageStatus(`读取图片失败：${imagesResult.error.message}`);
         return;
       }
@@ -768,6 +1118,7 @@
 
       renderGallery();
       renderManageList();
+      loadingBadge.hidden = true;
 
       if (!settingsResult.error) {
         setPageStatus(`已加载 ${currentImages.length} 张图片。`);
@@ -795,6 +1146,7 @@
 
     function syncMusic(url) {
       if (audioElement) {
+        audioElement.pause();
         audioElement.remove();
         audioElement = null;
       }
@@ -824,7 +1176,7 @@
           await audioElement.play();
           musicToggle.textContent = "暂停背景音乐";
         } catch (error) {
-          alert("当前设备阻止了自动播放，请确认音频链接可访问后再试。");
+          window.alert("当前设备阻止了自动播放，请确认音频链接可访问后再试。");
         }
         return;
       }
@@ -838,22 +1190,49 @@
       countText.textContent = `当前 ${currentImages.length} 张`;
       emptyState.hidden = currentImages.length > 0;
 
+      if (tileObserver) {
+        tileObserver.disconnect();
+      }
+
+      tileObserver = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) {
+            continue;
+          }
+          entry.target.classList.add("visible");
+          tileObserver.unobserve(entry.target);
+        }
+      }, { threshold: 0.18 });
+
       currentImages.forEach((image, index) => {
         const tile = document.createElement("article");
         tile.className = "tile";
+        tile.style.setProperty("--reveal-delay", `${Math.min(index, 8) * CONFIG.REVEAL_STEP_MS}ms`);
+
+        const plane = document.createElement("div");
+        plane.className = "tile-plane";
+        plane.innerHTML = planeSvg;
 
         const img = document.createElement("img");
         img.src = image.publicUrl;
         img.alt = image.title || `图片 ${index + 1}`;
         img.loading = "lazy";
+        img.decoding = "async";
+        img.addEventListener("load", () => {
+          tile.classList.add("loaded");
+        }, { once: true });
+        img.addEventListener("error", () => {
+          tile.classList.add("loaded");
+        }, { once: true });
 
         const footer = document.createElement("div");
         footer.className = "tile-footer";
-        footer.textContent = image.title || `图片 ${index + 1}`;
+        footer.innerHTML = `<span>${escapeHtml(image.title || `图片 ${index + 1}`)}</span><i class="tile-dot" aria-hidden="true"></i>`;
 
-        tile.append(img, footer);
+        tile.append(plane, img, footer);
         tile.addEventListener("click", () => openLightbox(image, index));
         gallery.appendChild(tile);
+        tileObserver.observe(tile);
       });
     }
 
@@ -883,6 +1262,7 @@
         const preview = document.createElement("img");
         preview.src = image.publicUrl;
         preview.alt = image.title || `图片 ${index + 1}`;
+        preview.loading = "lazy";
 
         const right = document.createElement("div");
 
@@ -952,7 +1332,7 @@
 
     async function saveSettings() {
       if (!currentSession?.user) {
-        setSettingsStatus("先登录，再保存文案。");
+        setSettingsStatus("先登录，再保存设置。");
         return;
       }
 
@@ -973,7 +1353,7 @@
 
       currentSettings = payload;
       setWallSettings(payload);
-      setSettingsStatus("文案已保存。");
+      setSettingsStatus("设置已保存。");
     }
 
     async function uploadImages() {
@@ -988,14 +1368,16 @@
         return;
       }
 
-      setUploadStatus("正在上传...");
       const baseOrder = currentImages.length ? Math.max(...currentImages.map((item) => item.sort_order || 0)) + 1 : 1;
+      setUploadStatus(`准备上传 ${files.length} 张图片...`);
 
       for (const [offset, file] of files.entries()) {
-        const filePath = `${CONFIG.ALBUM_SLUG}/${Date.now()}-${crypto.randomUUID()}-${sanitizeFileName(file.name)}`;
+        setUploadStatus(`正在压缩并上传第 ${offset + 1} / ${files.length} 张...`);
+        const prepared = await prepareUploadFile(file);
+        const filePath = `${CONFIG.ALBUM_SLUG}/${Date.now()}-${crypto.randomUUID()}-${sanitizeFileName(prepared.name)}`;
 
-        const uploadResult = await supabase.storage.from(CONFIG.IMAGES_BUCKET).upload(filePath, file, {
-          cacheControl: "3600",
+        const uploadResult = await supabase.storage.from(CONFIG.IMAGES_BUCKET).upload(filePath, prepared, {
+          cacheControl: "31536000",
           upsert: false,
         });
 
@@ -1021,6 +1403,75 @@
       uploadInput.value = "";
       setUploadStatus(`已上传 ${files.length} 张图片。`);
       await loadWall();
+    }
+
+    async function prepareUploadFile(file) {
+      if (!file.type.startsWith("image/")) {
+        return file;
+      }
+
+      if (file.type === "image/gif" || file.type === "image/svg+xml") {
+        return file;
+      }
+
+      try {
+        const bitmap = await loadBitmap(file);
+        const { width, height } = fitSize(bitmap.width, bitmap.height, CONFIG.MAX_UPLOAD_EDGE);
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const context = canvas.getContext("2d", { alpha: true });
+        context.drawImage(bitmap, 0, 0, width, height);
+        if (typeof bitmap.close === "function") {
+          bitmap.close();
+        }
+
+        const blob = await canvasToBlob(canvas, "image/webp", CONFIG.UPLOAD_QUALITY);
+        if (!blob || blob.size >= file.size * 0.98) {
+          return file;
+        }
+
+        const baseName = file.name.replace(/\.[^.]+$/, "") || "photo";
+        return new File([blob], `${baseName}.webp`, {
+          type: "image/webp",
+          lastModified: Date.now(),
+        });
+      } catch (error) {
+        console.warn("Image compression skipped:", error);
+        return file;
+      }
+    }
+
+    async function loadBitmap(file) {
+      if (typeof createImageBitmap === "function") {
+        return createImageBitmap(file);
+      }
+
+      const image = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      image.src = objectUrl;
+      await image.decode();
+      URL.revokeObjectURL(objectUrl);
+      return image;
+    }
+
+    function fitSize(width, height, maxEdge) {
+      const longest = Math.max(width, height);
+      if (longest <= maxEdge) {
+        return { width, height };
+      }
+
+      const scale = maxEdge / longest;
+      return {
+        width: Math.max(1, Math.round(width * scale)),
+        height: Math.max(1, Math.round(height * scale)),
+      };
+    }
+
+    function canvasToBlob(canvas, type, quality) {
+      return new Promise((resolve) => {
+        canvas.toBlob(resolve, type, quality);
+      });
     }
 
     async function updateImage(id, patch, successMessage) {
@@ -1102,6 +1553,15 @@
 
     function sanitizeFileName(name) {
       return name.replace(/[^a-zA-Z0-9._-]/g, "-");
+    }
+
+    function escapeHtml(value) {
+      return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
     }
 
     function setPageStatus(message) {
