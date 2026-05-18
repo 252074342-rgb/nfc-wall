@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>照片墙</title>
+  <title></title>
   <style>
     :root {
       --bg: #02050b;
@@ -686,6 +686,7 @@
     let tapCount = 0;
     let tapTimer = null;
     let pendingLightboxTimeout = 0;
+    let longPressTimer = 0;
 
     init();
 
@@ -700,6 +701,10 @@
 
     function bindUi() {
       stage.addEventListener("pointerup", onStageTap, { passive: true });
+      stage.addEventListener("pointerdown", onStagePressStart, { passive: true });
+      stage.addEventListener("pointermove", onStagePressEnd, { passive: true });
+      stage.addEventListener("pointercancel", onStagePressEnd, { passive: true });
+      stage.addEventListener("pointerleave", onStagePressEnd, { passive: true });
       topRail.addEventListener("scroll", requestRevealSweep, { passive: true });
       bottomRail.addEventListener("scroll", requestRevealSweep, { passive: true });
       window.addEventListener("resize", requestRevealSweep);
@@ -757,8 +762,31 @@
       if (tapCount >= 3) {
         tapCount = 0;
         cancelPendingLightbox();
+        onStagePressEnd();
         openEditorPanel();
       }
+    }
+
+    function onStagePressStart(event) {
+      if (editorPanel.contains(event.target) || lightbox.contains(event.target)) {
+        return;
+      }
+
+      onStagePressEnd();
+      longPressTimer = window.setTimeout(() => {
+        longPressTimer = 0;
+        tapCount = 0;
+        cancelPendingLightbox();
+        openEditorPanel();
+      }, 650);
+    }
+
+    function onStagePressEnd() {
+      if (!longPressTimer) {
+        return;
+      }
+      window.clearTimeout(longPressTimer);
+      longPressTimer = 0;
     }
 
     function openEditorPanel() {
