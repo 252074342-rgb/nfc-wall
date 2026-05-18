@@ -2,43 +2,42 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>星空照片墙</title>
   <style>
     :root {
-      --bg: #030712;
-      --bg-deep: #02040a;
-      --panel: rgba(9, 15, 27, 0.72);
-      --panel-strong: rgba(12, 20, 38, 0.92);
-      --line: rgba(162, 180, 255, 0.14);
-      --text: #eef2ff;
-      --muted: #a4b0d2;
-      --accent: #9fb8ff;
-      --accent-strong: #f6b2ff;
-      --gold: #ffd6a8;
-      --shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
-      --radius: 28px;
+      --bg: #02050b;
+      --panel: rgba(8, 13, 24, 0.78);
+      --panel-strong: rgba(10, 16, 30, 0.94);
+      --line: rgba(175, 194, 255, 0.14);
+      --text: #f0f4ff;
+      --muted: #a1afd8;
+      --accent: #9ab5ff;
+      --accent-2: #f3aff7;
+      --glow: rgba(154, 181, 255, 0.34);
+      --radius: 26px;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.48);
     }
 
     * {
       box-sizing: border-box;
     }
 
-    html {
-      scroll-behavior: smooth;
+    html,
+    body {
+      height: 100%;
     }
 
     body {
       margin: 0;
-      min-height: 100vh;
+      overflow: hidden;
       color: var(--text);
       font-family: "Trebuchet MS", "Microsoft YaHei", "PingFang SC", sans-serif;
       background:
-        radial-gradient(circle at 18% 18%, rgba(108, 131, 255, 0.16), transparent 28%),
-        radial-gradient(circle at 82% 22%, rgba(241, 126, 255, 0.12), transparent 24%),
-        radial-gradient(circle at 50% 90%, rgba(86, 139, 255, 0.08), transparent 30%),
-        linear-gradient(180deg, #030712 0%, #050915 55%, #02040a 100%);
-      overflow-x: hidden;
+        radial-gradient(circle at 18% 18%, rgba(97, 122, 255, 0.16), transparent 28%),
+        radial-gradient(circle at 82% 22%, rgba(244, 149, 255, 0.1), transparent 24%),
+        radial-gradient(circle at 50% 110%, rgba(101, 144, 255, 0.08), transparent 34%),
+        linear-gradient(180deg, #03060d 0%, #02050a 52%, #010207 100%);
     }
 
     body::before,
@@ -52,301 +51,107 @@
 
     body::before {
       background-image:
-        radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.95) 0 1.2px, transparent 1.4px),
-        radial-gradient(circle at 24% 72%, rgba(255, 255, 255, 0.75) 0 1.3px, transparent 1.5px),
-        radial-gradient(circle at 41% 34%, rgba(255, 255, 255, 0.85) 0 1px, transparent 1.3px),
-        radial-gradient(circle at 59% 18%, rgba(255, 255, 255, 0.8) 0 1.2px, transparent 1.5px),
-        radial-gradient(circle at 76% 62%, rgba(255, 255, 255, 0.78) 0 1.2px, transparent 1.5px),
-        radial-gradient(circle at 89% 27%, rgba(255, 255, 255, 0.88) 0 1px, transparent 1.3px),
-        radial-gradient(circle at 73% 85%, rgba(255, 255, 255, 0.66) 0 1.2px, transparent 1.4px),
-        radial-gradient(circle at 14% 88%, rgba(255, 255, 255, 0.7) 0 1px, transparent 1.2px);
-      animation: starDrift 22s linear infinite;
-      opacity: 0.85;
+        radial-gradient(circle at 8% 14%, rgba(255, 255, 255, 0.94) 0 1.2px, transparent 1.4px),
+        radial-gradient(circle at 21% 68%, rgba(255, 255, 255, 0.78) 0 1.1px, transparent 1.4px),
+        radial-gradient(circle at 33% 28%, rgba(255, 255, 255, 0.86) 0 1px, transparent 1.3px),
+        radial-gradient(circle at 48% 18%, rgba(255, 255, 255, 0.74) 0 1.2px, transparent 1.5px),
+        radial-gradient(circle at 63% 62%, rgba(255, 255, 255, 0.72) 0 1.2px, transparent 1.5px),
+        radial-gradient(circle at 78% 24%, rgba(255, 255, 255, 0.86) 0 1.1px, transparent 1.4px),
+        radial-gradient(circle at 88% 76%, rgba(255, 255, 255, 0.7) 0 1.2px, transparent 1.4px),
+        radial-gradient(circle at 15% 88%, rgba(255, 255, 255, 0.7) 0 1px, transparent 1.2px);
+      animation: starsFloat 20s linear infinite;
+      opacity: 0.9;
     }
 
     body::after {
       background:
-        radial-gradient(circle at 50% 0%, rgba(164, 194, 255, 0.08), transparent 38%),
-        radial-gradient(circle at 50% 110%, rgba(255, 179, 240, 0.05), transparent 34%);
-      filter: blur(30px);
+        radial-gradient(circle at 50% 50%, rgba(151, 180, 255, 0.07), transparent 34%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0) 46%, rgba(137, 162, 255, 0.08) 50%, rgba(255, 255, 255, 0) 54%);
+      filter: blur(18px);
     }
 
-    .page {
+    .stage {
       position: relative;
       z-index: 1;
-      width: min(1180px, calc(100% - 28px));
-      margin: 24px auto 54px;
+      height: 100svh;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) clamp(180px, 24vh, 250px) minmax(0, 1fr);
+      gap: 10px;
+      padding: 16px;
     }
 
-    .hero {
+    .rail-shell {
+      min-height: 0;
       position: relative;
       overflow: hidden;
-      padding: 34px 34px 30px;
-      border-radius: 36px;
-      border: 1px solid var(--line);
+      border: 1px solid rgba(175, 194, 255, 0.08);
+      border-radius: 32px;
       background:
-        linear-gradient(145deg, rgba(10, 16, 30, 0.88), rgba(7, 11, 22, 0.78)),
-        linear-gradient(180deg, rgba(159, 184, 255, 0.07), transparent 56%);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
-      isolation: isolate;
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
+        rgba(8, 13, 24, 0.3);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(10px);
     }
 
-    .hero::before {
+    .rail-shell.top::after,
+    .rail-shell.bottom::after {
       content: "";
       position: absolute;
-      inset: auto -120px -120px auto;
-      width: 320px;
-      height: 320px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(152, 180, 255, 0.16), rgba(152, 180, 255, 0));
-      z-index: -1;
-    }
-
-    .hero-copy {
-      max-width: 760px;
-    }
-
-    .eyebrow {
-      display: inline-flex;
-      padding: 8px 12px;
-      border-radius: 999px;
-      border: 1px solid rgba(182, 197, 255, 0.18);
-      background: rgba(255, 255, 255, 0.04);
-      color: #c9d5ff;
-      font-size: 12px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      margin: 14px 0 10px;
-      font-size: clamp(38px, 6vw, 72px);
-      line-height: 0.96;
-      letter-spacing: -0.05em;
-      text-wrap: balance;
-    }
-
-    .hero-subtitle {
-      margin: 0;
-      max-width: 40rem;
-      color: #dae4ff;
-      font-size: 17px;
-      line-height: 1.75;
-    }
-
-    .hero-description {
-      margin: 14px 0 0;
-      max-width: 42rem;
-      color: var(--muted);
-      font-size: 15px;
-      line-height: 1.9;
-      white-space: pre-wrap;
-    }
-
-    .hero-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 22px;
-      align-items: center;
-    }
-
-    .secret-trigger {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
-      border-radius: 999px;
-      border: 1px solid rgba(182, 197, 255, 0.16);
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--muted);
-      font-size: 13px;
-      user-select: none;
-      -webkit-user-select: none;
-      touch-action: manipulation;
-      cursor: pointer;
-    }
-
-    .secret-trigger strong {
-      color: #edf1ff;
-      font-weight: 600;
-    }
-
-    .music-toggle,
-    button {
-      border: 0;
-      border-radius: 999px;
-      padding: 12px 16px;
-      background: linear-gradient(135deg, #93afff, #f2aaf7);
-      color: #07101f;
-      font: inherit;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 12px 28px rgba(147, 175, 255, 0.22);
-      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
-    }
-
-    .music-toggle:hover,
-    button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 16px 34px rgba(147, 175, 255, 0.28);
-    }
-
-    button.secondary,
-    .editor-close {
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text);
-      border: 1px solid rgba(182, 197, 255, 0.14);
-      box-shadow: none;
-    }
-
-    button.small {
-      padding: 9px 12px;
-      font-size: 13px;
-    }
-
-    button:disabled,
-    .music-toggle:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .notice,
-    .status-box {
-      margin-top: 18px;
-      padding: 14px 16px;
-      border-radius: 18px;
-      border: 1px solid rgba(182, 197, 255, 0.14);
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--muted);
-      line-height: 1.8;
-      font-size: 14px;
-    }
-
-    .hero-planes {
-      position: absolute;
-      inset: 0;
+      inset: auto 0 0 0;
+      height: 28%;
+      background: linear-gradient(180deg, rgba(2, 5, 11, 0), rgba(2, 5, 11, 0.62));
       pointer-events: none;
     }
 
-    .plane {
-      position: absolute;
-      width: 74px;
-      height: 30px;
-      opacity: 0;
-      filter: drop-shadow(0 4px 12px rgba(120, 142, 255, 0.16));
-      animation: planeGlide linear infinite;
+    .rail-shell.top::after {
+      inset: 0 0 auto 0;
+      background: linear-gradient(180deg, rgba(2, 5, 11, 0.62), rgba(2, 5, 11, 0));
     }
 
-    .plane svg {
-      width: 100%;
+    .rail {
       height: 100%;
-      fill: rgba(241, 246, 255, 0.92);
-    }
-
-    .plane::after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: -160px;
-      width: 170px;
-      height: 1px;
-      background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(173, 199, 255, 0.75), rgba(255, 255, 255, 0));
-      transform: translateY(-50%);
-      opacity: 0.7;
-    }
-
-    .plane-1 {
-      top: 10%;
-      right: -100px;
-      animation-duration: 15s;
-      animation-delay: 0s;
-    }
-
-    .plane-2 {
-      top: 38%;
-      right: -120px;
-      width: 88px;
-      animation-duration: 18s;
-      animation-delay: 4s;
-    }
-
-    .plane-3 {
-      top: 72%;
-      right: -110px;
-      width: 64px;
-      animation-duration: 13s;
-      animation-delay: 8s;
-    }
-
-    .gallery-card {
-      margin-top: 24px;
-      padding: 22px;
-      border-radius: var(--radius);
-      border: 1px solid var(--line);
-      background: var(--panel);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
-    }
-
-    .gallery-head {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 18px;
-    }
-
-    .gallery-head h2 {
-      margin: 0;
-      font-size: 24px;
-      letter-spacing: -0.02em;
-    }
-
-    .gallery-head p,
-    .status {
-      margin: 0;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap: 18px;
+      padding: 22px 26px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x proximity;
+      scrollbar-width: none;
     }
 
-    .empty {
-      padding: 42px 26px;
-      border-radius: 24px;
-      border: 1px dashed rgba(182, 197, 255, 0.18);
-      background: rgba(255, 255, 255, 0.03);
-      text-align: center;
-      color: var(--muted);
-      line-height: 1.8;
+    .rail::-webkit-scrollbar {
+      display: none;
     }
 
     .tile {
-      --reveal-delay: 0ms;
+      --tilt: 0deg;
+      --delay: 0ms;
+      flex: 0 0 clamp(160px, 18vw, 220px);
       position: relative;
       overflow: hidden;
       border-radius: 24px;
-      border: 1px solid rgba(184, 201, 255, 0.12);
-      background:
-        linear-gradient(180deg, rgba(11, 18, 31, 0.84), rgba(7, 10, 21, 0.98));
-      box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
+      border: 1px solid rgba(188, 204, 255, 0.12);
+      background: linear-gradient(180deg, rgba(10, 15, 26, 0.88), rgba(5, 9, 18, 0.98));
+      box-shadow: 0 18px 38px rgba(0, 0, 0, 0.32);
       cursor: pointer;
+      transform: translateY(26px) rotate(var(--tilt)) scale(0.96);
       opacity: 0;
-      transform: translateY(26px) scale(0.96);
-      will-change: opacity, transform;
+      scroll-snap-align: center;
+      will-change: transform, opacity;
+    }
+
+    .top .tile {
+      --tilt: -1.6deg;
+    }
+
+    .bottom .tile {
+      --tilt: 1.6deg;
     }
 
     .tile.visible {
-      animation: tileReveal 1.15s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
-      animation-delay: var(--reveal-delay);
+      animation: tileRise 1.1s cubic-bezier(0.21, 0.72, 0.23, 1) forwards;
+      animation-delay: var(--delay);
     }
 
     .tile::before {
@@ -354,9 +159,9 @@
       position: absolute;
       inset: 0;
       background:
-        linear-gradient(110deg, rgba(255, 255, 255, 0) 8%, rgba(140, 167, 255, 0.16) 38%, rgba(255, 255, 255, 0) 66%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0));
-      transform: translateX(-135%);
+        linear-gradient(108deg, rgba(255, 255, 255, 0) 12%, rgba(149, 178, 255, 0.18) 38%, rgba(255, 255, 255, 0) 66%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0));
+      transform: translateX(-140%);
       opacity: 0;
       z-index: 2;
       pointer-events: none;
@@ -364,8 +169,8 @@
 
     .tile.visible::before {
       opacity: 1;
-      animation: trailSweep 1.05s ease-out forwards;
-      animation-delay: var(--reveal-delay);
+      animation: trailSweep 1s ease-out forwards;
+      animation-delay: var(--delay);
     }
 
     .tile-plane {
@@ -377,18 +182,18 @@
       z-index: 3;
       opacity: 0;
       pointer-events: none;
-      filter: drop-shadow(0 4px 10px rgba(151, 176, 255, 0.26));
+      filter: drop-shadow(0 4px 10px rgba(151, 180, 255, 0.28));
     }
 
     .tile-plane svg {
       width: 100%;
       height: 100%;
-      fill: rgba(244, 247, 255, 0.95);
+      fill: rgba(245, 247, 255, 0.95);
     }
 
     .tile.visible .tile-plane {
-      animation: tilePlaneFly 1.15s ease-out forwards;
-      animation-delay: var(--reveal-delay);
+      animation: tilePlaneFly 1.1s ease-out forwards;
+      animation-delay: var(--delay);
     }
 
     .tile img {
@@ -396,10 +201,10 @@
       width: 100%;
       aspect-ratio: 4 / 5;
       object-fit: cover;
-      background: linear-gradient(180deg, #10192b, #070d18);
+      background: linear-gradient(180deg, #11192a, #070d17);
       opacity: 0;
       transform: scale(1.04);
-      transition: opacity 0.44s ease, transform 1.2s ease;
+      transition: opacity 0.42s ease, transform 1.1s ease;
     }
 
     .tile.loaded img {
@@ -409,13 +214,13 @@
 
     .tile-footer {
       display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: center;
       gap: 10px;
-      padding: 12px 14px;
+      padding: 11px 13px;
       position: relative;
       z-index: 3;
-      background: linear-gradient(180deg, rgba(9, 14, 26, 0), rgba(7, 11, 22, 0.94) 32%);
+      background: linear-gradient(180deg, rgba(8, 12, 21, 0), rgba(6, 9, 18, 0.95) 34%);
       color: #eef2ff;
       font-size: 13px;
     }
@@ -431,8 +236,223 @@
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: radial-gradient(circle, #fff 0%, #d9c4ff 48%, #90adff 100%);
-      box-shadow: 0 0 16px rgba(159, 184, 255, 0.55);
+      background: radial-gradient(circle, #fff 0%, #d9c5ff 48%, #96b4ff 100%);
+      box-shadow: 0 0 16px rgba(154, 181, 255, 0.52);
+    }
+
+    .runway {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(175, 194, 255, 0.12);
+      border-radius: 36px;
+      background:
+        linear-gradient(180deg, rgba(9, 14, 25, 0.84), rgba(7, 10, 19, 0.92)),
+        linear-gradient(90deg, rgba(154, 181, 255, 0.04), rgba(243, 175, 247, 0.04));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      display: grid;
+      place-items: center;
+      isolation: isolate;
+    }
+
+    .runway::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(165, 191, 255, 0.65), rgba(255, 255, 255, 0));
+      transform: translateY(-50%);
+      opacity: 0.78;
+      z-index: 0;
+    }
+
+    .runway::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at center, rgba(157, 185, 255, 0.08), transparent 28%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0));
+      z-index: 0;
+    }
+
+    .runway-plane {
+      position: absolute;
+      top: 50%;
+      left: -110px;
+      width: 120px;
+      height: 44px;
+      transform: translateY(-50%);
+      z-index: 1;
+      filter: drop-shadow(0 8px 20px rgba(142, 171, 255, 0.34));
+      animation: runwayPlane 12s linear infinite;
+    }
+
+    .runway-plane svg {
+      width: 100%;
+      height: 100%;
+      fill: rgba(245, 248, 255, 0.95);
+    }
+
+    .runway-plane::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: -220px;
+      width: 240px;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(166, 192, 255, 0.82), rgba(255, 255, 255, 0));
+      transform: translateY(-50%);
+      opacity: 0.84;
+    }
+
+    .runway-copy {
+      position: relative;
+      z-index: 2;
+      width: min(900px, calc(100% - 28px));
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(175, 194, 255, 0.14);
+      background: rgba(255, 255, 255, 0.04);
+      color: #cad7ff;
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 14px 0 10px;
+      font-size: clamp(34px, 4.8vw, 66px);
+      line-height: 0.96;
+      letter-spacing: -0.05em;
+      text-wrap: balance;
+    }
+
+    .runway-subtitle {
+      margin: 0;
+      color: #dbe5ff;
+      font-size: clamp(15px, 2vw, 18px);
+      line-height: 1.75;
+    }
+
+    .runway-description {
+      margin: 12px auto 0;
+      max-width: 42rem;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.9;
+      white-space: pre-wrap;
+    }
+
+    .hud {
+      position: absolute;
+      left: 22px;
+      right: 22px;
+      bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 18px;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .hud-left,
+    .hud-right {
+      display: grid;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(175, 194, 255, 0.14);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      font-size: 13px;
+      backdrop-filter: blur(10px);
+    }
+
+    .chip strong {
+      color: var(--text);
+    }
+
+    .status {
+      min-height: 22px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .notice {
+      max-width: 420px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(175, 194, 255, 0.14);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.75;
+      backdrop-filter: blur(12px);
+    }
+
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 18px;
+      pointer-events: auto;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #07101f;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 12px 28px rgba(148, 175, 255, 0.22);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 34px rgba(148, 175, 255, 0.28);
+    }
+
+    button.secondary,
+    .editor-close {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      border: 1px solid rgba(175, 194, 255, 0.14);
+      box-shadow: none;
+    }
+
+    button.small {
+      padding: 9px 12px;
+      font-size: 13px;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
     }
 
     .overlay {
@@ -441,7 +461,7 @@
       display: none;
       place-items: center;
       padding: 18px;
-      background: rgba(2, 4, 10, 0.88);
+      background: rgba(2, 4, 10, 0.9);
       z-index: 24;
       backdrop-filter: blur(10px);
     }
@@ -452,23 +472,23 @@
 
     .overlay figure {
       margin: 0;
-      width: min(980px, 100%);
+      width: min(1080px, 100%);
     }
 
     .overlay img {
       display: block;
       width: 100%;
-      max-height: 78vh;
+      max-height: 80vh;
       object-fit: contain;
       border-radius: 28px;
       background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(182, 197, 255, 0.12);
+      border: 1px solid rgba(175, 194, 255, 0.12);
     }
 
     .overlay figcaption {
       margin-top: 12px;
       text-align: center;
-      color: #e9edff;
+      color: #e8edff;
       line-height: 1.7;
     }
 
@@ -477,9 +497,8 @@
       inset: 0 0 0 auto;
       width: min(460px, 100%);
       padding: 18px;
-      background:
-        linear-gradient(180deg, rgba(7, 12, 24, 0.98), rgba(6, 10, 18, 0.98));
-      border-left: 1px solid rgba(182, 197, 255, 0.12);
+      background: linear-gradient(180deg, rgba(7, 12, 24, 0.98), rgba(6, 10, 18, 0.98));
+      border-left: 1px solid rgba(175, 194, 255, 0.12);
       box-shadow: -18px 0 40px rgba(0, 0, 0, 0.32);
       transform: translateX(100%);
       transition: transform 0.24s ease;
@@ -509,7 +528,7 @@
       padding: 18px;
       margin-bottom: 16px;
       border-radius: 22px;
-      border: 1px solid rgba(182, 197, 255, 0.12);
+      border: 1px solid rgba(175, 194, 255, 0.12);
       background: rgba(255, 255, 255, 0.04);
     }
 
@@ -543,7 +562,7 @@
       width: 100%;
       padding: 13px 14px;
       border-radius: 16px;
-      border: 1px solid rgba(182, 197, 255, 0.12);
+      border: 1px solid rgba(175, 194, 255, 0.12);
       background: rgba(255, 255, 255, 0.05);
       color: var(--text);
       font: inherit;
@@ -552,8 +571,8 @@
 
     .field input:focus,
     .field textarea:focus {
-      border-color: rgba(159, 184, 255, 0.42);
-      box-shadow: 0 0 0 4px rgba(159, 184, 255, 0.12);
+      border-color: rgba(154, 181, 255, 0.44);
+      box-shadow: 0 0 0 4px rgba(154, 181, 255, 0.12);
     }
 
     .field textarea {
@@ -592,7 +611,7 @@
       gap: 12px;
       padding: 12px;
       border-radius: 18px;
-      border: 1px solid rgba(182, 197, 255, 0.12);
+      border: 1px solid rgba(175, 194, 255, 0.12);
       background: rgba(255, 255, 255, 0.04);
     }
 
@@ -605,56 +624,36 @@
       background: rgba(255, 255, 255, 0.04);
     }
 
-    .status {
-      min-height: 22px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
-    .loading-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 9px 12px;
-      margin-left: 10px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .loading-badge::before {
-      content: "";
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #9fb8ff;
-      box-shadow: 0 0 14px rgba(159, 184, 255, 0.58);
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-
-    @media (max-width: 760px) {
-      .page {
-        width: min(100%, calc(100% - 18px));
+    @media (max-width: 860px) {
+      .stage {
+        grid-template-rows: minmax(0, 1fr) clamp(220px, 28vh, 290px) minmax(0, 1fr);
+        padding: 12px;
+        gap: 8px;
       }
 
-      .hero {
-        padding: 26px 22px 22px;
+      .hud {
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+        grid-template-columns: 1fr;
+        align-items: start;
       }
 
-      .gallery-card {
-        padding: 18px;
-      }
-
-      .gallery {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+      .rail {
         gap: 14px;
+        padding: 18px 18px;
       }
 
-      .plane-2,
-      .plane-3 {
-        display: none;
+      .tile {
+        flex-basis: clamp(138px, 36vw, 190px);
+      }
+
+      .runway-copy {
+        width: calc(100% - 24px);
+      }
+
+      .action-row {
+        gap: 8px;
       }
     }
 
@@ -673,7 +672,7 @@
       }
     }
 
-    @keyframes starDrift {
+    @keyframes starsFloat {
       from {
         transform: translateY(0);
       }
@@ -685,115 +684,91 @@
       }
     }
 
-    @keyframes planeGlide {
+    @keyframes runwayPlane {
       0% {
-        transform: translate3d(14vw, -6px, 0) rotate(-8deg);
+        transform: translate(-6vw, -50%) rotate(-8deg);
         opacity: 0;
       }
-      10%,
-      75% {
+      8%,
+      76% {
         opacity: 1;
       }
       100% {
-        transform: translate3d(-126vw, 18px, 0) rotate(4deg);
+        transform: translate(112vw, -50%) rotate(5deg);
         opacity: 0;
       }
     }
 
-    @keyframes tileReveal {
+    @keyframes tileRise {
       0% {
         opacity: 0;
-        transform: translateY(26px) scale(0.96);
+        transform: translateY(26px) rotate(var(--tilt)) scale(0.96);
       }
       100% {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateY(0) rotate(var(--tilt)) scale(1);
       }
     }
 
     @keyframes trailSweep {
       0% {
-        transform: translateX(-135%);
+        transform: translateX(-140%);
       }
       100% {
-        transform: translateX(135%);
+        transform: translateX(140%);
       }
     }
 
     @keyframes tilePlaneFly {
       0% {
         opacity: 0;
-        transform: translate(-8px, 6px) rotate(-14deg);
+        transform: translate(-10px, 8px) rotate(-14deg);
       }
       18% {
         opacity: 1;
       }
       100% {
         opacity: 0;
-        transform: translate(250px, -12px) rotate(8deg);
-      }
-    }
-
-    @keyframes pulse {
-      0%,
-      100% {
-        transform: scale(0.95);
-        opacity: 0.7;
-      }
-      50% {
-        transform: scale(1.15);
-        opacity: 1;
+        transform: translate(255px, -10px) rotate(8deg);
       }
     }
   </style>
 </head>
 <body>
-  <main class="page">
-    <section class="hero">
-      <div class="hero-planes" aria-hidden="true">
-        <div class="plane plane-1">
-          <svg viewBox="0 0 74 30" aria-hidden="true"><path d="M2 14.5 72 1l-15.5 13.7 15.5 14.3-27.2-10.5-12.9 8.9 5.2-11.5L2 14.5Z"/></svg>
-        </div>
-        <div class="plane plane-2">
-          <svg viewBox="0 0 74 30" aria-hidden="true"><path d="M2 14.5 72 1l-15.5 13.7 15.5 14.3-27.2-10.5-12.9 8.9 5.2-11.5L2 14.5Z"/></svg>
-        </div>
-        <div class="plane plane-3">
-          <svg viewBox="0 0 74 30" aria-hidden="true"><path d="M2 14.5 72 1l-15.5 13.7 15.5 14.3-27.2-10.5-12.9 8.9 5.2-11.5L2 14.5Z"/></svg>
-        </div>
+  <main class="stage">
+    <section class="rail-shell top">
+      <div class="rail" id="topRail" aria-label="上方照片带"></div>
+    </section>
+
+    <section class="runway">
+      <div class="runway-plane" aria-hidden="true">
+        <svg viewBox="0 0 74 30"><path d="M2 14.5 72 1l-15.5 13.7 15.5 14.3-27.2-10.5-12.9 8.9 5.2-11.5L2 14.5Z"/></svg>
       </div>
 
-      <div class="hero-copy">
+      <div class="runway-copy">
         <div class="eyebrow">Midnight Wall</div>
         <h1 id="wallTitle">星空照片墙</h1>
-        <p class="hero-subtitle" id="wallSubtitle">轻触钥匙扣，像拆开一封晚到的情书。</p>
-        <p class="hero-description" id="wallDescription">标题区域连续点三下，会打开隐藏编辑面板。你可以在手机上继续上传照片，照片会同步给之后碰到 NFC 的所有人。</p>
-      </div>
-
-      <div class="hero-actions">
-        <div class="secret-trigger" id="tapTarget" role="button" tabindex="0" aria-label="连续点三下进入编辑">
-          <strong>隐藏入口</strong>
-          <span>标题区域连点三下进入编辑</span>
+        <p class="runway-subtitle" id="wallSubtitle">轻触钥匙扣，像拆开一封晚到的情书。</p>
+        <p class="runway-description" id="wallDescription">标题区域连续点三下，会打开隐藏编辑面板。你可以在手机上继续上传照片，照片会同步给之后碰到 NFC 的所有人。</p>
+        <div class="action-row">
+          <button class="secondary" id="tapTarget" type="button">连点三下进入编辑</button>
+          <button id="musicToggle" type="button" hidden>播放背景音乐</button>
         </div>
-        <button class="music-toggle" id="musicToggle" type="button" hidden>播放背景音乐</button>
       </div>
 
-      <div class="notice" id="setupNotice">
-        这个页面还没有完成 Supabase 配置。先把项目地址和 Publishable Key 填进配置，再重新发布到 GitHub Pages。
+      <div class="hud">
+        <div class="hud-left">
+          <div class="chip"><strong id="countText">当前 0 张</strong><span id="statusText">等待加载。</span></div>
+          <div class="notice" id="setupNotice">这个页面还没有完成 Supabase 配置。先把项目地址和 Publishable Key 填进配置，再重新发布到 GitHub Pages。</div>
+        </div>
+        <div class="hud-right">
+          <div class="chip">左右滑动上下两条照片带，可以继续浏览更多图片。</div>
+        </div>
       </div>
     </section>
 
-    <section class="gallery-card">
-      <div class="gallery-head">
-        <div>
-          <h2>今夜照片墙</h2>
-          <p id="countText">当前 0 张</p>
-        </div>
-        <div class="loading-badge" id="loadingBadge" hidden>图片正在靠近</div>
-      </div>
-
-      <div class="status" id="statusText">等待加载。</div>
-      <div class="empty" id="emptyState">还没有图片。等你从隐藏编辑面板上传第一张照片。</div>
-      <div class="gallery" id="gallery"></div>
+    <section class="rail-shell bottom">
+      <div class="rail" id="bottomRail" aria-label="下方照片带"></div>
     </section>
   </main>
 
@@ -813,12 +788,10 @@
     <section class="panel">
       <h3>管理员登录</h3>
       <p>建议只保留你自己的管理员账号，并在 Supabase 里关闭公开注册。这样别人就算知道入口，也无法编辑你的照片墙。</p>
-
       <div class="session-line">
         <span id="sessionText">未登录</span>
         <button class="secondary small" id="signOutBtn" type="button" hidden>退出</button>
       </div>
-
       <form id="loginForm">
         <div class="field">
           <label for="emailInput">邮箱</label>
@@ -838,7 +811,6 @@
     <section class="panel">
       <h3>文案与音乐</h3>
       <p>这里改的是页面标题、副标题、说明文字和背景音乐链接。保存后，别人再次碰 NFC 也会看到最新内容。</p>
-
       <div class="field">
         <label for="titleInput">标题</label>
         <input id="titleInput" type="text" maxlength="40">
@@ -863,8 +835,7 @@
 
     <section class="panel">
       <h3>上传照片</h3>
-      <p>上传前会自动在浏览器里压缩图片，默认将长边限制到 1600 像素并转成 WebP，这样上传和加载都会明显更快。旧图不会自动变小，想加速需要重新上传旧图。</p>
-
+      <p>上传前会自动压缩图片。默认将长边限制到 1280 像素，目标大小尽量压到约 900KB 左右，通常会比之前快很多。</p>
       <div class="field">
         <label for="uploadInput">选择图片</label>
         <input id="uploadInput" type="file" accept="image/*" multiple>
@@ -872,13 +843,13 @@
       <div class="row">
         <button id="uploadBtn" type="button">上传到云端</button>
       </div>
-      <div class="status-note" id="uploadMeta">推荐单张原图控制在 10MB 以内。</div>
+      <div class="status-note">旧图片不会自动变快。如果之前已经传了大图，想提速需要删掉后重新上传一次。</div>
       <div class="status" id="uploadStatus"></div>
     </section>
 
     <section class="panel">
       <h3>管理现有图片</h3>
-      <p>你可以改图片标题、调整顺序或直接删除。顺序调整后，照片墙的出场顺序也会跟着变化。</p>
+      <p>你可以改图片标题、调整顺序或直接删除。顺序调整后，上下照片带的排列也会跟着变化。</p>
       <div class="manage-list" id="manageList"></div>
       <div class="manage-empty" id="manageEmpty">还没有图片。</div>
       <div class="status" id="manageStatus"></div>
@@ -893,9 +864,19 @@
       SUPABASE_ANON_KEY: "sb_publishable_BZMrBawoq266rDTBEcIXRQ_yCrQPJ8C",
       ALBUM_SLUG: "main",
       IMAGES_BUCKET: "wall-images",
-      MAX_UPLOAD_EDGE: 1600,
-      UPLOAD_QUALITY: 0.82,
-      REVEAL_STEP_MS: 140,
+      MAX_UPLOAD_EDGE: 1280,
+      TARGET_UPLOAD_BYTES: 900 * 1024,
+      MAX_UPLOAD_QUALITY: 0.76,
+      MIN_UPLOAD_QUALITY: 0.54,
+      REVEAL_STEP_MS: 130,
+      RUNWAY_CYCLE_MS: 12000,
+      RUNWAY_ENTRY_LEAD_MS: 700,
+      USE_IMAGE_TRANSFORMS: false,
+      WALL_IMAGE_WIDTH: 620,
+      WALL_IMAGE_HEIGHT: 760,
+      WALL_IMAGE_QUALITY: 58,
+      LIGHTBOX_IMAGE_WIDTH: 1400,
+      LIGHTBOX_IMAGE_QUALITY: 76,
     };
 
     const DEFAULT_SETTINGS = {
@@ -905,11 +886,12 @@
       music_url: "",
     };
 
-    const gallery = document.getElementById("gallery");
-    const emptyState = document.getElementById("emptyState");
+    const topRail = document.getElementById("topRail");
+    const bottomRail = document.getElementById("bottomRail");
+    const runway = document.querySelector(".runway");
+    const runwayPlane = document.querySelector(".runway-plane");
     const countText = document.getElementById("countText");
     const statusText = document.getElementById("statusText");
-    const loadingBadge = document.getElementById("loadingBadge");
     const setupNotice = document.getElementById("setupNotice");
     const wallTitle = document.getElementById("wallTitle");
     const wallSubtitle = document.getElementById("wallSubtitle");
@@ -950,7 +932,10 @@
     let audioElement = null;
     let tapCount = 0;
     let tapTimer = null;
-    let tileObserver = null;
+    let sourceObserver = null;
+    let runwayCycleStartedAt = performance.now();
+    let revealSweepRaf = 0;
+    let revealTimeouts = [];
 
     bindUi();
     updateAuthUi();
@@ -967,16 +952,13 @@
     }
 
     function bindUi() {
-      tapTarget.addEventListener("pointerup", onSecretTap);
-      tapTarget.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onSecretTap();
-        }
-      });
+      tapTarget.addEventListener("click", onSecretTap);
       musicToggle.addEventListener("click", toggleMusicPlayback);
       closeEditor.addEventListener("click", closeEditorPanel);
       lightbox.addEventListener("click", closeLightbox);
+      topRail.addEventListener("scroll", requestRevealSweep, { passive: true });
+      bottomRail.addEventListener("scroll", requestRevealSweep, { passive: true });
+      window.addEventListener("resize", requestRevealSweep);
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
           closeEditorPanel();
@@ -1077,7 +1059,6 @@
         return;
       }
 
-      loadingBadge.hidden = false;
       setPageStatus("正在从星空里取回照片...");
 
       const [settingsResult, imagesResult] = await Promise.all([
@@ -1106,27 +1087,55 @@
       }
 
       if (imagesResult.error) {
-        loadingBadge.hidden = true;
         setPageStatus(`读取图片失败：${imagesResult.error.message}`);
         return;
       }
 
       currentImages = (imagesResult.data || []).map((item) => ({
         ...item,
-        publicUrl: toPublicUrl(item.file_path),
+        wallUrl: toWallUrl(item.file_path),
+        fullUrl: toFullUrl(item.file_path),
       }));
 
-      renderGallery();
+      renderWall();
       renderManageList();
-      loadingBadge.hidden = true;
 
       if (!settingsResult.error) {
         setPageStatus(`已加载 ${currentImages.length} 张图片。`);
       }
     }
 
-    function toPublicUrl(filePath) {
-      const { data } = supabase.storage.from(CONFIG.IMAGES_BUCKET).getPublicUrl(filePath);
+    function toWallUrl(filePath) {
+      if (!CONFIG.USE_IMAGE_TRANSFORMS) {
+        return getPublicUrl(filePath);
+      }
+
+      return getPublicUrl(filePath, {
+        transform: {
+          width: CONFIG.WALL_IMAGE_WIDTH,
+          height: CONFIG.WALL_IMAGE_HEIGHT,
+          quality: CONFIG.WALL_IMAGE_QUALITY,
+          resize: "cover",
+        },
+      });
+    }
+
+    function toFullUrl(filePath) {
+      if (!CONFIG.USE_IMAGE_TRANSFORMS) {
+        return getPublicUrl(filePath);
+      }
+
+      return getPublicUrl(filePath, {
+        transform: {
+          width: CONFIG.LIGHTBOX_IMAGE_WIDTH,
+          quality: CONFIG.LIGHTBOX_IMAGE_QUALITY,
+          resize: "contain",
+        },
+      });
+    }
+
+    function getPublicUrl(filePath, options) {
+      const { data } = supabase.storage.from(CONFIG.IMAGES_BUCKET).getPublicUrl(filePath, options);
       return data.publicUrl;
     }
 
@@ -1185,55 +1194,157 @@
       musicToggle.textContent = "播放背景音乐";
     }
 
-    function renderGallery() {
-      gallery.innerHTML = "";
+    function renderWall() {
+      topRail.innerHTML = "";
+      bottomRail.innerHTML = "";
       countText.textContent = `当前 ${currentImages.length} 张`;
-      emptyState.hidden = currentImages.length > 0;
 
-      if (tileObserver) {
-        tileObserver.disconnect();
+      if (sourceObserver) {
+        sourceObserver.disconnect();
       }
+      clearRevealTimeouts();
 
-      tileObserver = new IntersectionObserver((entries) => {
+      sourceObserver = new IntersectionObserver((entries) => {
         for (const entry of entries) {
           if (!entry.isIntersecting) {
             continue;
           }
-          entry.target.classList.add("visible");
-          tileObserver.unobserve(entry.target);
+          startTileLoad(entry.target);
+          sourceObserver.unobserve(entry.target);
         }
-      }, { threshold: 0.18 });
+      }, { rootMargin: "220px" });
+
+      if (!currentImages.length) {
+        topRail.innerHTML = '<div class="chip">还没有图片。等你从隐藏编辑面板上传第一张照片。</div>';
+        bottomRail.innerHTML = '<div class="chip">上传后，照片会分布在上方和下方，中间给纸飞机留出飞行通道。</div>';
+        return;
+      }
 
       currentImages.forEach((image, index) => {
-        const tile = document.createElement("article");
-        tile.className = "tile";
-        tile.style.setProperty("--reveal-delay", `${Math.min(index, 8) * CONFIG.REVEAL_STEP_MS}ms`);
-
-        const plane = document.createElement("div");
-        plane.className = "tile-plane";
-        plane.innerHTML = planeSvg;
-
-        const img = document.createElement("img");
-        img.src = image.publicUrl;
-        img.alt = image.title || `图片 ${index + 1}`;
-        img.loading = "lazy";
-        img.decoding = "async";
-        img.addEventListener("load", () => {
-          tile.classList.add("loaded");
-        }, { once: true });
-        img.addEventListener("error", () => {
-          tile.classList.add("loaded");
-        }, { once: true });
-
-        const footer = document.createElement("div");
-        footer.className = "tile-footer";
-        footer.innerHTML = `<span>${escapeHtml(image.title || `图片 ${index + 1}`)}</span><i class="tile-dot" aria-hidden="true"></i>`;
-
-        tile.append(plane, img, footer);
-        tile.addEventListener("click", () => openLightbox(image, index));
-        gallery.appendChild(tile);
-        tileObserver.observe(tile);
+        const tile = createTile(image, index);
+        const targetRail = index % 2 === 0 ? topRail : bottomRail;
+        targetRail.appendChild(tile);
+        sourceObserver.observe(tile);
       });
+
+      restartRunwayCycle();
+    }
+
+    function createTile(image, index) {
+      const tile = document.createElement("article");
+      tile.className = "tile";
+      tile.style.setProperty("--delay", "0ms");
+      tile.dataset.wallSrc = image.wallUrl;
+
+      const plane = document.createElement("div");
+      plane.className = "tile-plane";
+      plane.innerHTML = planeSvg;
+
+      const img = document.createElement("img");
+      img.alt = image.title || `图片 ${index + 1}`;
+      img.decoding = "async";
+      img.loading = "lazy";
+      img.addEventListener("load", () => {
+        tile.classList.add("loaded");
+      }, { once: true });
+      img.addEventListener("error", () => {
+        tile.classList.add("loaded");
+      }, { once: true });
+
+      const footer = document.createElement("div");
+      footer.className = "tile-footer";
+      footer.innerHTML = `<span>${escapeHtml(image.title || `图片 ${index + 1}`)}</span><i class="tile-dot" aria-hidden="true"></i>`;
+
+      tile.append(plane, img, footer);
+      tile.addEventListener("click", () => openLightbox(image, index));
+      return tile;
+    }
+
+    function startTileLoad(tile) {
+      const img = tile.querySelector("img");
+      if (!img || img.src) {
+        return;
+      }
+
+      img.src = tile.dataset.wallSrc;
+    }
+
+    function restartRunwayCycle() {
+      runwayCycleStartedAt = performance.now();
+      runwayPlane.style.animation = "none";
+      void runwayPlane.offsetWidth;
+      runwayPlane.style.animation = "";
+      requestRevealSweep();
+    }
+
+    function requestRevealSweep() {
+      if (revealSweepRaf) {
+        return;
+      }
+
+      revealSweepRaf = requestAnimationFrame(() => {
+        revealSweepRaf = 0;
+        scheduleVisibleReveal();
+      });
+    }
+
+    function scheduleVisibleReveal() {
+      const pendingTiles = [...document.querySelectorAll(".tile")]
+        .filter((tile) => !tile.classList.contains("visible"))
+        .filter((tile) => tile.dataset.revealScheduled !== "1")
+        .filter(isTileVisibleInRail)
+        .sort((left, right) => {
+          const leftRect = left.getBoundingClientRect();
+          const rightRect = right.getBoundingClientRect();
+          return (leftRect.left + leftRect.width / 2) - (rightRect.left + rightRect.width / 2);
+        });
+
+      for (const tile of pendingTiles) {
+        const delay = getDelayUntilPlanePass(tile);
+        tile.dataset.revealScheduled = "1";
+        const timeoutId = window.setTimeout(() => {
+          tile.classList.add("visible");
+          delete tile.dataset.revealScheduled;
+          startTileLoad(tile);
+        }, delay);
+        revealTimeouts.push(timeoutId);
+      }
+    }
+
+    function isTileVisibleInRail(tile) {
+      const rail = tile.parentElement;
+      if (!rail) {
+        return false;
+      }
+
+      const tileRect = tile.getBoundingClientRect();
+      const railRect = rail.getBoundingClientRect();
+      return tileRect.right > railRect.left + 12 && tileRect.left < railRect.right - 12;
+    }
+
+    function getDelayUntilPlanePass(tile) {
+      const tileRect = tile.getBoundingClientRect();
+      const runwayRect = runway.getBoundingClientRect();
+      const centerX = tileRect.left + tileRect.width / 2;
+      const ratio = clamp((centerX - runwayRect.left) / runwayRect.width, 0, 1);
+      const targetElapsed =
+        CONFIG.RUNWAY_ENTRY_LEAD_MS +
+        ratio * (CONFIG.RUNWAY_CYCLE_MS - CONFIG.RUNWAY_ENTRY_LEAD_MS * 2);
+      const elapsed = (performance.now() - runwayCycleStartedAt) % CONFIG.RUNWAY_CYCLE_MS;
+      return elapsed <= targetElapsed
+        ? targetElapsed - elapsed
+        : CONFIG.RUNWAY_CYCLE_MS - elapsed + targetElapsed;
+    }
+
+    function clearRevealTimeouts() {
+      for (const timeoutId of revealTimeouts) {
+        window.clearTimeout(timeoutId);
+      }
+      revealTimeouts = [];
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
     }
 
     function renderManageList() {
@@ -1260,7 +1371,7 @@
         card.className = "manage-card";
 
         const preview = document.createElement("img");
-        preview.src = image.publicUrl;
+        preview.src = image.wallUrl;
         preview.alt = image.title || `图片 ${index + 1}`;
         preview.loading = "lazy";
 
@@ -1324,7 +1435,7 @@
     }
 
     function openLightbox(image, index) {
-      lightboxImage.src = image.publicUrl;
+      lightboxImage.src = image.fullUrl;
       lightboxImage.alt = image.title || `图片 ${index + 1}`;
       lightboxCaption.textContent = image.title || `图片 ${index + 1}`;
       lightbox.classList.add("open");
@@ -1406,28 +1517,44 @@
     }
 
     async function prepareUploadFile(file) {
-      if (!file.type.startsWith("image/")) {
-        return file;
-      }
-
-      if (file.type === "image/gif" || file.type === "image/svg+xml") {
+      if (!file.type.startsWith("image/") || file.type === "image/gif" || file.type === "image/svg+xml") {
         return file;
       }
 
       try {
         const bitmap = await loadBitmap(file);
-        const { width, height } = fitSize(bitmap.width, bitmap.height, CONFIG.MAX_UPLOAD_EDGE);
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const context = canvas.getContext("2d", { alpha: true });
-        context.drawImage(bitmap, 0, 0, width, height);
+        let { width, height } = fitSize(bitmap.width, bitmap.height, CONFIG.MAX_UPLOAD_EDGE);
+        let quality = CONFIG.MAX_UPLOAD_QUALITY;
+        let attempt = 0;
+        let blob = null;
+
+        while (attempt < 5) {
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const context = canvas.getContext("2d", { alpha: true });
+          context.drawImage(bitmap, 0, 0, width, height);
+          blob = await canvasToBlob(canvas, "image/webp", quality);
+
+          if (blob && blob.size <= CONFIG.TARGET_UPLOAD_BYTES) {
+            break;
+          }
+
+          if (quality > CONFIG.MIN_UPLOAD_QUALITY) {
+            quality = Math.max(CONFIG.MIN_UPLOAD_QUALITY, quality - 0.08);
+          } else {
+            width = Math.max(720, Math.round(width * 0.88));
+            height = Math.max(720, Math.round(height * 0.88));
+          }
+
+          attempt += 1;
+        }
+
         if (typeof bitmap.close === "function") {
           bitmap.close();
         }
 
-        const blob = await canvasToBlob(canvas, "image/webp", CONFIG.UPLOAD_QUALITY);
-        if (!blob || blob.size >= file.size * 0.98) {
+        if (!blob || blob.size >= file.size * 0.96) {
           return file;
         }
 
