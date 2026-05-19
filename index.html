@@ -6,28 +6,21 @@
   <title></title>
   <style>
     * { box-sizing: border-box; }
-
     html, body {
       width: 100%; height: 100%; margin: 0; overflow: hidden;
-      background: #060810;
-      color: #eef2ff;
+      background: #060810; color: #eef2ff;
       font-family: "Trebuchet MS", "Microsoft YaHei", "PingFang SC", sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* ── Stage ── */
     .stage {
-      position: relative;
-      width: 100%; height: 100%;
-      overflow: hidden;
-      isolation: isolate;
+      position: relative; width: 100%; height: 100%; overflow: hidden; isolation: isolate;
       background:
         radial-gradient(ellipse at 50% 30%, rgba(77,166,255,0.07), transparent 55%),
         radial-gradient(ellipse at 50% 60%, rgba(240,80,128,0.04), transparent 50%),
         linear-gradient(180deg, #08081a 0%, #0a0c18 50%, #0c0e1a 100%);
     }
 
-    /* Stars */
     .stars {
       position: absolute; inset: 0; pointer-events: none; z-index: 0;
       background-image:
@@ -38,119 +31,113 @@
         radial-gradient(circle at 72% 24%, rgba(255,255,255,0.7) 0 1px, transparent 1.3px),
         radial-gradient(circle at 85% 52%, rgba(255,255,255,0.6) 0 0.9px, transparent 1.1px),
         radial-gradient(circle at 15% 72%, rgba(255,255,255,0.65) 0 0.8px, transparent 1.1px),
-        radial-gradient(circle at 92% 18%, rgba(255,255,255,0.75) 0 1px, transparent 1.2px),
-        radial-gradient(circle at 38% 82%, rgba(255,255,255,0.5) 0 0.9px, transparent 1.1px),
-        radial-gradient(circle at 65% 38%, rgba(255,255,255,0.65) 0 0.8px, transparent 1.1px),
-        radial-gradient(circle at 8% 42%, rgba(255,255,255,0.7) 0 1px, transparent 1.2px),
-        radial-gradient(circle at 48% 88%, rgba(255,255,255,0.5) 0 0.9px, transparent 1.1px);
+        radial-gradient(circle at 92% 18%, rgba(255,255,255,0.75) 0 1px, transparent 1.2px);
       opacity: 0.72;
     }
 
-    /* ── Viewport ── */
-    .viewport {
-      position: absolute;
-      inset: 0;
-      z-index: 3;
-      overflow: hidden;
+    /* ── Camera ── */
+    .camera {
+      position: absolute; inset: 0; z-index: 3; overflow: hidden;
+      perspective: 1000px;
+      transition: transform 0.3s ease;
     }
 
     .track {
-      display: flex;
-      height: 100%;
-      padding: 24px 0;
-      transition: transform 0.55s cubic-bezier(0.25, 0.7, 0.3, 1);
-      will-change: transform;
+      display: flex; height: 100%; padding: 12px 0;
+      transform-style: preserve-3d;
     }
-    .track.instant { transition: none; }
 
-    /* ── Column ── */
+    /* ── Column (always exactly 3) ── */
     .column {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: clamp(60px, 16vh, 110px);
-      padding: 0 6px;
+      flex: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: clamp(70px, 20vh, 130px);
+      padding: 0 4px;
+      transform-style: preserve-3d;
     }
 
     /* ── Cards ── */
     .card {
       position: relative;
-      width: 86%;
-      max-width: 140px;
+      width: 88%; max-width: 150px;
       aspect-ratio: 4 / 5;
-      border-radius: 16px;
-      padding: 5px;
+      border-radius: 16px; padding: 5px;
       background: linear-gradient(180deg,
-        rgba(180,200,240,0.25),
-        rgba(120,150,200,0.18) 30%,
-        rgba(80,110,170,0.22) 60%,
-        rgba(140,170,220,0.2));
+        rgba(180,200,240,0.25), rgba(120,150,200,0.18) 30%,
+        rgba(80,110,170,0.22) 60%, rgba(140,170,220,0.2));
       border: 1.5px solid rgba(190,215,255,0.35);
       box-shadow:
-        0 8px 32px rgba(0,0,0,0.4),
-        0 0 20px rgba(100,160,240,0.12),
+        0 10px 36px rgba(0,0,0,0.42),
+        0 0 22px rgba(100,160,240,0.10),
         inset 0 0 0 1px rgba(255,255,255,0.04);
-      overflow: hidden;
-      cursor: pointer;
+      overflow: hidden; cursor: pointer;
       animation: cardFloat var(--fd, 6s) ease-in-out infinite alternate;
       animation-delay: var(--fdl, 0s);
+      transition: opacity 0.6s, filter 0.6s;
+      will-change: transform;
     }
 
     .card img {
-      display: block;
-      width: 100%; height: 100%;
-      object-fit: cover;
-      border-radius: 12px;
+      display: block; width: 100%; height: 100%;
+      object-fit: cover; border-radius: 12px;
       background: linear-gradient(180deg, #11192a, #070d17);
-      opacity: 0;
       transition: opacity 0.3s ease;
     }
-    .card.loaded img { opacity: 1; }
 
-    /* Card enter animation (overrides float temporarily) */
-    .card.entering {
-      animation: cardEnter 0.5s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+    /* ── Fly-out (left exit) ── */
+    .card.flying-out {
+      animation: cardFlyOut 0.55s ease-in forwards !important;
+      pointer-events: none;
     }
-    .card.entering-done {
+    @keyframes cardFlyOut {
+      0%   { transform: translateX(0) translateZ(0) scale(1); opacity: 1; filter: blur(0); }
+      100% { transform: translateX(-80px) translateZ(-40px) scale(0.5); opacity: 0; filter: blur(6px); }
+    }
+
+    /* ── Fly-in (right enter) ── */
+    .card.flying-in {
+      animation: cardFlyIn 1.4s cubic-bezier(0.16, 0.7, 0.2, 1) forwards !important;
+    }
+    @keyframes cardFlyIn {
+      0%   { transform: translateX(80px) translateZ(-55px) scale(0.5); opacity: 0; filter: blur(7px); }
+      30%  { transform: translateX(40px) translateZ(-25px) scale(0.72); opacity: 0.45; filter: blur(3px); }
+      65%  { transform: translateX(10px) translateZ(-6px) scale(0.93); opacity: 0.88; filter: blur(0px); }
+      100% { transform: translateX(0) translateZ(0) scale(1); opacity: 1; filter: blur(0); }
+    }
+
+    /* ── Float (normal state) ── */
+    .card.floating {
       animation: cardFloat var(--fd, 6s) ease-in-out infinite alternate;
       animation-delay: var(--fdl, 0s);
     }
 
     @keyframes cardFloat {
-      0%   { transform: translateY(0) rotate(-0.5deg); }
-      25%  { transform: translateY(-8px) rotate(0.3deg); }
-      50%  { transform: translateY(-3px) rotate(0.8deg); }
-      75%  { transform: translateY(-10px) rotate(-0.2deg); }
-      100% { transform: translateY(-1px) rotate(-0.6deg); }
+      0%   { transform: translateY(0) rotate(-0.5deg) translateZ(0); }
+      25%  { transform: translateY(-9px) rotate(0.3deg) translateZ(5px); }
+      50%  { transform: translateY(-3px) rotate(0.8deg) translateZ(2px); }
+      75%  { transform: translateY(-11px) rotate(-0.2deg) translateZ(8px); }
+      100% { transform: translateY(-1px) rotate(-0.6deg) translateZ(0); }
     }
 
-    @keyframes cardEnter {
-      from { transform: translateX(30px); opacity: 0; }
-      to   { transform: translateX(0); opacity: 1; }
-    }
-
-    /* Plane flyover highlight */
+    /* ── Plane highlights middle column ── */
     .card.highlighted {
-      border-color: rgba(160,210,255,0.7);
+      border-color: rgba(170,220,255,0.85) !important;
       box-shadow:
-        0 8px 40px rgba(0,0,0,0.4),
-        0 0 35px rgba(140,200,255,0.4),
-        0 0 60px rgba(100,160,240,0.2),
-        inset 0 0 0 1px rgba(255,255,255,0.08);
-      animation: cardFloatStrong var(--fd, 6s) ease-in-out infinite alternate;
-      animation-delay: var(--fdl, 0s);
-      transform: scale(1.06);
-      transition: border-color 0.4s, box-shadow 0.4s, transform 0.4s;
-      z-index: 2;
+        0 10px 44px rgba(0,0,0,0.44),
+        0 0 45px rgba(150,210,255,0.6),
+        0 0 75px rgba(110,170,250,0.35),
+        inset 0 0 0 1px rgba(255,255,255,0.12) !important;
+      z-index: 4; opacity: 1 !important; filter: brightness(1.18) !important;
+      animation: cardFloatStrong var(--fd, 6s) ease-in-out infinite alternate !important;
+      animation-delay: var(--fdl, 0s) !important;
     }
-
     @keyframes cardFloatStrong {
-      0%   { transform: scale(1.06) translateY(0) rotate(-0.8deg); }
-      25%  { transform: scale(1.06) translateY(-14px) rotate(0.5deg); }
-      50%  { transform: scale(1.06) translateY(-5px) rotate(1.2deg); }
-      75%  { transform: scale(1.06) translateY(-16px) rotate(-0.4deg); }
-      100% { transform: scale(1.06) translateY(-2px) rotate(-1deg); }
+      0%   { transform: scale(1.08) translateY(0) rotate(-0.8deg) translateZ(18px); }
+      25%  { transform: scale(1.08) translateY(-16px) rotate(0.5deg) translateZ(24px); }
+      50%  { transform: scale(1.08) translateY(-6px) rotate(1.2deg) translateZ(12px); }
+      75%  { transform: scale(1.08) translateY(-20px) rotate(-0.4deg) translateZ(26px); }
+      100% { transform: scale(1.08) translateY(-3px) rotate(-1deg) translateZ(14px); }
     }
 
     /* ── Plane ── */
@@ -158,72 +145,58 @@
       position: absolute; inset: 0; pointer-events: none; z-index: 5;
     }
     .plane-group {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      animation: planeJourney 12s ease-in-out infinite;
+      position: absolute; top: 50%; transform: translateY(-50%);
+      animation: planeEnter 2s ease-in-out forwards, planeHover 0.9s 2s ease-in-out infinite alternate;
       transform-style: preserve-3d;
     }
     .plane-group svg {
       display: block;
-      width: min(24vw, 120px);
-      height: auto;
-      filter: drop-shadow(0 8px 20px rgba(117,154,255,0.55)) drop-shadow(0 2px 6px rgba(255,255,255,0.25));
-      animation: planeBob 0.8s ease-in-out infinite alternate;
-    }
-    @keyframes planeBob {
-      from { transform: translateY(-3px) rotateX(2deg); }
-      to   { transform: translateY(3px) rotateX(-3deg); }
+      width: min(30vw, 140px); height: auto;
+      filter: drop-shadow(0 8px 22px rgba(117,154,255,0.6)) drop-shadow(0 3px 8px rgba(255,255,255,0.3));
     }
     .plane-trail {
-      position: absolute;
-      top: 50%; transform: translateY(-50%);
-      height: 3px;
-      background: linear-gradient(90deg, transparent 0%, rgba(180,210,255,0.25) 10%, rgba(220,240,255,0.65) 35%, rgba(200,225,255,0.5) 65%, transparent 100%);
-      filter: blur(2.5px);
-      z-index: 4;
-      border-radius: 2px;
-      animation: trailJourney 12s ease-in-out infinite;
+      position: absolute; top: 50%; transform: translateY(-50%); height: 3px;
+      background: linear-gradient(90deg, transparent 0%, rgba(180,210,255,0.2) 10%, rgba(220,240,255,0.7) 40%, rgba(200,225,255,0.45) 70%, transparent 100%);
+      filter: blur(3px); z-index: 4; border-radius: 2px;
+      animation: trailEnter 2s ease-in-out forwards, trailHover 2.5s 2s ease-in-out infinite;
       pointer-events: none;
     }
 
-    @keyframes planeJourney {
-      0%   { left: -20%; transform: translateY(-50%) scale(0.65); opacity: 0; }
-      7%   { opacity: 1; }
-      30%  { left: 38%; transform: translateY(-50%) scale(1.18); opacity: 1; }
-      42%  { left: 40%; transform: translateY(-50%) scale(1.22); opacity: 1; }
-      68%  { left: 40%; transform: translateY(-50%) scale(1.22); opacity: 1; }
-      82%  { left: 68%; transform: translateY(-50%) scale(0.88); opacity: 0.7; }
-      100% { left: 110%; transform: translateY(-50%) scale(0.5); opacity: 0; }
+    @keyframes planeEnter {
+      0%   { left: -22%; transform: translateY(-50%) scale(0.6); opacity: 0; }
+      15%  { opacity: 1; }
+      100% { left: 42%; transform: translateY(-50%) scale(1.2); opacity: 1; }
     }
-    @keyframes trailJourney {
-      0%   { left: -20%; width: 4%; opacity: 0; }
-      5%   { opacity: 0.85; }
-      30%  { left: 6%; width: 28%; opacity: 0.9; }
-      42%  { left: 8%; width: 32%; opacity: 0.85; }
-      68%  { left: 8%; width: 32%; opacity: 0.85; }
-      82%  { left: 34%; width: 28%; opacity: 0.45; }
-      100% { left: 78%; width: 12%; opacity: 0; }
+    @keyframes planeHover {
+      from { transform: translateY(-50%) scale(1.2) translateY(-6px); }
+      to   { transform: translateY(-50%) scale(1.2) translateY(6px); }
+    }
+    @keyframes trailEnter {
+      0%   { left: -22%; width: 4%; opacity: 0; }
+      30%  { opacity: 0.9; }
+      100% { left: 6%; width: 34%; opacity: 0.85; }
+    }
+    @keyframes trailHover {
+      0%   { opacity: 0.85; }
+      50%  { opacity: 0.5; }
+      100% { opacity: 0.85; }
     }
 
-    /* ── Indicators ── */
+    /* ── Dots ── */
     .swipe-dots {
-      position: absolute;
-      bottom: 18px; left: 50%; transform: translateX(-50%);
+      position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
       z-index: 6; display: flex; gap: 7px; pointer-events: none;
     }
     .swipe-dot {
       width: 5px; height: 5px; border-radius: 50%;
-      background: rgba(255,255,255,0.28);
-      transition: background 0.3s, transform 0.3s;
+      background: rgba(255,255,255,0.28); transition: background 0.3s, transform 0.3s;
     }
     .swipe-dot.active { background: rgba(200,220,255,0.9); transform: scale(1.5); }
 
     /* ── Lightbox ── */
     .overlay {
       position: fixed; inset: 0; display: none; place-items: center;
-      padding: 16px; background: rgba(2,4,10,0.95); backdrop-filter: blur(16px);
-      z-index: 25;
+      padding: 16px; background: rgba(2,4,10,0.95); backdrop-filter: blur(16px); z-index: 25;
     }
     .overlay.open { display: grid; }
     .overlay figure { margin: 0; width: min(1080px, 100%); }
@@ -232,24 +205,19 @@
       border-radius: 20px; border: 1px solid rgba(175,194,255,0.1);
       background: rgba(255,255,255,0.03);
     }
-    .overlay figcaption {
-      margin-top: 10px; text-align: center; color: #e7edff;
-      font-size: 14px; line-height: 1.6; white-space: pre-wrap;
-    }
+    .overlay figcaption { margin-top: 10px; text-align: center; color: #e7edff; font-size: 14px; }
 
     /* ── Editor ── */
     .editor {
       position: fixed; inset: 0 0 0 auto; width: min(460px, 100%);
       padding: 18px; background: linear-gradient(180deg, rgba(7,12,24,0.98), rgba(6,10,18,0.98));
-      border-left: 1px solid rgba(175,194,255,0.12);
-      box-shadow: -18px 0 40px rgba(0,0,0,0.32);
+      border-left: 1px solid rgba(175,194,255,0.12); box-shadow: -18px 0 40px rgba(0,0,0,0.32);
       transform: translateX(100%); transition: transform 0.24s ease;
       z-index: 30; overflow-y: auto; backdrop-filter: blur(16px);
     }
     .editor.open { transform: translateX(0); }
     .editor-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
     .editor-head h2 { margin: 0; font-size: 22px; }
-
     .panel { padding: 18px; margin-bottom: 16px; border-radius: 22px; border: 1px solid rgba(175,194,255,0.12); background: rgba(255,255,255,0.04); }
     .panel h3 { margin: 0 0 12px; font-size: 17px; }
     .panel p, .manage-empty, .status { margin: 0 0 14px; color: #9aabd9; font-size: 13px; line-height: 1.8; white-space: pre-wrap; }
@@ -269,14 +237,13 @@
     button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
 
     @media (max-width: 600px) {
-      .card { max-width: 120px; }
-      .column { gap: clamp(32px, 9vh, 60px); padding: 0 3px; }
-      .plane-group svg { width: min(28vw, 100px); }
+      .card { max-width: 130px; }
+      .column { gap: clamp(56px, 18vh, 100px); padding: 0 2px; }
+      .plane-group svg { width: min(34vw, 120px); }
     }
     @media (min-width: 900px) {
-      .card { max-width: 150px; }
+      .card { max-width: 155px; }
     }
-
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; transition: none !important; }
     }
@@ -285,52 +252,40 @@
 <body>
   <main class="stage" id="stage">
     <div class="stars" aria-hidden="true"></div>
-
-    <!-- Carousel -->
-    <div class="viewport" id="viewport">
-      <div class="track instant" id="track"></div>
-    </div>
-
-    <!-- Plane -->
-    <div class="plane-layer" aria-hidden="true">
-      <div class="plane-trail"></div>
-      <div class="plane-group">
-        <svg viewBox="0 0 200 100">
-          <defs>
-            <linearGradient id="pGrad" x1="0%" y1="0%" x2="100%" y2="80%">
-              <stop offset="0%" stop-color="#ffffff"></stop>
-              <stop offset="25%" stop-color="#eaf2ff"></stop>
-              <stop offset="55%" stop-color="#a8ccff"></stop>
-              <stop offset="100%" stop-color="#5090ee"></stop>
-            </linearGradient>
-            <filter id="pGlow">
-              <feGaussianBlur stdDeviation="2.5" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
-          <path filter="url(#pGlow)" fill="url(#pGrad)" stroke="rgba(255,255,255,0.5)" stroke-width="0.7"
-            d="M22 50 170 20 116 46 170 80 100 60 76 86 82 53 22 50Z"/>
-          <path d="M116 46 170 20 144 38 116 46Z" fill="rgba(255,255,255,0.55)"/>
-          <path d="M100 60 170 80 144 68 100 60Z" fill="rgba(30,55,110,0.3)"/>
-          <line x1="22" y1="50" x2="108" y2="52" stroke="rgba(255,255,255,0.4)" stroke-width="0.7"/>
-          <ellipse cx="26" cy="50" rx="5" ry="3.5" fill="rgba(255,255,255,0.75)"/>
-        </svg>
+    <div class="camera" id="camera">
+      <div class="track" id="track">
+        <div class="column" data-col="0"><div class="card floating" data-slot="0"></div><div class="card floating" data-slot="1"></div></div>
+        <div class="column" data-col="1"><div class="card floating" data-slot="2"></div><div class="card floating" data-slot="3"></div></div>
+        <div class="column" data-col="2"><div class="card floating" data-slot="4"></div><div class="card floating" data-slot="5"></div></div>
       </div>
     </div>
 
-    <!-- Dots -->
+    <div class="plane-layer" aria-hidden="true">
+      <div class="plane-trail"></div>
+      <div class="plane-group" id="planeGroup">
+        <svg viewBox="0 0 200 100">
+          <defs>
+            <linearGradient id="pGrad" x1="0%" y1="0%" x2="100%" y2="80%">
+              <stop offset="0%" stop-color="#ffffff"></stop><stop offset="25%" stop-color="#eaf2ff"></stop>
+              <stop offset="55%" stop-color="#a8ccff"></stop><stop offset="100%" stop-color="#5090ee"></stop>
+            </linearGradient>
+            <filter id="pGlow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <path filter="url(#pGlow)" fill="url(#pGrad)" stroke="rgba(255,255,255,0.55)" stroke-width="0.7" d="M22 50 170 20 116 46 170 80 100 60 76 86 82 53 22 50Z"/>
+          <path d="M116 46 170 20 144 38 116 46Z" fill="rgba(255,255,255,0.6)"/>
+          <path d="M100 60 170 80 144 68 100 60Z" fill="rgba(30,55,110,0.35)"/>
+          <line x1="22" y1="50" x2="108" y2="52" stroke="rgba(255,255,255,0.45)" stroke-width="0.7"/>
+          <ellipse cx="26" cy="50" rx="5" ry="3.5" fill="rgba(255,255,255,0.8)"/>
+        </svg>
+      </div>
+    </div>
     <div class="swipe-dots" id="swipeDots"></div>
   </main>
 
-  <!-- Lightbox -->
   <div class="overlay" id="lightbox">
-    <figure>
-      <img id="lightboxImage" alt="">
-      <figcaption id="lightboxCaption"></figcaption>
-    </figure>
+    <figure><img id="lightboxImage" alt=""><figcaption id="lightboxCaption"></figcaption></figure>
   </div>
 
-  <!-- Editor -->
   <aside class="editor" id="editorPanel" aria-hidden="true">
     <div class="editor-head"><h2>编辑</h2><button class="secondary" id="closeEditor" type="button">关闭</button></div>
     <section class="panel">
@@ -371,24 +326,20 @@
     const CONFIG = {
       SUPABASE_URL: "https://pnzbcsnoqrmtdkxyxfms.supabase.co",
       SUPABASE_ANON_KEY: "sb_publishable_BZMrBawoq266rDTBEcIXRQ_yCrQPJ8C",
-      ALBUM_SLUG: "main",
-      IMAGES_BUCKET: "wall-images",
-      MAX_UPLOAD_EDGE: 1200,
-      TARGET_UPLOAD_BYTES: 200 * 1024,
-      MAX_UPLOAD_QUALITY: 0.72,
-      MIN_UPLOAD_QUALITY: 0.40,
+      ALBUM_SLUG: "main", IMAGES_BUCKET: "wall-images",
+      MAX_UPLOAD_EDGE: 1200, TARGET_UPLOAD_BYTES: 200 * 1024,
+      MAX_UPLOAD_QUALITY: 0.72, MIN_UPLOAD_QUALITY: 0.40,
       USE_IMAGE_TRANSFORMS: true,
-      WALL_IMAGE_WIDTH: 260,
-      WALL_IMAGE_HEIGHT: 340,
-      WALL_IMAGE_QUALITY: 35,
-      LIGHTBOX_IMAGE_WIDTH: 1280,
-      LIGHTBOX_IMAGE_QUALITY: 82,
+      WALL_IMAGE_WIDTH: 260, WALL_IMAGE_HEIGHT: 340, WALL_IMAGE_QUALITY: 35,
+      LIGHTBOX_IMAGE_WIDTH: 1280, LIGHTBOX_IMAGE_QUALITY: 82,
     };
 
-    // ── DOM ──
+    const CYCLE_INTERVAL = 2000;
+
     const stage = document.getElementById("stage");
+    const camera = document.getElementById("camera");
     const track = document.getElementById("track");
-    const viewport = document.getElementById("viewport");
+    const planeGroup = document.getElementById("planeGroup");
     const swipeDots = document.getElementById("swipeDots");
     const lightbox = document.getElementById("lightbox");
     const lightboxImage = document.getElementById("lightboxImage");
@@ -413,33 +364,20 @@
     const manageEmpty = document.getElementById("manageEmpty");
     const manageStatus = document.getElementById("manageStatus");
 
-    // ── State ──
-    let supabase = null;
-    let currentSession = null;
-    let currentImages = [];
-    let audioElement = null;
-    let totalCols = 0;
-    let activeCol = 0;
-    let isAutoSliding = false;
-    let autoSlideTimer = null;
-    let planeCycleTimer = null;
-    let tapCount = 0;
-    let tapTimer = null;
-    let pendingLightboxTimeout = 0;
-    let longPressTimer = 0;
-    let swipeX0 = 0;
-    let swipeY0 = 0;
-    let swipeActive = false;
+    let supabase, currentSession, currentImages = [], audioElement;
+    let windowStart = 0, cycleTimer = null;
+    let tapCount = 0, tapTimer = null, pendingLightboxTimeout = 0, longPressTimer = 0;
+    let swipeX0 = 0, swipeY0 = 0, swipeActive = false;
+    let cyclingPaused = false;
+
+    // Card elements in order: [col0-top, col0-bot, col1-top, col1-bot, col2-top, col2-bot]
+    const cardSlots = Array.from(track.querySelectorAll(".card[data-slot]"));
 
     init();
-
     async function init() {
       supabase = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-      bindUi();
-      updateAuthUi();
-      await refreshSession();
-      await loadSettings();
-      await loadWall();
+      bindUi(); updateAuthUi();
+      await refreshSession(); await loadSettings(); await loadWall();
     }
 
     function bindUi() {
@@ -447,626 +385,414 @@
       lightbox.addEventListener("click", closeLightbox);
       musicToggle.addEventListener("click", toggleMusicPlayback);
       track.addEventListener("click", onTrackClick);
-
-      viewport.addEventListener("touchstart", onSwipeStart, { passive: true });
-      viewport.addEventListener("touchmove", onSwipeMove, { passive: true });
-      viewport.addEventListener("touchend", onSwipeEnd, { passive: true });
-
+      camera.addEventListener("touchstart", onSwipeStart, { passive: true });
+      camera.addEventListener("touchmove", onSwipeMove, { passive: true });
+      camera.addEventListener("touchend", onSwipeEnd, { passive: true });
       stage.addEventListener("pointerup", onStageTap, { passive: true });
       stage.addEventListener("pointerdown", onStagePressStart, { passive: true });
       stage.addEventListener("pointermove", onStagePressEnd, { passive: true });
       stage.addEventListener("pointercancel", onStagePressEnd, { passive: true });
       stage.addEventListener("pointerleave", onStagePressEnd, { passive: true });
-
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") { closeEditorPanel(); closeLightbox(); }
-        if (e.key === "ArrowLeft") slideTo(activeCol - 1);
-        if (e.key === "ArrowRight") slideTo(activeCol + 1);
+        if (e.key === "ArrowLeft") manualCycle(-1);
+        if (e.key === "ArrowRight") manualCycle(1);
       });
-
       loginForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        setAuthStatus("正在登录...");
+        e.preventDefault(); setAuthStatus("正在登录...");
         const { error } = await supabase.auth.signInWithPassword({ email: emailInput.value.trim(), password: passwordInput.value });
         if (error) { setAuthStatus(`登录失败：${error.message}`); return; }
-        passwordInput.value = "";
-        setAuthStatus("登录成功。");
-        await refreshSession();
+        passwordInput.value = ""; setAuthStatus("登录成功。"); await refreshSession();
       });
-
       signOutBtn.addEventListener("click", async () => {
-        await supabase.auth.signOut();
-        currentSession = null;
-        updateAuthUi();
-        setAuthStatus("已退出登录。");
+        await supabase.auth.signOut(); currentSession = null; updateAuthUi(); setAuthStatus("已退出登录。");
       });
-
       saveSettingsBtn.addEventListener("click", saveSettings);
       uploadBtn.addEventListener("click", uploadImages);
     }
 
-    // ── Swipe ──
     function onSwipeStart(e) {
       if (editorPanel.classList.contains("open")) return;
-      swipeX0 = e.touches[0].clientX;
-      swipeY0 = e.touches[0].clientY;
-      swipeActive = false;
+      swipeX0 = e.touches[0].clientX; swipeY0 = e.touches[0].clientY; swipeActive = false;
     }
     function onSwipeMove(e) {
       if (!swipeX0) return;
-      const dx = e.touches[0].clientX - swipeX0;
-      const dy = e.touches[0].clientY - swipeY0;
+      const dx = e.touches[0].clientX - swipeX0, dy = e.touches[0].clientY - swipeY0;
       if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) swipeActive = true;
     }
     function onSwipeEnd(e) {
       if (!swipeActive || !swipeX0) { swipeX0 = 0; return; }
-      const dx = (e.changedTouches[0]?.clientX || 0) - swipeX0;
-      swipeX0 = 0;
-      if (Math.abs(dx) > 40) slideTo(dx < 0 ? activeCol + 1 : activeCol - 1);
+      const dx = (e.changedTouches[0]?.clientX || 0) - swipeX0; swipeX0 = 0;
+      if (Math.abs(dx) > 40) manualCycle(dx < 0 ? 1 : -1);
     }
 
     function onTrackClick(e) {
       const card = e.target.closest(".card");
       if (!card) return;
       const idx = parseInt(card.dataset.img);
-      if (!isNaN(idx) && currentImages[idx]) {
-        scheduleLightboxOpen(currentImages[idx], idx);
+      if (!isNaN(idx) && currentImages[idx]) scheduleLightboxOpen(currentImages[idx], idx);
+    }
+
+    // ── Photo index helpers ──
+    function photoIdx(slot) {
+      if (currentImages.length === 0) return -1;
+      return (windowStart + slot) % currentImages.length;
+    }
+
+    function fillCard(card, slot) {
+      const idx = photoIdx(slot);
+      if (idx < 0 || !currentImages[idx]) { card.style.visibility = "hidden"; return; }
+      card.style.visibility = "";
+      card.dataset.img = String(idx);
+      const img = card.querySelector("img");
+      if (!img) {
+        const newImg = document.createElement("img");
+        newImg.alt = currentImages[idx].caption || "";
+        newImg.src = currentImages[idx].wallUrl || currentImages[idx].originalUrl;
+        newImg.decoding = "async";
+        newImg.addEventListener("load", () => card.classList.add("loaded"), { once: true });
+        card.appendChild(newImg);
+      } else {
+        img.alt = currentImages[idx].caption || "";
+        img.src = currentImages[idx].wallUrl || currentImages[idx].originalUrl;
+        img.addEventListener("load", () => card.classList.add("loaded"), { once: true });
+      }
+      card.style.setProperty("--fd", `${5.5 + (idx % 5) * 0.7}s`);
+      card.style.setProperty("--fdl", `${(idx % 7) * 0.6}s`);
+    }
+
+    function fillAllCards() {
+      cardSlots.forEach((card, slot) => fillCard(card, slot));
+      highlightMiddleColumn();
+    }
+
+    // ── Cycling ──
+    function cycleForward() {
+      if (currentImages.length === 0) return;
+      if (cyclingPaused) return;
+
+      // 1. Left column (slots 0,1) flies out
+      cardSlots[0].classList.add("flying-out");
+      cardSlots[1].classList.add("flying-out");
+      cardSlots[0].classList.remove("floating", "highlighted");
+      cardSlots[1].classList.remove("floating", "highlighted");
+
+      // 2. After fly-out, rotate content
+      setTimeout(() => {
+        // Shift content: col1→col0, col2→col1, new→col2
+        for (let s = 0; s < 4; s++) {
+          copyCardState(cardSlots[s + 2], cardSlots[s]);
+        }
+        // Update right column (slots 4,5) with new photos
+        windowStart = (windowStart + 2) % currentImages.length;
+        fillCard(cardSlots[4], 4);
+        fillCard(cardSlots[5], 5);
+
+        // Reset left column animations
+        cardSlots[0].classList.remove("flying-out");
+        cardSlots[1].classList.remove("flying-out");
+        cardSlots[0].classList.add("floating");
+        cardSlots[1].classList.add("floating");
+
+        // Right column flies in
+        cardSlots[4].classList.add("flying-in"); cardSlots[4].classList.remove("floating");
+        cardSlots[5].classList.add("flying-in"); cardSlots[5].classList.remove("floating");
+        setTimeout(() => {
+          cardSlots[4].classList.remove("flying-in"); cardSlots[4].classList.add("floating");
+          cardSlots[5].classList.remove("flying-in"); cardSlots[5].classList.add("floating");
+        }, 1400);
+      }, 400);
+
+      highlightMiddleColumn();
+      updateDots();
+    }
+
+    function copyCardState(from, to) {
+      // Copy image data from one card slot to another
+      const fromImg = from.querySelector("img");
+      const toImg = to.querySelector("img");
+      to.dataset.img = from.dataset.img;
+      to.style.visibility = from.style.visibility;
+      to.style.setProperty("--fd", from.style.getPropertyValue("--fd"));
+      to.style.setProperty("--fdl", from.style.getPropertyValue("--fdl"));
+      to.classList.remove("flying-in", "flying-out");
+      to.classList.add("floating");
+      if (fromImg) {
+        if (!toImg) {
+          const ni = document.createElement("img");
+          ni.src = fromImg.src; ni.alt = fromImg.alt; ni.decoding = "async";
+          ni.addEventListener("load", () => to.classList.add("loaded"), { once: true });
+          to.appendChild(ni);
+        } else {
+          toImg.src = fromImg.src; toImg.alt = fromImg.alt;
+        }
+        if (from.classList.contains("loaded")) to.classList.add("loaded");
       }
     }
 
-    // ── Navigation ──
-    function slideTo(col) {
-      if (totalCols <= 3) return;
-      const maxCol = totalCols - 3;
-      activeCol = Math.max(0, Math.min(col, maxCol));
-      track.classList.remove("instant");
-      track.style.transform = `translateX(-${activeCol * getColWidth()}px)`;
+    function manualCycle(dir) {
+      if (currentImages.length === 0) return;
+      if (dir > 0) cycleForward();
+      else {
+        // Reverse: right exits, new enters left
+        cardSlots[4].classList.add("flying-out"); cardSlots[4].classList.remove("floating","highlighted");
+        cardSlots[5].classList.add("flying-out"); cardSlots[5].classList.remove("floating","highlighted");
+        setTimeout(() => {
+          for (let s = 4; s >= 2; s--) copyCardState(cardSlots[s - 2], cardSlots[s]);
+          windowStart = (windowStart - 2 + currentImages.length) % currentImages.length;
+          fillCard(cardSlots[0], 0); fillCard(cardSlots[1], 1);
+          cardSlots[4].classList.remove("flying-out"); cardSlots[4].classList.add("floating");
+          cardSlots[5].classList.remove("flying-out"); cardSlots[5].classList.add("floating");
+          cardSlots[0].classList.add("flying-in"); cardSlots[0].classList.remove("floating");
+          cardSlots[1].classList.add("flying-in"); cardSlots[1].classList.remove("floating");
+          setTimeout(() => {
+            cardSlots[0].classList.remove("flying-in"); cardSlots[0].classList.add("floating");
+            cardSlots[1].classList.remove("flying-in"); cardSlots[1].classList.add("floating");
+          }, 1400);
+        }, 400);
+      }
+      highlightMiddleColumn();
       updateDots();
-      animateEnteringCards();
+    }
+
+    // ── Highlight middle column (plane hovers there) ──
+    function highlightMiddleColumn() {
+      cardSlots.forEach(c => c.classList.remove("highlighted"));
+      // Middle column = slots 2,3
+      [cardSlots[2], cardSlots[3]].forEach(c => {
+        if (c.style.visibility !== "hidden") c.classList.add("highlighted");
+      });
     }
 
     function updateDots() {
-      const maxCol = totalCols - 3;
-      const pages = maxCol + 1;
+      if (currentImages.length === 0) { swipeDots.innerHTML = ""; return; }
+      const pages = Math.ceil(currentImages.length / 2);
       swipeDots.innerHTML = "";
-      if (pages <= 1) return;
+      const curPage = Math.floor(windowStart / 2) % pages;
       for (let i = 0; i < pages; i++) {
         const d = document.createElement("span");
-        d.className = "swipe-dot" + (i === activeCol ? " active" : "");
+        d.className = "swipe-dot" + (i === curPage ? " active" : "");
         swipeDots.appendChild(d);
       }
     }
 
-    function animateEnteringCards() {
-      const rightCol = activeCol + 2;
-      const columns = track.querySelectorAll(".column");
-      columns.forEach(col => {
-        const colIdx = parseInt(col.dataset.col);
-        if (colIdx === rightCol) {
-          col.querySelectorAll(".card").forEach(c => {
-            if (c.style.visibility === "hidden") return;
-            c.classList.add("entering");
-            c.classList.remove("entering-done");
-            setTimeout(() => {
-              c.classList.remove("entering");
-              c.classList.add("entering-done");
-            }, 500);
-          });
-        }
-      });
-    }
-
-    // ── Auto-slide (triggered while plane hovers) ──
-    const PLANE_CYCLE = 12000;
-    const PAUSE_START = 0.42 * PLANE_CYCLE;
-    const PAUSE_END = 0.68 * PLANE_CYCLE;
-    const SLIDE_INTERVAL = 2000;
-    let highlightedColumn = -1;
-
-    // Map plane animation progress (0..1) to approximate left% position
-    function planeLeftFromProgress(p) {
-      // Keyframes: (0,-20) (0.30,38) (0.42,40) (0.68,40) (0.82,68) (1.0,110)
-      const kf = [[0,-20],[0.30,38],[0.42,40],[0.68,40],[0.82,68],[1.0,110]];
-      for (let i = 1; i < kf.length; i++) {
-        if (p <= kf[i][0]) {
-          const [t0, x0] = kf[i-1];
-          const [t1, x1] = kf[i];
-          const frac = (p - t0) / (t1 - t0);
-          // ease-in-out approximation
-          const eased = frac < 0.5 ? 2*frac*frac : 1 - Math.pow(-2*frac + 2, 2)/2;
-          return x0 + (x1 - x0) * eased;
-        }
-      }
-      return 110;
-    }
-
-    function startPlaneSync() {
+    // ── Auto cycle ──
+    function startAutoCycle() {
+      clearTimeout(cycleTimer);
       function tick() {
-        const t = Date.now() % PLANE_CYCLE;
-        const progress = t / PLANE_CYCLE;
-        const planeLeft = planeLeftFromProgress(progress);
-
-        // Auto-slide during pause
-        const inPause = t >= PAUSE_START && t < PAUSE_END;
-        if (inPause && totalCols > 3 && activeCol < totalCols - 3) {
-          if (!isAutoSliding) { isAutoSliding = true; scheduleNextSlide(); }
-        } else if (!inPause && isAutoSliding) {
-          stopAutoSlide();
-        }
-
-        // Highlight column under plane
-        const colIdx = Math.floor(planeLeft / 33.33);
-        const targetCol = Math.min(colIdx, 2); // 0,1,2 = visible columns
-        if (targetCol !== highlightedColumn) {
-          // Remove old highlight
-          if (highlightedColumn >= 0) {
-            const oldCol = track.querySelector(`.column[data-col="${activeCol + highlightedColumn}"]`);
-            if (oldCol) oldCol.querySelectorAll(".card").forEach(c => c.classList.remove("highlighted"));
-          }
-          // Add new highlight
-          const newColIdx = activeCol + targetCol;
-          if (newColIdx < totalCols) {
-            const newCol = track.querySelector(`.column[data-col="${newColIdx}"]`);
-            if (newCol) newCol.querySelectorAll(".card").forEach(c => {
-              if (c.style.visibility !== "hidden") c.classList.add("highlighted");
-            });
-            highlightedColumn = targetCol;
-          }
-        }
-
-        planeCycleTimer = setTimeout(tick, 150);
+        cycleForward();
+        cycleTimer = setTimeout(tick, CYCLE_INTERVAL);
       }
-      planeCycleTimer = setTimeout(tick, 150);
+      cycleTimer = setTimeout(tick, CYCLE_INTERVAL);
     }
 
-    function scheduleNextSlide() {
-      if (!isAutoSliding) return;
-      autoSlideTimer = setTimeout(() => {
-        if (activeCol < totalCols - 3) {
-          slideTo(activeCol + 1);
-        }
-        if (activeCol >= totalCols - 3) {
-          stopAutoSlide();
-          return;
-        }
-        scheduleNextSlide();
-      }, SLIDE_INTERVAL);
-    }
-
-    function stopAutoSlide() {
-      isAutoSliding = false;
-      clearTimeout(autoSlideTimer);
-      autoSlideTimer = null;
+    // ── Camera oscillation ──
+    function startCameraOscillation() {
+      const t0 = Date.now();
+      function loop() {
+        const elapsed = (Date.now() - t0) / 1000;
+        camera.style.transform = `rotateY(${Math.sin(elapsed * 0.45) * 2.5}deg)`;
+        requestAnimationFrame(loop);
+      }
+      requestAnimationFrame(loop);
     }
 
     // ── Lightbox ──
     function scheduleLightboxOpen(image, index) {
       cancelPendingLightbox();
-      pendingLightboxTimeout = window.setTimeout(() => {
+      pendingLightboxTimeout = setTimeout(() => {
         pendingLightboxTimeout = 0;
         if (!editorPanel.classList.contains("open")) openLightbox(image, index);
       }, 300);
     }
-    function cancelPendingLightbox() {
-      if (!pendingLightboxTimeout) return;
-      window.clearTimeout(pendingLightboxTimeout);
-      pendingLightboxTimeout = 0;
-    }
+    function cancelPendingLightbox() { clearTimeout(pendingLightboxTimeout); pendingLightboxTimeout = 0; }
     function openLightbox(image, index) {
       lightboxImage.alt = image.caption || `图片 ${index + 1}`;
       lightboxCaption.textContent = image.caption || "";
       lightbox.classList.add("open");
-
-      // Show wall image instantly (already cached in card), then upgrade
       lightboxImage.src = image.wallUrl || image.originalUrl;
-      lightboxImage.onerror = null;
-
       if (image.fullUrl && image.fullUrl !== image.wallUrl) {
-        const upgrade = new Image();
-        upgrade.onload = () => {
-          if (!lightbox.classList.contains("open")) return;
-          lightboxImage.src = image.fullUrl;
-        };
-        upgrade.onerror = () => {
-          if (image.originalUrl && lightboxImage.src !== image.originalUrl) {
-            lightboxImage.src = image.originalUrl;
-          }
-        };
-        upgrade.src = image.fullUrl;
+        const up = new Image();
+        up.onload = () => { if (lightbox.classList.contains("open")) lightboxImage.src = image.fullUrl; };
+        up.onerror = () => { if (image.originalUrl) lightboxImage.src = image.originalUrl; };
+        up.src = image.fullUrl;
       }
-
-      lightboxImage.onerror = () => {
-        if (lightboxImage.src !== image.originalUrl && image.originalUrl) {
-          lightboxImage.src = image.originalUrl;
-        }
-      };
     }
-    function closeLightbox() {
-      lightbox.classList.remove("open");
-      lightboxImage.src = "";
-      lightboxImage.alt = "";
-      lightboxCaption.textContent = "";
-    }
+    function closeLightbox() { lightbox.classList.remove("open"); lightboxImage.src = ""; lightboxImage.alt = ""; lightboxCaption.textContent = ""; }
 
     // ── Editor ──
     function onStageTap(e) {
       if (editorPanel.contains(e.target) || lightbox.contains(e.target)) return;
-      tapCount++;
-      clearTimeout(tapTimer);
-      tapTimer = setTimeout(() => { tapCount = 0; }, 700);
-      if (tapCount >= 3) {
-        tapCount = 0;
-        cancelPendingLightbox();
-        onStagePressEnd();
-        openEditorPanel();
-      }
+      tapCount++; clearTimeout(tapTimer); tapTimer = setTimeout(() => { tapCount = 0; }, 700);
+      if (tapCount >= 3) { tapCount = 0; cancelPendingLightbox(); onStagePressEnd(); openEditorPanel(); }
     }
     function onStagePressStart(e) {
       if (editorPanel.contains(e.target) || lightbox.contains(e.target)) return;
       onStagePressEnd();
-      longPressTimer = window.setTimeout(() => {
-        longPressTimer = 0;
-        tapCount = 0;
-        cancelPendingLightbox();
-        openEditorPanel();
-      }, 650);
+      longPressTimer = setTimeout(() => { longPressTimer = 0; tapCount = 0; cancelPendingLightbox(); openEditorPanel(); }, 650);
     }
-    function onStagePressEnd() {
-      if (!longPressTimer) return;
-      window.clearTimeout(longPressTimer);
-      longPressTimer = 0;
-    }
-    function openEditorPanel() {
-      editorPanel.classList.add("open");
-      editorPanel.setAttribute("aria-hidden", "false");
-    }
-    function closeEditorPanel() {
-      editorPanel.classList.remove("open");
-      editorPanel.setAttribute("aria-hidden", "true");
-    }
+    function onStagePressEnd() { clearTimeout(longPressTimer); longPressTimer = 0; }
+    function openEditorPanel() { cyclingPaused = true; editorPanel.classList.add("open"); editorPanel.setAttribute("aria-hidden", "false"); }
+    function closeEditorPanel() { cyclingPaused = false; editorPanel.classList.remove("open"); editorPanel.setAttribute("aria-hidden", "true"); }
 
-    // ── Auth ──
+    // ── Auth / Music ──
     async function refreshSession() {
       const { data, error } = await supabase.auth.getSession();
       if (error) { setAuthStatus(`会话读取失败：${error.message}`); return; }
-      currentSession = data.session;
-      updateAuthUi();
+      currentSession = data.session; updateAuthUi();
     }
     function updateAuthUi() {
-      const loggedIn = Boolean(currentSession?.user);
-      sessionText.textContent = loggedIn ? `当前账号：${currentSession.user.email}` : "未登录";
-      signOutBtn.hidden = !loggedIn;
-      loginForm.hidden = loggedIn;
-      saveSettingsBtn.disabled = !loggedIn;
-      uploadBtn.disabled = !loggedIn;
-      uploadInput.disabled = !loggedIn;
-      captionsInput.disabled = !loggedIn;
+      const ok = Boolean(currentSession?.user);
+      sessionText.textContent = ok ? `当前账号：${currentSession.user.email}` : "未登录";
+      signOutBtn.hidden = !ok; loginForm.hidden = ok;
+      saveSettingsBtn.disabled = !ok; uploadBtn.disabled = !ok;
+      uploadInput.disabled = !ok; captionsInput.disabled = !ok;
       renderManageList();
     }
-
     async function loadSettings() {
       const { data, error } = await supabase.from("album_settings").select("music_url").eq("slug", CONFIG.ALBUM_SLUG).maybeSingle();
       if (error) { setSettingsStatus(`读取设置失败：${error.message}`); return; }
-      musicInput.value = data?.music_url || "";
-      syncMusic(data?.music_url || "");
+      musicInput.value = data?.music_url || ""; syncMusic(data?.music_url || "");
     }
     function syncMusic(url) {
       if (audioElement) { audioElement.pause(); audioElement.remove(); audioElement = null; }
       if (!url) { musicToggle.hidden = true; musicToggle.textContent = "播放"; return; }
-      audioElement = document.createElement("audio");
-      audioElement.src = url; audioElement.loop = true; audioElement.preload = "none";
-      document.body.appendChild(audioElement);
-      musicToggle.hidden = false;
-      musicToggle.textContent = "播放";
+      audioElement = document.createElement("audio"); audioElement.src = url; audioElement.loop = true; audioElement.preload = "none";
+      document.body.appendChild(audioElement); musicToggle.hidden = false; musicToggle.textContent = "播放";
     }
     async function toggleMusicPlayback() {
       if (!audioElement) return;
-      if (audioElement.paused) {
-        try { await audioElement.play(); musicToggle.textContent = "暂停"; }
-        catch { setSettingsStatus("音频无法播放，请检查链接。"); }
-      } else { audioElement.pause(); musicToggle.textContent = "播放"; }
+      if (audioElement.paused) { try { await audioElement.play(); musicToggle.textContent = "暂停"; } catch { setSettingsStatus("音频无法播放"); } }
+      else { audioElement.pause(); musicToggle.textContent = "播放"; }
     }
     async function saveSettings() {
-      if (!currentSession?.user) { setSettingsStatus("先登录，再保存。"); return; }
-      setSettingsStatus("正在保存...");
+      if (!currentSession?.user) { setSettingsStatus("先登录"); return; }
+      setSettingsStatus("保存中...");
       const { error } = await supabase.from("album_settings").upsert({ slug: CONFIG.ALBUM_SLUG, music_url: musicInput.value.trim() }, { onConflict: "slug" });
-      if (error) { setSettingsStatus(`保存失败：${error.message}`); return; }
-      syncMusic(musicInput.value.trim());
-      setSettingsStatus("已保存。");
+      if (error) { setSettingsStatus(`失败：${error.message}`); return; }
+      syncMusic(musicInput.value.trim()); setSettingsStatus("已保存。");
     }
 
     // ── Wall ──
     async function loadWall() {
-      const { data, error } = await supabase
-        .from("album_images")
+      const { data, error } = await supabase.from("album_images")
         .select("id, title, file_path, sort_order, created_at")
-        .eq("album_slug", CONFIG.ALBUM_SLUG)
-        .order("sort_order", { ascending: true })
-        .order("created_at", { ascending: true });
-      if (error) { setManageStatus(`读取图片失败：${error.message}`); return; }
-
+        .eq("album_slug", CONFIG.ALBUM_SLUG).order("sort_order").order("created_at");
+      if (error) { setManageStatus(`读取失败：${error.message}`); return; }
       currentImages = (data || []).map(item => {
-        const originalUrl = getPublicUrl(item.file_path);
-        return {
-          ...item,
-          caption: item.title || "",
-          originalUrl,
-          wallUrl: getWallUrl(item.file_path, originalUrl),
-          fullUrl: getFullUrl(item.file_path, originalUrl),
-        };
+        const ou = getPublicUrl(item.file_path);
+        return { ...item, caption: item.title || "", originalUrl: ou,
+          wallUrl: getWallUrl(item.file_path, ou), fullUrl: getFullUrl(item.file_path, ou) };
       });
-
-      buildTrack();
-      renderManageList();
-    }
-
-    function getWallUrl(fp, fb) {
-      if (!CONFIG.USE_IMAGE_TRANSFORMS) return fb;
-      return getPublicUrl(fp, { transform: { width: CONFIG.WALL_IMAGE_WIDTH, height: CONFIG.WALL_IMAGE_HEIGHT, quality: CONFIG.WALL_IMAGE_QUALITY, resize: "cover" } });
-    }
-    function getFullUrl(fp, fb) {
-      if (!CONFIG.USE_IMAGE_TRANSFORMS) return fb;
-      return getPublicUrl(fp, { transform: { width: CONFIG.LIGHTBOX_IMAGE_WIDTH, quality: CONFIG.LIGHTBOX_IMAGE_QUALITY, resize: "contain" } });
-    }
-    function getPublicUrl(fp, opts) {
-      const { data } = supabase.storage.from(CONFIG.IMAGES_BUCKET).getPublicUrl(fp, opts);
-      return data.publicUrl;
-    }
-
-    // ── Build track ──
-    function getColWidth() {
-      return viewport.clientWidth / 3;
-    }
-
-    function sizeColumns() {
-      const w = getColWidth();
-      track.querySelectorAll(".column").forEach(col => {
-        col.style.flex = `0 0 ${w}px`;
-      });
-    }
-
-    function buildTrack() {
-      track.innerHTML = "";
-      stopAutoSlide();
-      activeCol = 0;
-
-      // Group images into columns of 2 (top + bottom)
-      const cols = [];
-      for (let i = 0; i < currentImages.length; i += 2) {
-        cols.push({
-          top: currentImages[i],
-          bottom: currentImages[i + 1] || null,
-          topIdx: i,
-          bottomIdx: i + 1 < currentImages.length ? i + 1 : -1,
-        });
-      }
-
-      totalCols = cols.length;
-
-      if (totalCols === 0) {
-        const empty = document.createElement("div");
-        empty.className = "column";
-        empty.style.flex = "0 0 100%";
-        empty.style.justifyContent = "center";
-        empty.style.alignItems = "center";
-        empty.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:15px;text-align:center">还没有照片<br><span style="font-size:12px">三连击进入编辑</span></div>';
-        track.appendChild(empty);
-        return;
-      }
-
-      const displayCols = Math.max(3, totalCols);
-      const colW = getColWidth();
-
-      for (let c = 0; c < displayCols; c++) {
-        const col = document.createElement("div");
-        col.className = "column";
-        col.dataset.col = String(c);
-        col.style.flex = `0 0 ${colW}px`;
-
-        const data = c < totalCols ? cols[c] : null;
-
-        const topCard = data && data.top
-          ? createCard(data.top, data.topIdx)
-          : createPlaceholder();
-        col.appendChild(topCard);
-
-        const botCard = data && data.bottom
-          ? createCard(data.bottom, data.bottomIdx)
-          : createPlaceholder();
-        col.appendChild(botCard);
-
-        track.appendChild(col);
-      }
-
-      track.style.transform = "translateX(0px)";
+      windowStart = 0;
+      clearTimeout(cycleTimer);
+      resetAllCards();
+      fillAllCards();
       updateDots();
-      startPlaneSync();
+      renderManageList();
+      if (currentImages.length > 0) {
+        startAutoCycle();
+        startCameraOscillation();
+      }
     }
 
-    function createCard(image, index) {
-      const card = document.createElement("div");
-      card.className = "card entering-done";
-      card.dataset.img = String(index);
-      card.style.setProperty("--fd", `${5.5 + (index % 5) * 0.7}s`);
-      card.style.setProperty("--fdl", `${(index % 7) * 0.6}s`);
-
-      const img = document.createElement("img");
-      img.alt = image.caption || `图片 ${index + 1}`;
-      img.src = image.wallUrl || image.originalUrl;
-      img.decoding = "async";
-
-      img.addEventListener("load", () => card.classList.add("loaded"), { once: true });
-      img.addEventListener("error", () => {
-        if (img.src !== image.originalUrl) { img.src = image.originalUrl; return; }
-        card.classList.add("loaded");
+    function resetAllCards() {
+      cardSlots.forEach(c => {
+        c.classList.remove("flying-in", "flying-out", "highlighted", "loaded");
+        c.classList.add("floating");
+        c.style.visibility = "";
+        const img = c.querySelector("img");
+        if (img) { img.src = ""; img.alt = ""; }
       });
-
-      card.appendChild(img);
-      return card;
     }
 
-    function createPlaceholder() {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.style.visibility = "hidden";
-      return card;
-    }
+    function getWallUrl(fp, fb) { return CONFIG.USE_IMAGE_TRANSFORMS ? getPublicUrl(fp, { transform: { width: CONFIG.WALL_IMAGE_WIDTH, height: CONFIG.WALL_IMAGE_HEIGHT, quality: CONFIG.WALL_IMAGE_QUALITY, resize: "cover" } }) : fb; }
+    function getFullUrl(fp, fb) { return CONFIG.USE_IMAGE_TRANSFORMS ? getPublicUrl(fp, { transform: { width: CONFIG.LIGHTBOX_IMAGE_WIDTH, quality: CONFIG.LIGHTBOX_IMAGE_QUALITY, resize: "contain" } }) : fb; }
+    function getPublicUrl(fp, opts) { const { data } = supabase.storage.from(CONFIG.IMAGES_BUCKET).getPublicUrl(fp, opts); return data.publicUrl; }
 
     // ── Upload ──
     async function uploadImages() {
-      if (!currentSession?.user) { setUploadStatus("先登录，再上传图片。"); return; }
-      const files = Array.from(uploadInput.files || []).filter(f => f.type.startsWith("image/"));
-      if (!files.length) { setUploadStatus("先选择至少一张图片。"); return; }
-
-      const captions = captionsInput.value.split(/\r?\n/).map(l => l.trim());
-      const baseOrder = currentImages.length ? Math.max(...currentImages.map(it => it.sort_order || 0)) + 1 : 1;
+      if (!currentSession?.user) { setUploadStatus("先登录"); return; }
+      const files = Array.from(uploadInput.files||[]).filter(f=>f.type.startsWith("image/"));
+      if (!files.length) { setUploadStatus("先选择图片"); return; }
+      const captions = captionsInput.value.split(/\r?\n/).map(l=>l.trim());
+      const bo = currentImages.length ? Math.max(...currentImages.map(it=>it.sort_order||0))+1 : 1;
       const rows = [];
-
-      setUploadStatus(`准备上传 ${files.length} 张图片...`);
-
+      setUploadStatus(`准备上传 ${files.length} 张...`);
       for (const [i, file] of files.entries()) {
-        setUploadStatus(`正在压缩并上传第 ${i + 1} / ${files.length} 张...`);
-        const prepared = await prepareUploadFile(file);
-        const fp = `${CONFIG.ALBUM_SLUG}/${Date.now()}-${crypto.randomUUID()}-${sanitizeFileName(prepared.name)}`;
-        const up = await supabase.storage.from(CONFIG.IMAGES_BUCKET).upload(fp, prepared, { cacheControl: "31536000", upsert: false });
+        setUploadStatus(`压缩上传 ${i+1}/${files.length}...`);
+        const prep = await prepareUploadFile(file);
+        const fp = `${CONFIG.ALBUM_SLUG}/${Date.now()}-${crypto.randomUUID()}-${sanitizeFileName(prep.name)}`;
+        const up = await supabase.storage.from(CONFIG.IMAGES_BUCKET).upload(fp, prep, { cacheControl:"31536000", upsert:false });
         if (up.error) { setUploadStatus(`上传失败：${up.error.message}`); return; }
-        rows.push({ album_slug: CONFIG.ALBUM_SLUG, title: captions[i] || "", file_path: fp, sort_order: baseOrder + i });
+        rows.push({ album_slug:CONFIG.ALBUM_SLUG, title:captions[i]||"", file_path:fp, sort_order:bo+i });
       }
-
       const ins = await supabase.from("album_images").insert(rows);
-      if (ins.error) {
-        await supabase.storage.from(CONFIG.IMAGES_BUCKET).remove(rows.map(r => r.file_path));
-        setUploadStatus(`写入图片记录失败：${ins.error.message}`);
-        return;
-      }
-
-      uploadInput.value = "";
-      captionsInput.value = "";
-      setUploadStatus(`已上传 ${files.length} 张图片。`);
-      await loadWall();
+      if (ins.error) { await supabase.storage.from(CONFIG.IMAGES_BUCKET).remove(rows.map(r=>r.file_path)); setUploadStatus(`写入失败：${ins.error.message}`); return; }
+      uploadInput.value = ""; captionsInput.value = "";
+      setUploadStatus(`已上传 ${files.length} 张。`); await loadWall();
     }
-
     async function prepareUploadFile(file) {
-      if (!file.type.startsWith("image/") || file.type === "image/gif" || file.type === "image/svg+xml") return file;
+      if (!file.type.startsWith("image/")||file.type==="image/gif"||file.type==="image/svg+xml") return file;
       try {
-        const bitmap = await loadBitmap(file);
-        let { width, height } = fitSize(bitmap.width, bitmap.height, CONFIG.MAX_UPLOAD_EDGE);
-        let quality = CONFIG.MAX_UPLOAD_QUALITY;
-        let blob = null;
-        for (let a = 0; a < 6; a++) {
-          const cv = document.createElement("canvas");
-          cv.width = width; cv.height = height;
-          cv.getContext("2d", { alpha: true }).drawImage(bitmap, 0, 0, width, height);
-          blob = await canvasToBlob(cv, "image/webp", quality);
-          if (blob && blob.size <= CONFIG.TARGET_UPLOAD_BYTES) break;
-          if (quality > CONFIG.MIN_UPLOAD_QUALITY) { quality = Math.max(CONFIG.MIN_UPLOAD_QUALITY, quality - 0.05); }
-          else { width = Math.max(500, Math.round(width * 0.88)); height = Math.max(500, Math.round(height * 0.88)); }
+        const bmp = await loadBitmap(file);
+        let { width, height } = fitSize(bmp.width, bmp.height, CONFIG.MAX_UPLOAD_EDGE);
+        let q = CONFIG.MAX_UPLOAD_QUALITY, blob = null;
+        for (let a=0;a<6;a++) {
+          const cv = document.createElement("canvas"); cv.width=width; cv.height=height;
+          cv.getContext("2d",{alpha:true}).drawImage(bmp,0,0,width,height);
+          blob = await canvasToBlob(cv,"image/webp",q);
+          if (blob && blob.size<=CONFIG.TARGET_UPLOAD_BYTES) break;
+          if (q>CONFIG.MIN_UPLOAD_QUALITY) q=Math.max(CONFIG.MIN_UPLOAD_QUALITY,q-0.05);
+          else { width=Math.max(500,Math.round(width*.88)); height=Math.max(500,Math.round(height*.88)); }
         }
-        if (typeof bitmap.close === "function") bitmap.close();
-        if (!blob || blob.size >= file.size * 0.96) return file;
-        return new File([blob], `${file.name.replace(/\.[^.]+$/, "") || "photo"}.webp`, { type: "image/webp", lastModified: Date.now() });
-      } catch (e) { console.warn("Compress skip:", e); return file; }
+        if (typeof bmp.close==="function") bmp.close();
+        if (!blob||blob.size>=file.size*.96) return file;
+        return new File([blob],`${file.name.replace(/\.[^.]+$/,"")||"photo"}.webp`,{type:"image/webp",lastModified:Date.now()});
+      } catch(e) { console.warn(e); return file; }
     }
-
     async function loadBitmap(file) {
-      if (typeof createImageBitmap === "function") return createImageBitmap(file);
-      const img = new Image();
-      const u = URL.createObjectURL(file);
-      img.src = u; await img.decode(); URL.revokeObjectURL(u);
-      return img;
+      if (typeof createImageBitmap==="function") return createImageBitmap(file);
+      const img=new Image(); const u=URL.createObjectURL(file); img.src=u; await img.decode(); URL.revokeObjectURL(u); return img;
     }
-
-    function fitSize(w, h, max) {
-      const L = Math.max(w, h);
-      if (L <= max) return { width: w, height: h };
-      const s = max / L;
-      return { width: Math.max(1, Math.round(w * s)), height: Math.max(1, Math.round(h * s)) };
-    }
-
-    function canvasToBlob(c, t, q) { return new Promise(r => c.toBlob(r, t, q)); }
-    function sanitizeFileName(n) { return n.replace(/[^a-zA-Z0-9._-]/g, "-"); }
+    function fitSize(w,h,max) { const L=Math.max(w,h); if (L<=max) return {width:w,height:h}; const s=max/L; return {width:Math.max(1,Math.round(w*s)),height:Math.max(1,Math.round(h*s))}; }
+    function canvasToBlob(c,t,q) { return new Promise(r=>c.toBlob(r,t,q)); }
+    function sanitizeFileName(n) { return n.replace(/[^a-zA-Z0-9._-]/g,"-"); }
 
     // ── Manage ──
     function renderManageList() {
       manageList.innerHTML = "";
-      const loggedIn = Boolean(currentSession?.user);
-      if (!loggedIn) { manageEmpty.hidden = false; manageEmpty.textContent = "先登录，再管理图片。"; return; }
-      if (!currentImages.length) { manageEmpty.hidden = false; manageEmpty.textContent = "还没有图片。"; return; }
-      manageEmpty.hidden = true;
-
-      currentImages.forEach((img, i) => {
-        const card = document.createElement("article");
-        card.className = "manage-card";
-        const pv = document.createElement("img");
-        pv.src = img.wallUrl; pv.alt = img.caption || `图片 ${i + 1}`; pv.loading = "lazy";
-        pv.onerror = () => { if (pv.src !== img.originalUrl) pv.src = img.originalUrl; };
-
-        const right = document.createElement("div");
-        const fld = document.createElement("div"); fld.className = "field";
-        fld.innerHTML = `<label>图片 ${i + 1} 的一句话</label>`;
-        const inp = document.createElement("textarea");
-        inp.value = img.caption || ""; inp.maxLength = 120; inp.rows = 3;
-        fld.appendChild(inp);
-
-        const row = document.createElement("div"); row.className = "row";
-        const sb = document.createElement("button"); sb.className = "secondary small"; sb.type = "button"; sb.textContent = "保存句子";
-        sb.addEventListener("click", async () => { await updateImage(img.id, { title: inp.value.trim() }, "句子已保存。"); });
-
-        const ub = document.createElement("button"); ub.className = "secondary small"; ub.type = "button"; ub.textContent = "前移"; ub.disabled = i === 0;
-        ub.addEventListener("click", async () => { await moveImage(i, i - 1); });
-
-        const db = document.createElement("button"); db.className = "secondary small"; db.type = "button"; db.textContent = "后移"; db.disabled = i === currentImages.length - 1;
-        db.addEventListener("click", async () => { await moveImage(i, i + 1); });
-
-        const del = document.createElement("button"); del.className = "small"; del.type = "button"; del.textContent = "删除";
-        del.addEventListener("click", async () => { await deleteImage(img); });
-
-        row.append(sb, ub, db, del);
-        right.append(fld, row);
-        card.append(pv, right);
-        manageList.appendChild(card);
+      if (!Boolean(currentSession?.user)) { manageEmpty.hidden=false; manageEmpty.textContent="先登录"; return; }
+      if (!currentImages.length) { manageEmpty.hidden=false; manageEmpty.textContent="还没有图片。"; return; }
+      manageEmpty.hidden=true;
+      currentImages.forEach((img,i)=>{
+        const card=document.createElement("article"); card.className="manage-card";
+        const pv=document.createElement("img"); pv.src=img.wallUrl; pv.alt=img.caption||`图片 ${i+1}`; pv.loading="lazy";
+        pv.onerror=()=>{ if(pv.src!==img.originalUrl) pv.src=img.originalUrl; };
+        const right=document.createElement("div");
+        const fld=document.createElement("div"); fld.className="field";
+        fld.innerHTML=`<label>图片 ${i+1} 的一句话</label>`;
+        const inp=document.createElement("textarea"); inp.value=img.caption||""; inp.maxLength=120; inp.rows=3; fld.appendChild(inp);
+        const row=document.createElement("div"); row.className="row";
+        const sb=document.createElement("button"); sb.className="secondary small"; sb.type="button"; sb.textContent="保存句子";
+        sb.addEventListener("click",async()=>{await updateImage(img.id,{title:inp.value.trim()},"已保存");});
+        const ub=document.createElement("button"); ub.className="secondary small"; ub.type="button"; ub.textContent="前移"; ub.disabled=i===0;
+        ub.addEventListener("click",async()=>{await moveImage(i,i-1);});
+        const db=document.createElement("button"); db.className="secondary small"; db.type="button"; db.textContent="后移"; db.disabled=i===currentImages.length-1;
+        db.addEventListener("click",async()=>{await moveImage(i,i+1);});
+        const del=document.createElement("button"); del.className="small"; del.type="button"; del.textContent="删除";
+        del.addEventListener("click",async()=>{await deleteImage(img);});
+        row.append(sb,ub,db,del); right.append(fld,row); card.append(pv,right); manageList.appendChild(card);
       });
     }
+    async function updateImage(id,patch,msg) { if(!currentSession?.user){setManageStatus("先登录");return;} setManageStatus("保存中..."); const{error}=await supabase.from("album_images").update(patch).eq("id",id); if(error){setManageStatus(`失败：${error.message}`);return;} setManageStatus(msg); await loadWall(); }
+    async function moveImage(from,to) { if(!currentSession?.user){setManageStatus("先登录");return;} const src=currentImages[from],tgt=currentImages[to]; if(!src||!tgt)return; setManageStatus("调整中..."); const so=src.sort_order||from+1, to_=tgt.sort_order||to+1; const f=await supabase.from("album_images").update({sort_order:to_}).eq("id",src.id); if(f.error){setManageStatus(`失败：${f.error.message}`);return;} const s=await supabase.from("album_images").update({sort_order:so}).eq("id",tgt.id); if(s.error){setManageStatus(`失败：${s.error.message}`);return;} setManageStatus("已更新"); await loadWall(); }
+    async function deleteImage(image) { if(!currentSession?.user){setManageStatus("先登录");return;} if(!window.confirm("确认删除？"))return; setManageStatus("删除中..."); const r=await supabase.storage.from(CONFIG.IMAGES_BUCKET).remove([image.file_path]); if(r.error){setManageStatus(`失败：${r.error.message}`);return;} const d=await supabase.from("album_images").delete().eq("id",image.id); if(d.error){setManageStatus(`失败：${d.error.message}`);return;} setManageStatus("已删除"); await loadWall(); }
 
-    async function updateImage(id, patch, msg) {
-      if (!currentSession?.user) { setManageStatus("先登录，再编辑图片。"); return; }
-      setManageStatus("正在保存...");
-      const { error } = await supabase.from("album_images").update(patch).eq("id", id);
-      if (error) { setManageStatus(`保存失败：${error.message}`); return; }
-      setManageStatus(msg);
-      await loadWall();
-    }
-
-    async function moveImage(from, to) {
-      if (!currentSession?.user) { setManageStatus("先登录，再调整顺序。"); return; }
-      const src = currentImages[from], tgt = currentImages[to];
-      if (!src || !tgt) return;
-      setManageStatus("正在调整顺序...");
-      const so = src.sort_order || from + 1, to_ = tgt.sort_order || to + 1;
-      const f = await supabase.from("album_images").update({ sort_order: to_ }).eq("id", src.id);
-      if (f.error) { setManageStatus(`调整失败：${f.error.message}`); return; }
-      const s = await supabase.from("album_images").update({ sort_order: so }).eq("id", tgt.id);
-      if (s.error) { setManageStatus(`调整失败：${s.error.message}`); return; }
-      setManageStatus("顺序已更新。");
-      await loadWall();
-    }
-
-    async function deleteImage(image) {
-      if (!currentSession?.user) { setManageStatus("先登录，再删除图片。"); return; }
-      if (!window.confirm("确认删除这张图片吗？")) return;
-      setManageStatus("正在删除...");
-      const r = await supabase.storage.from(CONFIG.IMAGES_BUCKET).remove([image.file_path]);
-      if (r.error) { setManageStatus(`删除云端图片失败：${r.error.message}`); return; }
-      const d = await supabase.from("album_images").delete().eq("id", image.id);
-      if (d.error) { setManageStatus(`删除图片记录失败：${d.error.message}`); return; }
-      setManageStatus("图片已删除。");
-      await loadWall();
-    }
-
-    function setAuthStatus(m) { authStatus.textContent = m; }
-    function setSettingsStatus(m) { settingsStatus.textContent = m; }
-    function setUploadStatus(m) { uploadStatus.textContent = m; }
-    function setManageStatus(m) { manageStatus.textContent = m; }
+    function setAuthStatus(m){authStatus.textContent=m;}
+    function setSettingsStatus(m){settingsStatus.textContent=m;}
+    function setUploadStatus(m){uploadStatus.textContent=m;}
+    function setManageStatus(m){manageStatus.textContent=m;}
   </script>
 </body>
 </html>
