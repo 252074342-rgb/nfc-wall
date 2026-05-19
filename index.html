@@ -12,7 +12,6 @@
       --line: rgba(179, 197, 255, 0.16);
       --glow: rgba(77, 166, 255, 0.45);
       --pink: #f05080;
-      --pink-glow: rgba(240, 80, 128, 0.5);
     }
 
     * { box-sizing: border-box; }
@@ -30,7 +29,6 @@
       background: #06060e;
     }
 
-    /* ── Main stage ── */
     .stage {
       position: relative;
       width: 100%;
@@ -41,7 +39,7 @@
       flex-direction: column;
     }
 
-    /* ── NFC dark zone (top ~60%) ── */
+    /* ── NFC dark zone ── */
     .nfc-zone {
       position: relative;
       flex: 0 0 62%;
@@ -59,6 +57,7 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
+      z-index: 0;
       background-image:
         radial-gradient(circle at 12% 18%, rgba(255,255,255,0.9) 0 1px, transparent 1.2px),
         radial-gradient(circle at 28% 72%, rgba(255,255,255,0.6) 0 0.8px, transparent 1.1px),
@@ -71,75 +70,102 @@
       opacity: 0.7;
     }
 
-    /* ── NFC indicator ── */
-    .nfc-indicator {
-      position: absolute;
-      top: 8%;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80px;
-      height: 80px;
-      z-index: 5;
-      pointer-events: none;
-    }
-
-    .nfc-core {
-      position: absolute;
-      inset: 14px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(30,40,70,0.95), rgba(15,20,45,0.98));
-      border: 1.5px solid rgba(120, 180, 255, 0.5);
-      box-shadow:
-        0 0 20px rgba(77, 166, 255, 0.4),
-        0 0 40px rgba(77, 166, 255, 0.15),
-        inset 0 0 15px rgba(77, 166, 255, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      animation: nfcCorePulse 2s ease-in-out infinite;
-    }
-
-    .nfc-core svg {
-      width: 28px;
-      height: 28px;
-      fill: none;
-      stroke: rgba(170, 210, 255, 0.9);
-      stroke-width: 1.6;
-    }
-
-    .nfc-ring {
+    /* ── Paper plane ── */
+    .plane-layer {
       position: absolute;
       inset: 0;
-      border-radius: 50%;
-      border: 1.2px solid rgba(77, 166, 255, 0.5);
-      animation: nfcRingExpand 2s ease-out infinite;
-      opacity: 0;
+      pointer-events: none;
+      z-index: 1;
     }
 
-    .nfc-ring:nth-child(2) { animation-delay: 0.65s; }
-    .nfc-ring:nth-child(3) { animation-delay: 1.3s; }
-
-    @keyframes nfcCorePulse {
-      0%, 100% {
-        box-shadow: 0 0 20px rgba(77, 166, 255, 0.4), 0 0 40px rgba(77, 166, 255, 0.15), inset 0 0 15px rgba(77, 166, 255, 0.1);
-        border-color: rgba(120, 180, 255, 0.5);
-      }
-      50% {
-        box-shadow: 0 0 35px rgba(77, 166, 255, 0.7), 0 0 70px rgba(77, 166, 255, 0.3), inset 0 0 25px rgba(77, 166, 255, 0.2);
-        border-color: rgba(170, 220, 255, 0.8);
-      }
+    .plane-group {
+      position: absolute;
+      top: 48%;
+      animation: planeFly 5.5s ease-in-out infinite;
     }
 
-    @keyframes nfcRingExpand {
+    .plane-group svg {
+      display: block;
+      width: min(18vw, 90px);
+      height: auto;
+      fill: url(#planeGradient);
+      stroke: rgba(245, 248, 255, 0.4);
+      stroke-width: 1;
+      filter: drop-shadow(0 6px 14px rgba(117, 154, 255, 0.45));
+    }
+
+    .plane-trail {
+      position: absolute;
+      top: 48%;
+      height: 1.6px;
+      background: linear-gradient(90deg, transparent, rgba(162, 191, 255, 0.85) 30%, rgba(220, 235, 255, 0.95) 60%, transparent);
+      filter: blur(1.2px);
+      z-index: 0;
+      animation: trailFollow 5.5s ease-in-out infinite;
+    }
+
+    @keyframes planeFly {
       0% {
-        transform: scale(0.7);
-        opacity: 0.9;
-        border-width: 1.4px;
+        left: -15%;
+        transform: translateY(0) rotate(-6deg);
+      }
+      15% {
+        transform: translateY(-18px) rotate(-3deg);
+      }
+      30% {
+        transform: translateY(8px) rotate(-8deg);
+      }
+      45% {
+        left: 55%;
+        transform: translateY(-8px) rotate(2deg);
+      }
+      60% {
+        transform: translateY(12px) rotate(-4deg);
+      }
+      75% {
+        transform: translateY(-14px) rotate(-1deg);
+      }
+      90% {
+        left: 112%;
+        transform: translateY(4px) rotate(-5deg);
       }
       100% {
-        transform: scale(2.8);
+        left: 112%;
+        transform: translateY(0) rotate(-6deg);
+      }
+    }
+
+    @keyframes trailFollow {
+      0% {
+        left: -15%;
+        width: 18%;
         opacity: 0;
-        border-width: 0.3px;
+      }
+      8% {
+        opacity: 0.9;
+      }
+      30% {
+        left: -5%;
+        width: 28%;
+        opacity: 0.85;
+      }
+      55% {
+        left: 18%;
+        width: 36%;
+        opacity: 0.9;
+      }
+      80% {
+        left: 45%;
+        width: 40%;
+        opacity: 0.7;
+      }
+      95% {
+        opacity: 0;
+      }
+      100% {
+        left: 75%;
+        width: 20%;
+        opacity: 0;
       }
     }
 
@@ -189,10 +215,12 @@
     }
 
     .tile.visible {
+      opacity: 1;
       animation: tileAppear 0.75s cubic-bezier(0.22, 0.7, 0.2, 1) forwards;
     }
 
     .tile.floating {
+      opacity: 1;
       animation: tileOrbit var(--float-duration, 9s) ease-in-out infinite alternate;
       animation-delay: var(--float-delay, 0s);
     }
@@ -478,8 +506,7 @@
     @media (max-width: 860px) {
       .nfc-zone { flex: 0 0 58%; }
       .tile { width: min(26vw, 100px); min-width: 76px; }
-      .nfc-indicator { width: 64px; height: 64px; top: 6%; }
-      .nfc-core svg { width: 22px; height: 22px; }
+      .plane-group svg { width: min(22vw, 72px); }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -513,25 +540,25 @@
   <main class="stage" id="stage">
     <!-- ── Dark NFC zone ── -->
     <section class="nfc-zone" id="nfcZone">
-      <!-- NFC indicator -->
-      <div class="nfc-indicator" aria-hidden="true">
-        <div class="nfc-ring"></div>
-        <div class="nfc-ring"></div>
-        <div class="nfc-ring"></div>
-        <div class="nfc-core">
-          <svg viewBox="0 0 24 24">
-            <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2Z" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M7 15l3-3 3 3 4-4" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="8" cy="9" r="1.5"/>
+      <!-- Paper plane flying across -->
+      <div class="plane-layer" aria-hidden="true">
+        <div class="plane-trail"></div>
+        <div class="plane-group">
+          <svg viewBox="0 0 160 80">
+            <defs>
+              <linearGradient id="planeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#fff8fd"></stop>
+                <stop offset="55%" stop-color="#b9d0ff"></stop>
+                <stop offset="100%" stop-color="#6fa6ff"></stop>
+              </linearGradient>
+            </defs>
+            <path d="M10 40 150 12 98 38 150 68 85 52 60 73 66 48 10 40Z"></path>
           </svg>
         </div>
       </div>
 
       <!-- Photo cards -->
       <div class="cards" id="cards"></div>
-
-      <!-- Tap ripple container -->
-      <div id="rippleContainer"></div>
     </section>
 
     <!-- Pink accent strip -->
