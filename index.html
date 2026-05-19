@@ -2,16 +2,9 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title></title>
   <style>
-    :root {
-      --rows: 2;
-      --cols: 3;
-      --gap: 14px;
-      --card-radius: 16px;
-    }
-
     * { box-sizing: border-box; }
 
     html, body {
@@ -39,124 +32,95 @@
     .stars {
       position: absolute; inset: 0; pointer-events: none; z-index: 0;
       background-image:
-        radial-gradient(circle at 10% 12%, rgba(255,255,255,0.9) 0 1px, transparent 1.2px),
-        radial-gradient(circle at 28% 55%, rgba(255,255,255,0.6) 0 0.8px, transparent 1.1px),
-        radial-gradient(circle at 44% 18%, rgba(255,255,255,0.8) 0 1px, transparent 1.3px),
-        radial-gradient(circle at 58% 62%, rgba(255,255,255,0.7) 0 0.9px, transparent 1.2px),
-        radial-gradient(circle at 72% 24%, rgba(255,255,255,0.75) 0 1px, transparent 1.3px),
-        radial-gradient(circle at 85% 52%, rgba(255,255,255,0.65) 0 0.9px, transparent 1.1px),
-        radial-gradient(circle at 15% 72%, rgba(255,255,255,0.7) 0 0.8px, transparent 1.1px),
-        radial-gradient(circle at 92% 18%, rgba(255,255,255,0.8) 0 1px, transparent 1.2px),
-        radial-gradient(circle at 38% 82%, rgba(255,255,255,0.55) 0 0.9px, transparent 1.1px),
-        radial-gradient(circle at 65% 38%, rgba(255,255,255,0.7) 0 0.8px, transparent 1.1px),
-        radial-gradient(circle at 8% 42%, rgba(255,255,255,0.75) 0 1px, transparent 1.2px),
-        radial-gradient(circle at 48% 88%, rgba(255,255,255,0.55) 0 0.9px, transparent 1.1px);
-      opacity: 0.75;
+        radial-gradient(circle at 10% 12%, rgba(255,255,255,0.85) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 28% 55%, rgba(255,255,255,0.55) 0 0.8px, transparent 1.1px),
+        radial-gradient(circle at 44% 18%, rgba(255,255,255,0.75) 0 1px, transparent 1.3px),
+        radial-gradient(circle at 58% 62%, rgba(255,255,255,0.65) 0 0.9px, transparent 1.2px),
+        radial-gradient(circle at 72% 24%, rgba(255,255,255,0.7) 0 1px, transparent 1.3px),
+        radial-gradient(circle at 85% 52%, rgba(255,255,255,0.6) 0 0.9px, transparent 1.1px),
+        radial-gradient(circle at 15% 72%, rgba(255,255,255,0.65) 0 0.8px, transparent 1.1px),
+        radial-gradient(circle at 92% 18%, rgba(255,255,255,0.75) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 38% 82%, rgba(255,255,255,0.5) 0 0.9px, transparent 1.1px),
+        radial-gradient(circle at 65% 38%, rgba(255,255,255,0.65) 0 0.8px, transparent 1.1px),
+        radial-gradient(circle at 8% 42%, rgba(255,255,255,0.7) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 48% 88%, rgba(255,255,255,0.5) 0 0.9px, transparent 1.1px);
+      opacity: 0.72;
     }
 
-    /* ── Carousel ── */
-    .carousel-viewport {
+    /* ── Viewport ── */
+    .viewport {
       position: absolute;
       inset: 0;
       z-index: 3;
-      display: flex;
-      align-items: center;
       overflow: hidden;
     }
 
-    .carousel-track {
+    .track {
       display: flex;
-      width: 100%;
       height: 100%;
-      transition: transform 0.45s cubic-bezier(0.25, 0.7, 0.3, 1);
+      padding: 24px 0;
+      transition: transform 0.55s cubic-bezier(0.25, 0.7, 0.3, 1);
       will-change: transform;
     }
+    .track.instant { transition: none; }
 
-    .carousel-track.instant { transition: none; }
-
-    .batch {
-      flex: 0 0 100%;
-      height: 100%;
-      display: grid;
-      grid-template-rows: 1fr auto 1fr;
-      grid-template-columns: repeat(3, 1fr);
-      gap: var(--gap);
-      padding: env(safe-area-inset-top, 20px) 16px env(safe-area-inset-bottom, 20px) 16px;
+    /* ── Column ── */
+    .column {
+      flex: 0 0 calc(100% / 3);
+      display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-items: center;
+      justify-content: center;
+      gap: clamp(44px, 11vh, 80px);
+      padding: 0 6px;
     }
 
-    /* Flight channel — middle row of the grid */
-    .flight-channel {
-      grid-column: 1 / -1;
-      grid-row: 2;
-      width: 100%;
-      height: clamp(50px, 12vh, 90px);
-      pointer-events: none;
-    }
-
-    /* ── Photo cards ── */
+    /* ── Cards ── */
     .card {
       position: relative;
-      width: min(29vw, 130px);
+      width: 86%;
+      max-width: 140px;
       aspect-ratio: 4 / 5;
-      border-radius: var(--card-radius);
+      border-radius: 16px;
       background: linear-gradient(180deg, rgba(10,15,28,0.95), rgba(5,9,20,0.99));
-      border: 1px solid rgba(200,220,255,0.15);
-      box-shadow:
-        0 12px 28px rgba(0,0,0,0.38),
-        0 0 20px rgba(77,150,255,0.08);
+      border: 1px solid rgba(200,220,255,0.14);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.36), 0 0 18px rgba(77,150,255,0.06);
       overflow: hidden;
       cursor: pointer;
-      transition: transform 0.35s ease, opacity 0.35s ease;
-      will-change: transform, opacity;
+      transition: transform 0.35s ease;
     }
 
     .card img {
       display: block;
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       object-fit: cover;
       background: linear-gradient(180deg, #11192a, #070d17);
       opacity: 0;
       transition: opacity 0.3s ease;
     }
-
     .card.loaded img { opacity: 1; }
 
-    .card.sliding-out-top {
-      animation: slideOutTop 0.55s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+    /* Card enter/exit animations */
+    .card.entering {
+      animation: cardEnter 0.5s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
     }
-    .card.sliding-out-bottom {
-      animation: slideOutBottom 0.55s cubic-bezier(0.4, 0, 0.6, 1) forwards;
-    }
-    .card.sliding-in-top {
-      animation: slideInTop 0.55s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
-    }
-    .card.sliding-in-bottom {
-      animation: slideInBottom 0.55s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+    .card.exiting {
+      animation: cardExit 0.45s ease-in forwards;
+      pointer-events: none;
     }
 
-    @keyframes slideOutTop {
-      to { transform: translateY(calc(-100% - 40px)); opacity: 0; }
+    @keyframes cardEnter {
+      from { transform: translateX(30px); opacity: 0; }
+      to   { transform: translateX(0); opacity: 1; }
     }
-    @keyframes slideOutBottom {
-      to { transform: translateY(calc(100% + 40px)); opacity: 0; }
-    }
-    @keyframes slideInTop {
-      from { transform: translateY(calc(-100% - 40px)); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    @keyframes slideInBottom {
-      from { transform: translateY(calc(100% + 40px)); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+    @keyframes cardExit {
+      to { transform: translateX(-30px); opacity: 0; }
     }
 
     /* ── Plane ── */
     .plane-layer {
       position: absolute; inset: 0; pointer-events: none; z-index: 5;
     }
-
     .plane-group {
       position: absolute;
       top: 50%;
@@ -164,37 +128,22 @@
       animation: planeJourney 12s ease-in-out infinite;
       transform-style: preserve-3d;
     }
-
     .plane-group svg {
       display: block;
       width: min(24vw, 120px);
       height: auto;
       filter: drop-shadow(0 8px 20px rgba(117,154,255,0.55)) drop-shadow(0 2px 6px rgba(255,255,255,0.25));
-      animation: planeHover 0.8s ease-in-out infinite alternate;
+      animation: planeBob 0.8s ease-in-out infinite alternate;
     }
-
-    @keyframes planeHover {
-      from { transform: translateY(-4px) rotateX(2deg); }
-      to   { transform: translateY(4px) rotateX(-3deg); }
+    @keyframes planeBob {
+      from { transform: translateY(-3px) rotateX(2deg); }
+      to   { transform: translateY(3px) rotateX(-3deg); }
     }
-
-    .plane-group svg .plane-body {
-      fill: url(#planeGrad);
-      stroke: rgba(255,255,255,0.5);
-      stroke-width: 0.7;
-    }
-
     .plane-trail {
       position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
+      top: 50%; transform: translateY(-50%);
       height: 3px;
-      background: linear-gradient(90deg,
-        transparent 0%,
-        rgba(180,210,255,0.25) 10%,
-        rgba(220,240,255,0.65) 35%,
-        rgba(200,225,255,0.5) 65%,
-        transparent 100%);
+      background: linear-gradient(90deg, transparent 0%, rgba(180,210,255,0.25) 10%, rgba(220,240,255,0.65) 35%, rgba(200,225,255,0.5) 65%, transparent 100%);
       filter: blur(2.5px);
       z-index: 4;
       border-radius: 2px;
@@ -202,61 +151,37 @@
       pointer-events: none;
     }
 
-    /* Plane journey: enter → center → grow → pause → exit */
     @keyframes planeJourney {
-      0%   { left: -20%; transform: translateY(-50%) scale(0.7); opacity: 0; }
-      8%   { left: -20%; opacity: 1; }
-      28%  { left: 40%; transform: translateY(-50%) scale(1.15); opacity: 1; }
-      40%  { left: 42%; transform: translateY(-50%) scale(1.2); opacity: 1; }
-      68%  { left: 42%; transform: translateY(-50%) scale(1.2); opacity: 1; }
-      82%  { left: 65%; transform: translateY(-50%) scale(0.9); opacity: 0.8; }
-      100% { left: 110%; transform: translateY(-50%) scale(0.55); opacity: 0; }
+      0%   { left: -20%; transform: translateY(-50%) scale(0.65); opacity: 0; }
+      7%   { opacity: 1; }
+      30%  { left: 38%; transform: translateY(-50%) scale(1.18); opacity: 1; }
+      42%  { left: 40%; transform: translateY(-50%) scale(1.22); opacity: 1; }
+      68%  { left: 40%; transform: translateY(-50%) scale(1.22); opacity: 1; }
+      82%  { left: 68%; transform: translateY(-50%) scale(0.88); opacity: 0.7; }
+      100% { left: 110%; transform: translateY(-50%) scale(0.5); opacity: 0; }
     }
-
     @keyframes trailJourney {
-      0%   { left: -20%; width: 5%; opacity: 0; }
-      6%   { opacity: 0.85; }
-      28%  { left: 10%; width: 28%; opacity: 0.9; }
-      40%  { left: 12%; width: 30%; opacity: 0.85; }
-      68%  { left: 12%; width: 30%; opacity: 0.85; }
-      82%  { left: 35%; width: 28%; opacity: 0.5; }
-      100% { left: 80%; width: 15%; opacity: 0; }
+      0%   { left: -20%; width: 4%; opacity: 0; }
+      5%   { opacity: 0.85; }
+      30%  { left: 6%; width: 28%; opacity: 0.9; }
+      42%  { left: 8%; width: 32%; opacity: 0.85; }
+      68%  { left: 8%; width: 32%; opacity: 0.85; }
+      82%  { left: 34%; width: 28%; opacity: 0.45; }
+      100% { left: 78%; width: 12%; opacity: 0; }
     }
 
-    /* ── Swipe hint ── */
-    .swipe-indicator {
+    /* ── Indicators ── */
+    .swipe-dots {
       position: absolute;
-      bottom: 22px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 6;
-      display: flex;
-      gap: 8px;
-      pointer-events: none;
-      transition: opacity 0.5s ease;
+      bottom: 18px; left: 50%; transform: translateX(-50%);
+      z-index: 6; display: flex; gap: 7px; pointer-events: none;
     }
     .swipe-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.3);
-      transition: background 0.3s ease, transform 0.3s ease;
+      width: 5px; height: 5px; border-radius: 50%;
+      background: rgba(255,255,255,0.28);
+      transition: background 0.3s, transform 0.3s;
     }
-    .swipe-dot.active {
-      background: rgba(200,220,255,0.9);
-      transform: scale(1.4);
-    }
-
-    /* ── Page counter ── */
-    .page-counter {
-      position: absolute;
-      top: env(safe-area-inset-top, 12px);
-      right: 16px;
-      z-index: 6;
-      font-size: 12px;
-      color: rgba(255,255,255,0.4);
-      pointer-events: none;
-      letter-spacing: 0.05em;
-    }
+    .swipe-dot.active { background: rgba(200,220,255,0.9); transform: scale(1.5); }
 
     /* ── Lightbox ── */
     .overlay {
@@ -302,15 +227,18 @@
     .manage-card { display: grid; grid-template-columns: 74px minmax(0,1fr); gap: 12px; padding: 12px; border-radius: 18px; border: 1px solid rgba(175,194,255,0.12); background: rgba(255,255,255,0.04); }
     .manage-card img { display: block; width: 74px; height: 74px; object-fit: cover; border-radius: 14px; background: rgba(255,255,255,0.04); }
 
-    button { border: 0; border-radius: 999px; padding: 12px 16px; background: linear-gradient(135deg, #6da8ff, #f06090); color: #fff; font: inherit; font-weight: 600; cursor: pointer; box-shadow: 0 12px 28px rgba(100,150,255,0.25); transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease; }
+    button { border: 0; border-radius: 999px; padding: 12px 16px; background: linear-gradient(135deg, #6da8ff, #f06090); color: #fff; font: inherit; font-weight: 600; cursor: pointer; box-shadow: 0 12px 28px rgba(100,150,255,0.25); transition: transform 0.18s, box-shadow 0.18s, opacity 0.18s; }
     button.secondary { background: rgba(255,255,255,0.06); color: #eef2ff; border: 1px solid rgba(175,194,255,0.14); box-shadow: none; }
     button.small { padding: 9px 12px; font-size: 13px; }
     button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
 
     @media (max-width: 600px) {
-      .card { width: min(28vw, 110px); }
+      .card { max-width: 120px; }
+      .column { gap: clamp(32px, 9vh, 60px); padding: 0 3px; }
       .plane-group svg { width: min(28vw, 100px); }
-      .flight-channel { height: clamp(40px, 10vh, 70px); }
+    }
+    @media (min-width: 900px) {
+      .card { max-width: 150px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -323,8 +251,8 @@
     <div class="stars" aria-hidden="true"></div>
 
     <!-- Carousel -->
-    <div class="carousel-viewport" id="viewport">
-      <div class="carousel-track instant" id="track"></div>
+    <div class="viewport" id="viewport">
+      <div class="track instant" id="track"></div>
     </div>
 
     <!-- Plane -->
@@ -333,7 +261,7 @@
       <div class="plane-group">
         <svg viewBox="0 0 200 100">
           <defs>
-            <linearGradient id="planeGrad" x1="0%" y1="0%" x2="100%" y2="80%">
+            <linearGradient id="pGrad" x1="0%" y1="0%" x2="100%" y2="80%">
               <stop offset="0%" stop-color="#ffffff"></stop>
               <stop offset="25%" stop-color="#eaf2ff"></stop>
               <stop offset="55%" stop-color="#a8ccff"></stop>
@@ -344,26 +272,18 @@
               <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
             </filter>
           </defs>
-          <!-- Main body & wings -->
-          <path class="plane-body" filter="url(#pGlow)"
+          <path filter="url(#pGlow)" fill="url(#pGrad)" stroke="rgba(255,255,255,0.5)" stroke-width="0.7"
             d="M22 50 170 20 116 46 170 80 100 60 76 86 82 53 22 50Z"/>
-          <!-- Top wing highlight -->
           <path d="M116 46 170 20 144 38 116 46Z" fill="rgba(255,255,255,0.55)"/>
-          <!-- Bottom wing shadow -->
           <path d="M100 60 170 80 144 68 100 60Z" fill="rgba(30,55,110,0.3)"/>
-          <!-- Body center ridge -->
           <line x1="22" y1="50" x2="108" y2="52" stroke="rgba(255,255,255,0.4)" stroke-width="0.7"/>
-          <!-- Nose -->
           <ellipse cx="26" cy="50" rx="5" ry="3.5" fill="rgba(255,255,255,0.75)"/>
         </svg>
       </div>
     </div>
 
-    <!-- Swipe dots -->
-    <div class="swipe-indicator" id="swipeDots"></div>
-
-    <!-- Page counter -->
-    <div class="page-counter" id="pageCounter"></div>
+    <!-- Dots -->
+    <div class="swipe-dots" id="swipeDots"></div>
   </main>
 
   <!-- Lightbox -->
@@ -376,16 +296,10 @@
 
   <!-- Editor -->
   <aside class="editor" id="editorPanel" aria-hidden="true">
-    <div class="editor-head">
-      <h2>编辑</h2>
-      <button class="secondary" id="closeEditor" type="button">关闭</button>
-    </div>
+    <div class="editor-head"><h2>编辑</h2><button class="secondary" id="closeEditor" type="button">关闭</button></div>
     <section class="panel">
       <h3>管理员登录</h3>
-      <div class="session-line">
-        <span id="sessionText">未登录</span>
-        <button class="secondary small" id="signOutBtn" type="button" hidden>退出</button>
-      </div>
+      <div class="session-line"><span id="sessionText">未登录</span><button class="secondary small" id="signOutBtn" type="button" hidden>退出</button></div>
       <form id="loginForm">
         <div class="field"><label for="emailInput">邮箱</label><input id="emailInput" type="email" autocomplete="username"></div>
         <div class="field"><label for="passwordInput">密码</label><input id="passwordInput" type="password" autocomplete="current-password"></div>
@@ -435,17 +349,11 @@
       LIGHTBOX_IMAGE_QUALITY: 82,
     };
 
-    const PHOTOS_PER_BATCH = 6;
-    const PLANE_PAUSE_START = 0.40;  // fraction into journey when plane stops
-    const PLANE_PAUSE_END = 0.68;
-    const BATCH_ADVANCE_INTERVAL = 2200; // ms between auto-advances while plane hovers
-
     // ── DOM ──
     const stage = document.getElementById("stage");
     const track = document.getElementById("track");
     const viewport = document.getElementById("viewport");
     const swipeDots = document.getElementById("swipeDots");
-    const pageCounter = document.getElementById("pageCounter");
     const lightbox = document.getElementById("lightbox");
     const lightboxImage = document.getElementById("lightboxImage");
     const lightboxCaption = document.getElementById("lightboxCaption");
@@ -474,18 +382,18 @@
     let currentSession = null;
     let currentImages = [];
     let audioElement = null;
-    let batches = [];
-    let currentBatch = 0;
-    let totalBatches = 0;
-    let autoAdvanceTimer = null;
-    let isAutoAdvancing = false;
+    let totalCols = 0;
+    let activeCol = 0;
+    let isAutoSliding = false;
+    let autoSlideTimer = null;
+    let planeCycleTimer = null;
     let tapCount = 0;
     let tapTimer = null;
     let pendingLightboxTimeout = 0;
     let longPressTimer = 0;
-    let swipeStartX = 0;
-    let swipeStartY = 0;
-    let swipeMoved = false;
+    let swipeX0 = 0;
+    let swipeY0 = 0;
+    let swipeActive = false;
 
     init();
 
@@ -504,10 +412,9 @@
       musicToggle.addEventListener("click", toggleMusicPlayback);
       track.addEventListener("click", onTrackClick);
 
-      // Touch/swipe
-      track.addEventListener("touchstart", onSwipeStart, { passive: true });
-      track.addEventListener("touchmove", onSwipeMove, { passive: true });
-      track.addEventListener("touchend", onSwipeEnd, { passive: true });
+      viewport.addEventListener("touchstart", onSwipeStart, { passive: true });
+      viewport.addEventListener("touchmove", onSwipeMove, { passive: true });
+      viewport.addEventListener("touchend", onSwipeEnd, { passive: true });
 
       stage.addEventListener("pointerup", onStageTap, { passive: true });
       stage.addEventListener("pointerdown", onStagePressStart, { passive: true });
@@ -515,14 +422,14 @@
       stage.addEventListener("pointercancel", onStagePressEnd, { passive: true });
       stage.addEventListener("pointerleave", onStagePressEnd, { passive: true });
 
-      document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") { closeEditorPanel(); closeLightbox(); }
-        if (event.key === "ArrowLeft") { goToBatch(currentBatch - 1); }
-        if (event.key === "ArrowRight") { goToBatch(currentBatch + 1); }
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") { closeEditorPanel(); closeLightbox(); }
+        if (e.key === "ArrowLeft") slideTo(activeCol - 1);
+        if (e.key === "ArrowRight") slideTo(activeCol + 1);
       });
 
-      loginForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
+      loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
         setAuthStatus("正在登录...");
         const { error } = await supabase.auth.signInWithPassword({ email: emailInput.value.trim(), password: passwordInput.value });
         if (error) { setAuthStatus(`登录失败：${error.message}`); return; }
@@ -545,148 +452,117 @@
     // ── Swipe ──
     function onSwipeStart(e) {
       if (editorPanel.classList.contains("open")) return;
-      swipeStartX = e.touches[0].clientX;
-      swipeStartY = e.touches[0].clientY;
-      swipeMoved = false;
+      swipeX0 = e.touches[0].clientX;
+      swipeY0 = e.touches[0].clientY;
+      swipeActive = false;
     }
-
     function onSwipeMove(e) {
-      if (!swipeStartX) return;
-      const dx = e.touches[0].clientX - swipeStartX;
-      const dy = e.touches[0].clientY - swipeStartY;
-      if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) {
-        swipeMoved = true;
-      }
+      if (!swipeX0) return;
+      const dx = e.touches[0].clientX - swipeX0;
+      const dy = e.touches[0].clientY - swipeY0;
+      if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) swipeActive = true;
     }
-
     function onSwipeEnd(e) {
-      if (!swipeMoved || !swipeStartX) { swipeStartX = 0; return; }
-      const dx = (e.changedTouches[0]?.clientX || 0) - swipeStartX;
-      swipeStartX = 0;
-      if (Math.abs(dx) > 40) {
-        if (dx < 0) goToBatch(currentBatch + 1);
-        else goToBatch(currentBatch - 1);
-      }
+      if (!swipeActive || !swipeX0) { swipeX0 = 0; return; }
+      const dx = (e.changedTouches[0]?.clientX || 0) - swipeX0;
+      swipeX0 = 0;
+      if (Math.abs(dx) > 40) slideTo(dx < 0 ? activeCol + 1 : activeCol - 1);
     }
 
     function onTrackClick(e) {
       const card = e.target.closest(".card");
       if (!card) return;
-      const idx = parseInt(card.dataset.imageIndex);
+      const idx = parseInt(card.dataset.img);
       if (!isNaN(idx) && currentImages[idx]) {
         scheduleLightboxOpen(currentImages[idx], idx);
       }
     }
 
-    // ── Batch navigation ──
-    function goToBatch(index) {
-      if (totalBatches === 0) return;
-      currentBatch = Math.max(0, Math.min(index, totalBatches - 1));
+    // ── Navigation ──
+    function slideTo(col) {
+      if (totalCols <= 3) return;
+      const maxCol = totalCols - 3;
+      activeCol = Math.max(0, Math.min(col, maxCol));
       track.classList.remove("instant");
-      track.style.transform = `translateX(-${currentBatch * 100}%)`;
-      updateIndicators();
+      track.style.transform = `translateX(-${activeCol * (100 / 3)}%)`;
+      updateDots();
+      // Trigger enter animation on newly visible column
+      animateEnteringCards();
     }
 
-    function updateIndicators() {
-      // Dots
+    function updateDots() {
+      const maxCol = totalCols - 3;
+      const pages = maxCol + 1;
       swipeDots.innerHTML = "";
-      for (let i = 0; i < totalBatches; i++) {
-        const dot = document.createElement("span");
-        dot.className = "swipe-dot" + (i === currentBatch ? " active" : "");
-        swipeDots.appendChild(dot);
+      if (pages <= 1) return;
+      for (let i = 0; i < pages; i++) {
+        const d = document.createElement("span");
+        d.className = "swipe-dot" + (i === activeCol ? " active" : "");
+        swipeDots.appendChild(d);
       }
-      swipeDots.style.display = totalBatches > 1 ? "flex" : "none";
-      // Counter
-      pageCounter.textContent = totalBatches > 1 ? `${currentBatch + 1}/${totalBatches}` : "";
     }
 
-    // ── Auto-advance loop (triggered by plane pausing) ──
-    function startAutoAdvance() {
-      if (isAutoAdvancing || totalBatches <= 1) return;
-      isAutoAdvancing = true;
-      advanceNext();
-    }
-
-    function advanceNext() {
-      if (!isAutoAdvancing) return;
-      if (currentBatch >= totalBatches - 1) {
-        stopAutoAdvance();
-        return;
-      }
-      autoAdvanceTimer = setTimeout(() => {
-        animateBatchTransition(currentBatch, currentBatch + 1);
-        currentBatch++;
-        updateIndicators();
-        advanceNext();
-      }, BATCH_ADVANCE_INTERVAL);
-    }
-
-    function stopAutoAdvance() {
-      isAutoAdvancing = false;
-      clearTimeout(autoAdvanceTimer);
-      autoAdvanceTimer = null;
-    }
-
-    function animateBatchTransition(fromIdx, toIdx) {
-      const fromBatch = document.querySelector(`.batch[data-index="${fromIdx}"]`);
-      const toBatch = document.querySelector(`.batch[data-index="${toIdx}"]`);
-      if (!fromBatch || !toBatch) return;
-
-      // Animate: top row slides up, bottom row slides down (from old batch)
-      const fromCards = fromBatch.querySelectorAll(".card");
-      fromCards.forEach((card, i) => {
-        const row = i < 3 ? 0 : 1;
-        card.classList.add(row === 0 ? "sliding-out-top" : "sliding-out-bottom");
-      });
-
-      // Show new batch
-      track.classList.remove("instant");
-      track.style.transform = `translateX(-${toIdx * 100}%)`;
-
-      // Animate new cards sliding in
-      const toCards = toBatch.querySelectorAll(".card");
-      toCards.forEach((card, i) => {
-        card.style.opacity = "0";
-        const row = i < 3 ? 0 : 1;
-        card.classList.add(row === 0 ? "sliding-in-top" : "sliding-in-bottom");
-      });
-
-      // Cleanup
-      setTimeout(() => {
-        fromCards.forEach(c => {
-          c.classList.remove("sliding-out-top", "sliding-out-bottom");
-        });
-        toCards.forEach(c => {
-          c.classList.remove("sliding-in-top", "sliding-in-bottom");
-          c.style.opacity = "";
-        });
-      }, 600);
-    }
-
-    // ── Plane journey observer ──
-    function setupPlaneObserver() {
-      // Listen to plane animation events via JS timers (synced to 12s journey)
-      const JOURNEY_DURATION = 12000;
-      const pauseStart = PLANE_PAUSE_START * JOURNEY_DURATION;
-      const pauseEnd = PLANE_PAUSE_END * JOURNEY_DURATION;
-
-      function syncPlaneCycle() {
-        // Calculate where we are in the animation cycle
-        const elapsed = (Date.now() % JOURNEY_DURATION);
-        if (elapsed >= pauseStart && elapsed < pauseEnd) {
-          if (!isAutoAdvancing && totalBatches > 1 && currentBatch === 0) {
-            // Reset auto-advance for new cycle
-          }
-          startAutoAdvance();
-        } else if (elapsed >= pauseEnd || elapsed < 1000) {
-          // Plane is flying away or starting - let user manually scroll
-          // Don't stop auto-advance here; let it finish
+    function animateEnteringCards() {
+      // Cards in the rightmost visible column get an enter animation
+      const rightCol = activeCol + 2; // 0-indexed, so visible cols are activeCol, activeCol+1, activeCol+2
+      const columns = track.querySelectorAll(".column");
+      columns.forEach(col => {
+        const colIdx = parseInt(col.dataset.col);
+        if (colIdx === rightCol) {
+          col.querySelectorAll(".card").forEach(c => {
+            if (!c.classList.contains("exiting")) {
+              c.classList.add("entering");
+              setTimeout(() => c.classList.remove("entering"), 500);
+            }
+          });
         }
-        requestAnimationFrame(() => {
-          setTimeout(syncPlaneCycle, 500);
-        });
+      });
+    }
+
+    // ── Auto-slide (triggered while plane hovers) ──
+    const PLANE_CYCLE = 12000;
+    const PAUSE_START = 0.42 * PLANE_CYCLE;
+    const PAUSE_END = 0.68 * PLANE_CYCLE;
+    const SLIDE_INTERVAL = 2000;
+
+    function startPlaneSync() {
+      function tick() {
+        const t = Date.now() % PLANE_CYCLE;
+        const wasSliding = isAutoSliding;
+        const inPause = t >= PAUSE_START && t < PAUSE_END;
+
+        if (inPause && totalCols > 3 && activeCol < totalCols - 3) {
+          if (!isAutoSliding) {
+            isAutoSliding = true;
+            scheduleNextSlide();
+          }
+        } else if (!inPause && isAutoSliding) {
+          stopAutoSlide();
+        }
+
+        planeCycleTimer = setTimeout(tick, 400);
       }
-      setTimeout(syncPlaneCycle, 500);
+      planeCycleTimer = setTimeout(tick, 400);
+    }
+
+    function scheduleNextSlide() {
+      if (!isAutoSliding) return;
+      autoSlideTimer = setTimeout(() => {
+        if (activeCol < totalCols - 3) {
+          slideTo(activeCol + 1);
+        }
+        if (activeCol >= totalCols - 3) {
+          stopAutoSlide();
+          return;
+        }
+        scheduleNextSlide();
+      }, SLIDE_INTERVAL);
+    }
+
+    function stopAutoSlide() {
+      isAutoSliding = false;
+      clearTimeout(autoSlideTimer);
+      autoSlideTimer = null;
     }
 
     // ── Lightbox ──
@@ -697,13 +573,11 @@
         if (!editorPanel.classList.contains("open")) openLightbox(image, index);
       }, 300);
     }
-
     function cancelPendingLightbox() {
       if (!pendingLightboxTimeout) return;
       window.clearTimeout(pendingLightboxTimeout);
       pendingLightboxTimeout = 0;
     }
-
     function openLightbox(image, index) {
       lightboxImage.alt = image.caption || `图片 ${index + 1}`;
       lightboxCaption.textContent = image.caption || "";
@@ -713,7 +587,6 @@
         if (lightboxImage.src !== image.originalUrl) lightboxImage.src = image.originalUrl;
       };
     }
-
     function closeLightbox() {
       lightbox.classList.remove("open");
       lightboxImage.src = "";
@@ -721,10 +594,10 @@
       lightboxCaption.textContent = "";
     }
 
-    // ── Editor entry ──
-    function onStageTap(event) {
-      if (editorPanel.contains(event.target) || lightbox.contains(event.target)) return;
-      tapCount += 1;
+    // ── Editor ──
+    function onStageTap(e) {
+      if (editorPanel.contains(e.target) || lightbox.contains(e.target)) return;
+      tapCount++;
       clearTimeout(tapTimer);
       tapTimer = setTimeout(() => { tapCount = 0; }, 700);
       if (tapCount >= 3) {
@@ -734,9 +607,8 @@
         openEditorPanel();
       }
     }
-
-    function onStagePressStart(event) {
-      if (editorPanel.contains(event.target) || lightbox.contains(event.target)) return;
+    function onStagePressStart(e) {
+      if (editorPanel.contains(e.target) || lightbox.contains(e.target)) return;
       onStagePressEnd();
       longPressTimer = window.setTimeout(() => {
         longPressTimer = 0;
@@ -745,31 +617,27 @@
         openEditorPanel();
       }, 650);
     }
-
     function onStagePressEnd() {
       if (!longPressTimer) return;
       window.clearTimeout(longPressTimer);
       longPressTimer = 0;
     }
-
     function openEditorPanel() {
       editorPanel.classList.add("open");
       editorPanel.setAttribute("aria-hidden", "false");
     }
-
     function closeEditorPanel() {
       editorPanel.classList.remove("open");
       editorPanel.setAttribute("aria-hidden", "true");
     }
 
-    // ── Auth / Settings / Music ──
+    // ── Auth ──
     async function refreshSession() {
       const { data, error } = await supabase.auth.getSession();
       if (error) { setAuthStatus(`会话读取失败：${error.message}`); return; }
       currentSession = data.session;
       updateAuthUi();
     }
-
     function updateAuthUi() {
       const loggedIn = Boolean(currentSession?.user);
       sessionText.textContent = loggedIn ? `当前账号：${currentSession.user.email}` : "未登录";
@@ -788,7 +656,6 @@
       musicInput.value = data?.music_url || "";
       syncMusic(data?.music_url || "");
     }
-
     function syncMusic(url) {
       if (audioElement) { audioElement.pause(); audioElement.remove(); audioElement = null; }
       if (!url) { musicToggle.hidden = true; musicToggle.textContent = "播放"; return; }
@@ -798,7 +665,6 @@
       musicToggle.hidden = false;
       musicToggle.textContent = "播放";
     }
-
     async function toggleMusicPlayback() {
       if (!audioElement) return;
       if (audioElement.paused) {
@@ -806,7 +672,6 @@
         catch { setSettingsStatus("音频无法播放，请检查链接。"); }
       } else { audioElement.pause(); musicToggle.textContent = "播放"; }
     }
-
     async function saveSettings() {
       if (!currentSession?.user) { setSettingsStatus("先登录，再保存。"); return; }
       setSettingsStatus("正在保存...");
@@ -816,7 +681,7 @@
       setSettingsStatus("已保存。");
     }
 
-    // ── Wall loading ──
+    // ── Wall ──
     async function loadWall() {
       const { data, error } = await supabase
         .from("album_images")
@@ -826,7 +691,7 @@
         .order("created_at", { ascending: true });
       if (error) { setManageStatus(`读取图片失败：${error.message}`); return; }
 
-      currentImages = (data || []).map((item) => {
+      currentImages = (data || []).map(item => {
         const originalUrl = getPublicUrl(item.file_path);
         return {
           ...item,
@@ -837,104 +702,101 @@
         };
       });
 
-      buildBatches();
+      buildTrack();
       renderManageList();
     }
 
-    function getWallUrl(filePath, fb) {
+    function getWallUrl(fp, fb) {
       if (!CONFIG.USE_IMAGE_TRANSFORMS) return fb;
-      return getPublicUrl(filePath, { transform: { width: CONFIG.WALL_IMAGE_WIDTH, height: CONFIG.WALL_IMAGE_HEIGHT, quality: CONFIG.WALL_IMAGE_QUALITY, resize: "cover" } });
+      return getPublicUrl(fp, { transform: { width: CONFIG.WALL_IMAGE_WIDTH, height: CONFIG.WALL_IMAGE_HEIGHT, quality: CONFIG.WALL_IMAGE_QUALITY, resize: "cover" } });
     }
-    function getFullUrl(filePath, fb) {
+    function getFullUrl(fp, fb) {
       if (!CONFIG.USE_IMAGE_TRANSFORMS) return fb;
-      return getPublicUrl(filePath, { transform: { width: CONFIG.LIGHTBOX_IMAGE_WIDTH, quality: CONFIG.LIGHTBOX_IMAGE_QUALITY, resize: "contain" } });
+      return getPublicUrl(fp, { transform: { width: CONFIG.LIGHTBOX_IMAGE_WIDTH, quality: CONFIG.LIGHTBOX_IMAGE_QUALITY, resize: "contain" } });
     }
-    function getPublicUrl(filePath, options) {
-      const { data } = supabase.storage.from(CONFIG.IMAGES_BUCKET).getPublicUrl(filePath, options);
+    function getPublicUrl(fp, opts) {
+      const { data } = supabase.storage.from(CONFIG.IMAGES_BUCKET).getPublicUrl(fp, opts);
       return data.publicUrl;
     }
 
-    // ── Batch building ──
-    function buildBatches() {
+    // ── Build track ──
+    function buildTrack() {
       track.innerHTML = "";
-      batches = [];
-      totalBatches = Math.ceil(currentImages.length / PHOTOS_PER_BATCH) || 0;
-      swipeDots.style.display = "none";
-      pageCounter.textContent = "";
+      stopAutoSlide();
+      activeCol = 0;
 
-      if (totalBatches === 0) {
-        // Show empty state
-        const batch = document.createElement("div");
-        batch.className = "batch";
-        batch.dataset.index = "0";
-        batch.style.display = "flex";
-        batch.style.alignItems = "center";
-        batch.style.justifyContent = "center";
-        batch.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:16px;text-align:center">还没有照片<br><span style="font-size:13px">三连击屏幕进入编辑</span></div>';
-        track.appendChild(batch);
+      // Group images into columns of 2 (top + bottom = 2 rows)
+      const cols = [];
+      for (let i = 0; i < currentImages.length; i += 2) {
+        cols.push({
+          top: currentImages[i],
+          bottom: currentImages[i + 1] || null,
+          topIdx: i,
+          bottomIdx: i + 1 < currentImages.length ? i + 1 : -1,
+        });
+      }
+
+      totalCols = cols.length;
+
+      if (totalCols === 0) {
+        const empty = document.createElement("div");
+        empty.className = "column";
+        empty.style.flex = "0 0 100%";
+        empty.style.justifyContent = "center";
+        empty.style.alignItems = "center";
+        empty.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:15px;text-align:center">还没有照片<br><span style="font-size:12px">三连击进入编辑</span></div>';
+        track.appendChild(empty);
         return;
       }
 
-      for (let b = 0; b < totalBatches; b++) {
-        const batch = document.createElement("div");
-        batch.className = "batch";
-        batch.dataset.index = String(b);
+      // Ensure at least 3 columns visible (pad with empty columns if needed)
+      const displayCols = Math.max(3, totalCols);
 
-        const start = b * PHOTOS_PER_BATCH;
-        const end = Math.min(start + PHOTOS_PER_BATCH, currentImages.length);
+      for (let c = 0; c < displayCols; c++) {
+        const col = document.createElement("div");
+        col.className = "column";
+        col.dataset.col = String(c);
 
-        for (let i = start; i < end; i++) {
-          const card = createCard(currentImages[i], i);
-          batch.appendChild(card);
-        }
+        const data = c < totalCols ? cols[c] : null;
 
-        // Fill remaining slots with placeholders
-        for (let i = end; i < start + PHOTOS_PER_BATCH; i++) {
-          const ph = document.createElement("div");
-          ph.className = "card";
-          ph.style.visibility = "hidden";
-          batch.appendChild(ph);
-        }
+        // Top card
+        const topCard = data && data.top
+          ? createCard(data.top, data.topIdx)
+          : createPlaceholder();
+        col.appendChild(topCard);
 
-        // Add flight channel in the middle (after 3 cards = top row)
-        const channel = document.createElement("div");
-        channel.className = "flight-channel";
-        // Insert after the first 3 cards (top row)
-        const thirdCard = batch.children[2];
-        if (thirdCard) thirdCard.after(channel);
+        // Bottom card
+        const botCard = data && data.bottom
+          ? createCard(data.bottom, data.bottomIdx)
+          : createPlaceholder();
+        col.appendChild(botCard);
 
-        batch.querySelectorAll(".card:not([style*='hidden'])").forEach(c => {
-          if (c.dataset.imageIndex === undefined) return;
-        });
-
-        track.appendChild(batch);
-        batches.push(batch);
+        track.appendChild(col);
       }
 
-      currentBatch = 0;
       track.style.transform = "translateX(0%)";
-      updateIndicators();
-      setupPlaneObserver();
+      updateDots();
+      startPlaneSync();
     }
 
     function createCard(image, index) {
       const card = document.createElement("div");
       card.className = "card";
-      card.dataset.imageIndex = String(index);
+      card.dataset.img = String(index);
 
       const img = document.createElement("img");
       img.alt = image.caption || `图片 ${index + 1}`;
       img.loading = "lazy";
       img.decoding = "async";
 
-      // Use IntersectionObserver for lazy loading
+      // Lazy load via IntersectionObserver
       const obs = new IntersectionObserver((entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
           img.src = image.wallUrl || image.originalUrl;
           obs.unobserve(card);
         }
-      }, { rootMargin: "200px" });
+      }, { rootMargin: "300px" });
       obs.observe(card);
 
       img.addEventListener("load", () => card.classList.add("loaded"), { once: true });
@@ -947,6 +809,13 @@
       return card;
     }
 
+    function createPlaceholder() {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.style.visibility = "hidden";
+      return card;
+    }
+
     // ── Upload ──
     async function uploadImages() {
       if (!currentSession?.user) { setUploadStatus("先登录，再上传图片。"); return; }
@@ -954,25 +823,24 @@
       if (!files.length) { setUploadStatus("先选择至少一张图片。"); return; }
 
       const captions = captionsInput.value.split(/\r?\n/).map(l => l.trim());
-      const baseOrder = currentImages.length ? Math.max(...currentImages.map(item => item.sort_order || 0)) + 1 : 1;
-      const rowsToInsert = [];
+      const baseOrder = currentImages.length ? Math.max(...currentImages.map(it => it.sort_order || 0)) + 1 : 1;
+      const rows = [];
 
       setUploadStatus(`准备上传 ${files.length} 张图片...`);
 
-      for (const [offset, file] of files.entries()) {
-        setUploadStatus(`正在压缩并上传第 ${offset + 1} / ${files.length} 张...`);
+      for (const [i, file] of files.entries()) {
+        setUploadStatus(`正在压缩并上传第 ${i + 1} / ${files.length} 张...`);
         const prepared = await prepareUploadFile(file);
-        const filePath = `${CONFIG.ALBUM_SLUG}/${Date.now()}-${crypto.randomUUID()}-${sanitizeFileName(prepared.name)}`;
-
-        const uploadResult = await supabase.storage.from(CONFIG.IMAGES_BUCKET).upload(filePath, prepared, { cacheControl: "31536000", upsert: false });
-        if (uploadResult.error) { setUploadStatus(`上传失败：${uploadResult.error.message}`); return; }
-        rowsToInsert.push({ album_slug: CONFIG.ALBUM_SLUG, title: captions[offset] || "", file_path: filePath, sort_order: baseOrder + offset });
+        const fp = `${CONFIG.ALBUM_SLUG}/${Date.now()}-${crypto.randomUUID()}-${sanitizeFileName(prepared.name)}`;
+        const up = await supabase.storage.from(CONFIG.IMAGES_BUCKET).upload(fp, prepared, { cacheControl: "31536000", upsert: false });
+        if (up.error) { setUploadStatus(`上传失败：${up.error.message}`); return; }
+        rows.push({ album_slug: CONFIG.ALBUM_SLUG, title: captions[i] || "", file_path: fp, sort_order: baseOrder + i });
       }
 
-      const insertResult = await supabase.from("album_images").insert(rowsToInsert);
-      if (insertResult.error) {
-        await supabase.storage.from(CONFIG.IMAGES_BUCKET).remove(rowsToInsert.map(r => r.file_path));
-        setUploadStatus(`写入图片记录失败：${insertResult.error.message}`);
+      const ins = await supabase.from("album_images").insert(rows);
+      if (ins.error) {
+        await supabase.storage.from(CONFIG.IMAGES_BUCKET).remove(rows.map(r => r.file_path));
+        setUploadStatus(`写入图片记录失败：${ins.error.message}`);
         return;
       }
 
@@ -988,51 +856,41 @@
         const bitmap = await loadBitmap(file);
         let { width, height } = fitSize(bitmap.width, bitmap.height, CONFIG.MAX_UPLOAD_EDGE);
         let quality = CONFIG.MAX_UPLOAD_QUALITY;
-        let attempt = 0;
         let blob = null;
-
-        while (attempt < 6) {
-          const canvas = document.createElement("canvas");
-          canvas.width = width; canvas.height = height;
-          canvas.getContext("2d", { alpha: true }).drawImage(bitmap, 0, 0, width, height);
-          blob = await canvasToBlob(canvas, "image/webp", quality);
+        for (let a = 0; a < 6; a++) {
+          const cv = document.createElement("canvas");
+          cv.width = width; cv.height = height;
+          cv.getContext("2d", { alpha: true }).drawImage(bitmap, 0, 0, width, height);
+          blob = await canvasToBlob(cv, "image/webp", quality);
           if (blob && blob.size <= CONFIG.TARGET_UPLOAD_BYTES) break;
           if (quality > CONFIG.MIN_UPLOAD_QUALITY) { quality = Math.max(CONFIG.MIN_UPLOAD_QUALITY, quality - 0.05); }
           else { width = Math.max(500, Math.round(width * 0.88)); height = Math.max(500, Math.round(height * 0.88)); }
-          attempt++;
         }
-
         if (typeof bitmap.close === "function") bitmap.close();
         if (!blob || blob.size >= file.size * 0.96) return file;
-        const baseName = file.name.replace(/\.[^.]+$/, "") || "photo";
-        return new File([blob], `${baseName}.webp`, { type: "image/webp", lastModified: Date.now() });
-      } catch (e) { console.warn("Compression skipped:", e); return file; }
+        return new File([blob], `${file.name.replace(/\.[^.]+$/, "") || "photo"}.webp`, { type: "image/webp", lastModified: Date.now() });
+      } catch (e) { console.warn("Compress skip:", e); return file; }
     }
 
     async function loadBitmap(file) {
       if (typeof createImageBitmap === "function") return createImageBitmap(file);
       const img = new Image();
-      const url = URL.createObjectURL(file);
-      img.src = url;
-      await img.decode();
-      URL.revokeObjectURL(url);
+      const u = URL.createObjectURL(file);
+      img.src = u; await img.decode(); URL.revokeObjectURL(u);
       return img;
     }
 
     function fitSize(w, h, max) {
-      const longest = Math.max(w, h);
-      if (longest <= max) return { width: w, height: h };
-      const s = max / longest;
+      const L = Math.max(w, h);
+      if (L <= max) return { width: w, height: h };
+      const s = max / L;
       return { width: Math.max(1, Math.round(w * s)), height: Math.max(1, Math.round(h * s)) };
     }
 
-    function canvasToBlob(canvas, type, quality) {
-      return new Promise(resolve => canvas.toBlob(resolve, type, quality));
-    }
-
+    function canvasToBlob(c, t, q) { return new Promise(r => c.toBlob(r, t, q)); }
     function sanitizeFileName(n) { return n.replace(/[^a-zA-Z0-9._-]/g, "-"); }
 
-    // ── Manage list ──
+    // ── Manage ──
     function renderManageList() {
       manageList.innerHTML = "";
       const loggedIn = Boolean(currentSession?.user);
@@ -1040,47 +898,36 @@
       if (!currentImages.length) { manageEmpty.hidden = false; manageEmpty.textContent = "还没有图片。"; return; }
       manageEmpty.hidden = true;
 
-      currentImages.forEach((image, index) => {
+      currentImages.forEach((img, i) => {
         const card = document.createElement("article");
         card.className = "manage-card";
-        const preview = document.createElement("img");
-        preview.src = image.wallUrl;
-        preview.alt = image.caption || `图片 ${index + 1}`;
-        preview.loading = "lazy";
-        preview.onerror = () => { if (preview.src !== image.originalUrl) preview.src = image.originalUrl; };
+        const pv = document.createElement("img");
+        pv.src = img.wallUrl; pv.alt = img.caption || `图片 ${i + 1}`; pv.loading = "lazy";
+        pv.onerror = () => { if (pv.src !== img.originalUrl) pv.src = img.originalUrl; };
 
         const right = document.createElement("div");
-        const field = document.createElement("div");
-        field.className = "field";
-        const label = document.createElement("label");
-        label.textContent = `图片 ${index + 1} 的一句话`;
-        const input = document.createElement("textarea");
-        input.value = image.caption || "";
-        input.maxLength = 120; input.rows = 3;
-        field.append(label, input);
+        const fld = document.createElement("div"); fld.className = "field";
+        fld.innerHTML = `<label>图片 ${i + 1} 的一句话</label>`;
+        const inp = document.createElement("textarea");
+        inp.value = img.caption || ""; inp.maxLength = 120; inp.rows = 3;
+        fld.appendChild(inp);
 
-        const row = document.createElement("div");
-        row.className = "row";
+        const row = document.createElement("div"); row.className = "row";
+        const sb = document.createElement("button"); sb.className = "secondary small"; sb.type = "button"; sb.textContent = "保存句子";
+        sb.addEventListener("click", async () => { await updateImage(img.id, { title: inp.value.trim() }, "句子已保存。"); });
 
-        const saveBtn = document.createElement("button");
-        saveBtn.className = "secondary small"; saveBtn.type = "button"; saveBtn.textContent = "保存句子";
-        saveBtn.addEventListener("click", async () => { await updateImage(image.id, { title: input.value.trim() }, "句子已保存。"); });
+        const ub = document.createElement("button"); ub.className = "secondary small"; ub.type = "button"; ub.textContent = "前移"; ub.disabled = i === 0;
+        ub.addEventListener("click", async () => { await moveImage(i, i - 1); });
 
-        const upBtn = document.createElement("button");
-        upBtn.className = "secondary small"; upBtn.type = "button"; upBtn.textContent = "前移"; upBtn.disabled = index === 0;
-        upBtn.addEventListener("click", async () => { await moveImage(index, index - 1); });
+        const db = document.createElement("button"); db.className = "secondary small"; db.type = "button"; db.textContent = "后移"; db.disabled = i === currentImages.length - 1;
+        db.addEventListener("click", async () => { await moveImage(i, i + 1); });
 
-        const downBtn = document.createElement("button");
-        downBtn.className = "secondary small"; downBtn.type = "button"; downBtn.textContent = "后移"; downBtn.disabled = index === currentImages.length - 1;
-        downBtn.addEventListener("click", async () => { await moveImage(index, index + 1); });
+        const del = document.createElement("button"); del.className = "small"; del.type = "button"; del.textContent = "删除";
+        del.addEventListener("click", async () => { await deleteImage(img); });
 
-        const deleteBtn = document.createElement("button");
-        deleteBtn.className = "small"; deleteBtn.type = "button"; deleteBtn.textContent = "删除";
-        deleteBtn.addEventListener("click", async () => { await deleteImage(image); });
-
-        row.append(saveBtn, upBtn, downBtn, deleteBtn);
-        right.append(field, row);
-        card.append(preview, right);
+        row.append(sb, ub, db, del);
+        right.append(fld, row);
+        card.append(pv, right);
         manageList.appendChild(card);
       });
     }
@@ -1096,12 +943,10 @@
 
     async function moveImage(from, to) {
       if (!currentSession?.user) { setManageStatus("先登录，再调整顺序。"); return; }
-      const src = currentImages[from];
-      const tgt = currentImages[to];
+      const src = currentImages[from], tgt = currentImages[to];
       if (!src || !tgt) return;
       setManageStatus("正在调整顺序...");
-      const so = src.sort_order || from + 1;
-      const to_ = tgt.sort_order || to + 1;
+      const so = src.sort_order || from + 1, to_ = tgt.sort_order || to + 1;
       const f = await supabase.from("album_images").update({ sort_order: to_ }).eq("id", src.id);
       if (f.error) { setManageStatus(`调整失败：${f.error.message}`); return; }
       const s = await supabase.from("album_images").update({ sort_order: so }).eq("id", tgt.id);
