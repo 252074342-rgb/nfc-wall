@@ -69,7 +69,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: clamp(44px, 11vh, 80px);
+      gap: clamp(60px, 16vh, 110px);
       padding: 0 6px;
     }
 
@@ -128,6 +128,29 @@
     @keyframes cardEnter {
       from { transform: translateX(30px); opacity: 0; }
       to   { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Plane flyover highlight */
+    .card.highlighted {
+      border-color: rgba(160,210,255,0.7);
+      box-shadow:
+        0 8px 40px rgba(0,0,0,0.4),
+        0 0 35px rgba(140,200,255,0.4),
+        0 0 60px rgba(100,160,240,0.2),
+        inset 0 0 0 1px rgba(255,255,255,0.08);
+      animation: cardFloatStrong var(--fd, 6s) ease-in-out infinite alternate;
+      animation-delay: var(--fdl, 0s);
+      transform: scale(1.06);
+      transition: border-color 0.4s, box-shadow 0.4s, transform 0.4s;
+      z-index: 2;
+    }
+
+    @keyframes cardFloatStrong {
+      0%   { transform: scale(1.06) translateY(0) rotate(-0.8deg); }
+      25%  { transform: scale(1.06) translateY(-14px) rotate(0.5deg); }
+      50%  { transform: scale(1.06) translateY(-5px) rotate(1.2deg); }
+      75%  { transform: scale(1.06) translateY(-16px) rotate(-0.4deg); }
+      100% { transform: scale(1.06) translateY(-2px) rotate(-1deg); }
     }
 
     /* ── Plane ── */
@@ -538,25 +561,62 @@
     const PAUSE_START = 0.42 * PLANE_CYCLE;
     const PAUSE_END = 0.68 * PLANE_CYCLE;
     const SLIDE_INTERVAL = 2000;
+    let highlightedColumn = -1;
+
+    // Map plane animation progress (0..1) to approximate left% position
+    function planeLeftFromProgress(p) {
+      // Keyframes: (0,-20) (0.30,38) (0.42,40) (0.68,40) (0.82,68) (1.0,110)
+      const kf = [[0,-20],[0.30,38],[0.42,40],[0.68,40],[0.82,68],[1.0,110]];
+      for (let i = 1; i < kf.length; i++) {
+        if (p <= kf[i][0]) {
+          const [t0, x0] = kf[i-1];
+          const [t1, x1] = kf[i];
+          const frac = (p - t0) / (t1 - t0);
+          // ease-in-out approximation
+          const eased = frac < 0.5 ? 2*frac*frac : 1 - Math.pow(-2*frac + 2, 2)/2;
+          return x0 + (x1 - x0) * eased;
+        }
+      }
+      return 110;
+    }
 
     function startPlaneSync() {
       function tick() {
         const t = Date.now() % PLANE_CYCLE;
-        const wasSliding = isAutoSliding;
-        const inPause = t >= PAUSE_START && t < PAUSE_END;
+        const progress = t / PLANE_CYCLE;
+        const planeLeft = planeLeftFromProgress(progress);
 
+        // Auto-slide during pause
+        const inPause = t >= PAUSE_START && t < PAUSE_END;
         if (inPause && totalCols > 3 && activeCol < totalCols - 3) {
-          if (!isAutoSliding) {
-            isAutoSliding = true;
-            scheduleNextSlide();
-          }
+          if (!isAutoSliding) { isAutoSliding = true; scheduleNextSlide(); }
         } else if (!inPause && isAutoSliding) {
           stopAutoSlide();
         }
 
-        planeCycleTimer = setTimeout(tick, 400);
+        // Highlight column under plane
+        const colIdx = Math.floor(planeLeft / 33.33);
+        const targetCol = Math.min(colIdx, 2); // 0,1,2 = visible columns
+        if (targetCol !== highlightedColumn) {
+          // Remove old highlight
+          if (highlightedColumn >= 0) {
+            const oldCol = track.querySelector(`.column[data-col="${activeCol + highlightedColumn}"]`);
+            if (oldCol) oldCol.querySelectorAll(".card").forEach(c => c.classList.remove("highlighted"));
+          }
+          // Add new highlight
+          const newColIdx = activeCol + targetCol;
+          if (newColIdx < totalCols) {
+            const newCol = track.querySelector(`.column[data-col="${newColIdx}"]`);
+            if (newCol) newCol.querySelectorAll(".card").forEach(c => {
+              if (c.style.visibility !== "hidden") c.classList.add("highlighted");
+            });
+            highlightedColumn = targetCol;
+          }
+        }
+
+        planeCycleTimer = setTimeout(tick, 150);
       }
-      planeCycleTimer = setTimeout(tick, 400);
+      planeCycleTimer = setTimeout(tick, 150);
     }
 
     function scheduleNextSlide() {
@@ -596,9 +656,29 @@
       lightboxImage.alt = image.caption || `图片 ${index + 1}`;
       lightboxCaption.textContent = image.caption || "";
       lightbox.classList.add("open");
-      lightboxImage.src = image.fullUrl || image.originalUrl;
+
+      // Show wall image instantly (already cached in card), then upgrade
+      lightboxImage.src = image.wallUrl || image.originalUrl;
+      lightboxImage.onerror = null;
+
+      if (image.fullUrl && image.fullUrl !== image.wallUrl) {
+        const upgrade = new Image();
+        upgrade.onload = () => {
+          if (!lightbox.classList.contains("open")) return;
+          lightboxImage.src = image.fullUrl;
+        };
+        upgrade.onerror = () => {
+          if (image.originalUrl && lightboxImage.src !== image.originalUrl) {
+            lightboxImage.src = image.originalUrl;
+          }
+        };
+        upgrade.src = image.fullUrl;
+      }
+
       lightboxImage.onerror = () => {
-        if (lightboxImage.src !== image.originalUrl) lightboxImage.src = image.originalUrl;
+        if (lightboxImage.src !== image.originalUrl && image.originalUrl) {
+          lightboxImage.src = image.originalUrl;
+        }
       };
     }
     function closeLightbox() {
