@@ -13,7 +13,6 @@
       color: #eef2ff;
       font-family: "Trebuchet MS", "Microsoft YaHei", "PingFang SC", sans-serif;
       -webkit-tap-highlight-color: transparent;
-      touch-action: pan-x;
     }
 
     /* ── Stage ── */
@@ -66,7 +65,6 @@
 
     /* ── Column ── */
     .column {
-      flex: 0 0 calc(100vw / 3);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -499,9 +497,7 @@
       const maxCol = totalCols - 3;
       activeCol = Math.max(0, Math.min(col, maxCol));
       track.classList.remove("instant");
-      // Use pixel offset — translateX % is relative to track width (broken for wide tracks)
-      const colW = viewport.clientWidth / 3;
-      track.style.transform = `translateX(-${activeCol * colW}px)`;
+      track.style.transform = `translateX(-${activeCol * getColWidth()}px)`;
       updateDots();
       animateEnteringCards();
     }
@@ -738,12 +734,23 @@
     }
 
     // ── Build track ──
+    function getColWidth() {
+      return viewport.clientWidth / 3;
+    }
+
+    function sizeColumns() {
+      const w = getColWidth();
+      track.querySelectorAll(".column").forEach(col => {
+        col.style.flex = `0 0 ${w}px`;
+      });
+    }
+
     function buildTrack() {
       track.innerHTML = "";
       stopAutoSlide();
       activeCol = 0;
 
-      // Group images into columns of 2 (top + bottom = 2 rows)
+      // Group images into columns of 2 (top + bottom)
       const cols = [];
       for (let i = 0; i < currentImages.length; i += 2) {
         cols.push({
@@ -767,23 +774,22 @@
         return;
       }
 
-      // Ensure at least 3 columns visible (pad with empty columns if needed)
       const displayCols = Math.max(3, totalCols);
+      const colW = getColWidth();
 
       for (let c = 0; c < displayCols; c++) {
         const col = document.createElement("div");
         col.className = "column";
         col.dataset.col = String(c);
+        col.style.flex = `0 0 ${colW}px`;
 
         const data = c < totalCols ? cols[c] : null;
 
-        // Top card
         const topCard = data && data.top
           ? createCard(data.top, data.topIdx)
           : createPlaceholder();
         col.appendChild(topCard);
 
-        // Bottom card
         const botCard = data && data.bottom
           ? createCard(data.bottom, data.bottomIdx)
           : createPlaceholder();
@@ -792,7 +798,7 @@
         track.appendChild(col);
       }
 
-      track.style.transform = "translateX(0%)";
+      track.style.transform = "translateX(0px)";
       updateDots();
       startPlaneSync();
     }
@@ -801,24 +807,13 @@
       const card = document.createElement("div");
       card.className = "card entering-done";
       card.dataset.img = String(index);
-      // Unique float rhythm per card
       card.style.setProperty("--fd", `${5.5 + (index % 5) * 0.7}s`);
       card.style.setProperty("--fdl", `${(index % 7) * 0.6}s`);
 
       const img = document.createElement("img");
       img.alt = image.caption || `图片 ${index + 1}`;
-      img.loading = "lazy";
+      img.src = image.wallUrl || image.originalUrl;
       img.decoding = "async";
-
-      // Lazy load via IntersectionObserver
-      const obs = new IntersectionObserver((entries) => {
-        for (const e of entries) {
-          if (!e.isIntersecting) continue;
-          img.src = image.wallUrl || image.originalUrl;
-          obs.unobserve(card);
-        }
-      }, { rootMargin: "300px" });
-      obs.observe(card);
 
       img.addEventListener("load", () => card.classList.add("loaded"), { once: true });
       img.addEventListener("error", () => {
