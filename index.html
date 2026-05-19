@@ -7,21 +7,15 @@
   <style>
     :root {
       --bg: #02050b;
-      --panel: rgba(8, 13, 24, 0.92);
-      --line: rgba(175, 194, 255, 0.12);
       --text: #eef2ff;
-      --muted: #98a9d8;
-      --accent: #9ab5ff;
-      --accent-2: #f3aff7;
-      --shadow: 0 24px 70px rgba(0, 0, 0, 0.48);
+      --muted: #9aabd9;
+      --line: rgba(179, 197, 255, 0.16);
+      --glow: rgba(152, 186, 255, 0.38);
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
-    html,
-    body {
+    html, body {
       width: 100%;
       height: 100%;
       margin: 0;
@@ -32,8 +26,8 @@
       color: var(--text);
       font-family: "Trebuchet MS", "Microsoft YaHei", "PingFang SC", sans-serif;
       background:
-        radial-gradient(circle at 18% 18%, rgba(97, 122, 255, 0.16), transparent 28%),
-        radial-gradient(circle at 82% 22%, rgba(244, 149, 255, 0.1), transparent 24%),
+        radial-gradient(circle at 18% 18%, rgba(97, 122, 255, 0.14), transparent 28%),
+        radial-gradient(circle at 82% 22%, rgba(244, 149, 255, 0.08), transparent 24%),
         linear-gradient(180deg, #03060d 0%, #02050a 52%, #010207 100%);
     }
 
@@ -47,128 +41,112 @@
 
     body::before {
       background-image:
-        radial-gradient(circle at 8% 14%, rgba(255, 255, 255, 0.94) 0 1.2px, transparent 1.4px),
-        radial-gradient(circle at 21% 68%, rgba(255, 255, 255, 0.78) 0 1.1px, transparent 1.4px),
-        radial-gradient(circle at 33% 28%, rgba(255, 255, 255, 0.86) 0 1px, transparent 1.3px),
-        radial-gradient(circle at 48% 18%, rgba(255, 255, 255, 0.74) 0 1.2px, transparent 1.5px),
-        radial-gradient(circle at 63% 62%, rgba(255, 255, 255, 0.72) 0 1.2px, transparent 1.5px),
-        radial-gradient(circle at 78% 24%, rgba(255, 255, 255, 0.86) 0 1.1px, transparent 1.4px),
-        radial-gradient(circle at 88% 76%, rgba(255, 255, 255, 0.7) 0 1.2px, transparent 1.4px),
-        radial-gradient(circle at 15% 88%, rgba(255, 255, 255, 0.7) 0 1px, transparent 1.2px);
-      animation: starsFloat 20s linear infinite;
+        radial-gradient(circle at 9% 14%, rgba(255, 255, 255, 0.95) 0 1.2px, transparent 1.4px),
+        radial-gradient(circle at 22% 68%, rgba(255, 255, 255, 0.72) 0 1.1px, transparent 1.4px),
+        radial-gradient(circle at 38% 28%, rgba(255, 255, 255, 0.88) 0 1px, transparent 1.3px),
+        radial-gradient(circle at 51% 18%, rgba(255, 255, 255, 0.7) 0 1.2px, transparent 1.5px),
+        radial-gradient(circle at 66% 64%, rgba(255, 255, 255, 0.76) 0 1.2px, transparent 1.5px),
+        radial-gradient(circle at 78% 26%, rgba(255, 255, 255, 0.84) 0 1.1px, transparent 1.4px),
+        radial-gradient(circle at 88% 78%, rgba(255, 255, 255, 0.68) 0 1.2px, transparent 1.4px),
+        radial-gradient(circle at 16% 88%, rgba(255, 255, 255, 0.72) 0 1px, transparent 1.2px);
+      animation: starsFloat 18s linear infinite;
       opacity: 0.9;
     }
 
     body::after {
       background:
-        radial-gradient(circle at 50% 50%, rgba(151, 180, 255, 0.06), transparent 34%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0) 47%, rgba(137, 162, 255, 0.06) 50%, rgba(255, 255, 255, 0) 53%);
+        radial-gradient(circle at center, rgba(154, 182, 255, 0.08), transparent 34%),
+        radial-gradient(circle at 50% 52%, rgba(131, 161, 255, 0.06), transparent 24%);
       filter: blur(18px);
     }
 
     .stage {
       position: relative;
-      z-index: 1;
       width: 100%;
       height: 100%;
-      display: grid;
-      grid-template-rows: minmax(0, 1fr) clamp(116px, 18vh, 160px) minmax(0, 1fr);
-      gap: 6px;
-      padding: 8px;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-
-    .band {
-      min-height: 0;
-      position: relative;
       overflow: hidden;
-      border-radius: 28px;
+      isolation: isolate;
     }
 
-    .rail {
+    .centerpiece {
+      position: absolute;
+      inset: 50% auto auto 50%;
+      width: min(46vw, 260px);
+      max-width: 260px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      filter: drop-shadow(0 14px 34px rgba(117, 154, 255, 0.34));
+      animation: planeHero 9.5s ease-in-out infinite;
+      z-index: 2;
+    }
+
+    .centerpiece svg {
       width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px;
-      overflow-x: auto;
-      overflow-y: hidden;
-      scrollbar-width: none;
-      scroll-snap-type: x proximity;
+      height: auto;
+      display: block;
+      fill: url(#planeGradient);
+      stroke: rgba(245, 248, 255, 0.4);
+      stroke-width: 1.1;
     }
 
-    .rail::-webkit-scrollbar {
-      display: none;
+    .center-trail {
+      position: absolute;
+      inset: 50% auto auto 50%;
+      width: min(72vw, 420px);
+      height: 2px;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(90deg, rgba(255,255,255,0), rgba(162, 191, 255, 0.8), rgba(255,255,255,0));
+      filter: blur(0.8px);
+      opacity: 0.8;
+      z-index: 1;
+      pointer-events: none;
+      animation: trailPulse 9.5s ease-in-out infinite;
     }
 
-    .rail.compact {
-      justify-content: center;
+    .cards {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
     }
 
     .tile {
-      --tilt: 0deg;
-      --delay: 0ms;
-      flex: 0 0 clamp(118px, 28vw, 170px);
-      position: relative;
-      border-radius: 24px;
-      overflow: hidden;
-      padding: 8px 8px 10px;
-      border: 1px solid rgba(222, 232, 255, 0.16);
+      position: absolute;
+      width: min(30vw, 150px);
+      min-width: 110px;
+      border-radius: 20px;
+      padding: 7px 7px 9px;
       background:
-        linear-gradient(180deg, rgba(226, 235, 255, 0.16), rgba(123, 146, 203, 0.12)),
+        linear-gradient(180deg, rgba(224, 234, 255, 0.16), rgba(123, 146, 203, 0.12)),
         linear-gradient(180deg, rgba(10, 15, 26, 0.92), rgba(5, 9, 18, 0.98));
+      border: 1px solid rgba(230, 238, 255, 0.16);
       box-shadow:
-        inset 0 0 0 1px rgba(255, 255, 255, 0.05),
-        0 18px 38px rgba(0, 0, 0, 0.34);
-      transform: translateY(10px) scale(1.08) rotate(var(--tilt));
+        inset 0 0 0 1px rgba(255,255,255,0.04),
+        0 16px 34px rgba(0,0,0,0.34),
+        0 0 28px rgba(124, 157, 255, 0.12);
       opacity: 0;
+      transform: translate3d(-50%, -50%, 0) scale(1.08);
+      pointer-events: auto;
       cursor: pointer;
-      scroll-snap-align: center;
-      will-change: transform, opacity;
-    }
-
-    .top .tile {
-      --tilt: -1.2deg;
-    }
-
-    .bottom .tile {
-      --tilt: 1.2deg;
     }
 
     .tile.visible {
-      animation: tileBackAway 0.9s cubic-bezier(0.2, 0.75, 0.2, 1) forwards;
-      animation-delay: var(--delay);
+      animation: tileAppear 0.85s cubic-bezier(0.22, 0.7, 0.2, 1) forwards;
     }
 
     .tile.floating {
-      animation: tileDrift var(--float-duration, 9s) ease-in-out infinite alternate;
+      animation: tileOrbit var(--float-duration, 10s) ease-in-out infinite alternate;
       animation-delay: var(--float-delay, 0s);
     }
 
     .tile::before {
       content: "";
       position: absolute;
-      inset: 8px 8px 10px;
-      border-radius: 16px;
-      background:
-        linear-gradient(108deg, rgba(255, 255, 255, 0) 12%, rgba(149, 178, 255, 0.18) 38%, rgba(255, 255, 255, 0) 66%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0));
-      transform: translateX(-140%);
-      opacity: 0;
-      z-index: 2;
+      inset: 7px 7px 9px;
+      border-radius: 14px;
+      border: 1px solid rgba(210, 225, 255, 0.14);
+      box-shadow: 0 0 18px rgba(152, 186, 255, 0.18);
       pointer-events: none;
-    }
-
-    .tile.visible::before {
-      opacity: 1;
-      animation: trailSweep 0.9s ease-out forwards;
-      animation-delay: var(--delay);
-    }
-
-    .tile-plane {
-      display: none;
     }
 
     .tile img {
@@ -176,66 +154,15 @@
       width: 100%;
       aspect-ratio: 4 / 5;
       object-fit: cover;
-      border-radius: 16px;
+      border-radius: 14px;
       border: 1px solid rgba(224, 234, 255, 0.18);
       background: linear-gradient(180deg, #11192a, #070d17);
       opacity: 0;
-      transition: opacity 0.28s ease;
+      transition: opacity 0.24s ease;
     }
 
     .tile.loaded img {
       opacity: 1;
-    }
-
-    .caption {
-      display: none;
-    }
-
-    .runway {
-      position: relative;
-      overflow: hidden;
-      border-radius: 999px;
-      background: linear-gradient(180deg, rgba(9, 14, 25, 0.28), rgba(7, 10, 19, 0.34));
-    }
-
-    .runway::before {
-      content: "";
-      position: absolute;
-      inset: 50% 0 auto 0;
-      height: 1px;
-      background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(165, 191, 255, 0.68), rgba(255, 255, 255, 0));
-      transform: translateY(-50%);
-    }
-
-    .runway-plane {
-      position: absolute;
-      top: 50%;
-      left: -96px;
-      width: 168px;
-      height: 66px;
-      transform: translateY(-50%);
-      transform-origin: center center;
-      filter: drop-shadow(0 10px 30px rgba(142, 171, 255, 0.38));
-      animation: runwayPlane 13s linear infinite;
-    }
-
-    .runway-plane svg {
-      width: 100%;
-      height: 100%;
-      fill: rgba(245, 248, 255, 0.96);
-    }
-
-    .runway-plane::after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: -300px;
-      width: 340px;
-      height: 3px;
-      background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(166, 192, 255, 0.86), rgba(255, 255, 255, 0));
-      transform: translateY(-50%);
-      opacity: 0.84;
-      filter: blur(0.6px);
     }
 
     .overlay {
@@ -245,13 +172,11 @@
       place-items: center;
       padding: 16px;
       background: rgba(2, 4, 10, 0.92);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
       z-index: 25;
     }
 
-    .overlay.open {
-      display: grid;
-    }
+    .overlay.open { display: grid; }
 
     .overlay figure {
       margin: 0;
@@ -263,23 +188,23 @@
       width: 100%;
       max-height: 78vh;
       object-fit: contain;
-      border-radius: 26px;
+      border-radius: 24px;
       border: 1px solid rgba(175, 194, 255, 0.12);
       background: rgba(255, 255, 255, 0.04);
-      transition: opacity 0.22s ease, filter 0.22s ease;
+      transition: opacity 0.18s ease, filter 0.18s ease;
     }
 
     .overlay img.upgrading {
-      opacity: 0.92;
+      opacity: 0.9;
       filter: blur(4px);
     }
 
     .overlay figcaption {
       margin-top: 10px;
       text-align: center;
-      color: #e8edff;
-      line-height: 1.65;
+      color: #e7edff;
       font-size: 14px;
+      line-height: 1.6;
       white-space: pre-wrap;
     }
 
@@ -298,9 +223,7 @@
       backdrop-filter: blur(16px);
     }
 
-    .editor.open {
-      transform: translateX(0);
-    }
+    .editor.open { transform: translateX(0); }
 
     .editor-head {
       display: flex;
@@ -310,10 +233,7 @@
       margin-bottom: 18px;
     }
 
-    .editor-head h2 {
-      margin: 0;
-      font-size: 22px;
-    }
+    .editor-head h2 { margin: 0; font-size: 22px; }
 
     .panel {
       padding: 18px;
@@ -323,15 +243,9 @@
       background: rgba(255, 255, 255, 0.04);
     }
 
-    .panel h3 {
-      margin: 0 0 12px;
-      font-size: 17px;
-    }
+    .panel h3 { margin: 0 0 12px; font-size: 17px; }
 
-    .panel p,
-    .manage-empty,
-    .status-note,
-    .status {
+    .panel p, .manage-empty, .status {
       margin: 0 0 14px;
       color: var(--muted);
       font-size: 13px;
@@ -339,10 +253,7 @@
       white-space: pre-wrap;
     }
 
-    .field {
-      margin-bottom: 12px;
-    }
-
+    .field { margin-bottom: 12px; }
     .field label {
       display: block;
       margin-bottom: 8px;
@@ -350,8 +261,7 @@
       font-size: 13px;
     }
 
-    .field input,
-    .field textarea {
+    .field input, .field textarea {
       width: 100%;
       padding: 13px 14px;
       border-radius: 16px;
@@ -365,12 +275,6 @@
     .field textarea {
       min-height: 100px;
       resize: vertical;
-    }
-
-    .field input:focus,
-    .field textarea:focus {
-      border-color: rgba(154, 181, 255, 0.42);
-      box-shadow: 0 0 0 4px rgba(154, 181, 255, 0.12);
     }
 
     .row {
@@ -393,10 +297,7 @@
       font-size: 13px;
     }
 
-    .manage-list {
-      display: grid;
-      gap: 12px;
-    }
+    .manage-list { display: grid; gap: 12px; }
 
     .manage-card {
       display: grid;
@@ -421,18 +322,13 @@
       border: 0;
       border-radius: 999px;
       padding: 12px 16px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      background: linear-gradient(135deg, #9ab5ff, #f3aff7);
       color: #07101f;
       font: inherit;
       font-weight: 600;
       cursor: pointer;
       box-shadow: 0 12px 28px rgba(148, 175, 255, 0.22);
       transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 16px 34px rgba(148, 175, 255, 0.28);
     }
 
     button.secondary {
@@ -442,112 +338,91 @@
       box-shadow: none;
     }
 
-    button.small {
-      padding: 9px 12px;
-      font-size: 13px;
-    }
-
-    button:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
+    button.small { padding: 9px 12px; font-size: 13px; }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
 
     @media (max-width: 860px) {
-      .tile {
-        flex-basis: clamp(108px, 27vw, 148px);
-      }
+      .centerpiece { width: min(54vw, 250px); }
+      .tile { width: min(31vw, 142px); min-width: 104px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
+      *, *::before, *::after {
         animation: none !important;
         transition: none !important;
       }
-
-      .tile,
-      .tile img {
-        opacity: 1 !important;
-        transform: none !important;
-      }
+      .tile, .tile img { opacity: 1 !important; transform: translate3d(-50%, -50%, 0) !important; }
     }
 
     @keyframes starsFloat {
       from { transform: translateY(0); }
-      50% { transform: translateY(8px); }
+      50% { transform: translateY(7px); }
       to { transform: translateY(0); }
     }
 
-    @keyframes runwayPlane {
+    @keyframes planeHero {
       0% {
-        transform: translate(-16vw, -50%) scale(0.72) rotate(-10deg);
+        transform: translate(-50%, -50%) translate3d(-4vw, 0, -240px) scale(0.62) rotateX(20deg) rotateY(-24deg) rotate(-10deg);
         opacity: 0;
       }
-      10% {
-        transform: translate(2vw, -50%) scale(0.82) rotate(-7deg);
-        opacity: 0.8;
+      12% {
+        transform: translate(-50%, -50%) translate3d(-1vw, 0, -120px) scale(0.78) rotateX(12deg) rotateY(-16deg) rotate(-7deg);
+        opacity: 0.86;
       }
       50% {
-        transform: translate(48vw, -50%) scale(1.14) rotate(0deg);
+        transform: translate(-50%, -50%) translate3d(0, 0, 90px) scale(1.16) rotateX(2deg) rotateY(0deg) rotate(0deg);
         opacity: 1;
       }
-      82% {
-        transform: translate(98vw, -50%) scale(0.82) rotate(5deg);
-        opacity: 0;
+      84% {
+        transform: translate(-50%, -50%) translate3d(2vw, 0, -120px) scale(0.8) rotateX(12deg) rotateY(16deg) rotate(6deg);
+        opacity: 0.86;
       }
       100% {
-        transform: translate(124vw, -50%) scale(0.72) rotate(6deg);
+        transform: translate(-50%, -50%) translate3d(5vw, 0, -260px) scale(0.6) rotateX(18deg) rotateY(24deg) rotate(8deg);
         opacity: 0;
       }
     }
 
-    @keyframes tileBackAway {
+    @keyframes trailPulse {
+      0%, 100% { opacity: 0.48; transform: translate(-50%, -50%) scaleX(0.82); }
+      50% { opacity: 0.9; transform: translate(-50%, -50%) scaleX(1.06); }
+    }
+
+    @keyframes tileAppear {
       0% {
         opacity: 0;
-        transform: translateY(10px) scale(1.08) rotate(var(--tilt));
+        transform: translate3d(-50%, -50%, 0) scale(1.12);
       }
       100% {
         opacity: 1;
-        transform: translateY(0) scale(1) rotate(var(--tilt));
+        transform: translate3d(-50%, -50%, 0) scale(1);
       }
     }
 
-    @keyframes trailSweep {
-      0% { transform: translateX(-140%); }
-      100% { transform: translateX(140%); }
-    }
-
-    @keyframes tileDrift {
-      0% {
-        transform: translate3d(0, 0, 0) rotate(var(--tilt));
-      }
-      50% {
-        transform: translate3d(0, -7px, 0) rotate(calc(var(--tilt) * 0.55));
-      }
-      100% {
-        transform: translate3d(0, 2px, 0) rotate(calc(var(--tilt) * 1.02));
-      }
+    @keyframes tileOrbit {
+      0% { transform: translate3d(-50%, -50%, 0) translate3d(0, 0, 0) rotate(-1deg) scale(1); }
+      33% { transform: translate3d(-50%, -50%, 0) translate3d(6px, -18px, 0) rotate(0.4deg) scale(1.028); }
+      66% { transform: translate3d(-50%, -50%, 0) translate3d(-8px, 10px, 0) rotate(-1.4deg) scale(0.992); }
+      100% { transform: translate3d(-50%, -50%, 0) translate3d(4px, -8px, 0) rotate(0.8deg) scale(1.012); }
     }
   </style>
 </head>
 <body>
   <main class="stage" id="stage">
-    <section class="band top">
-      <div class="rail" id="topRail"></div>
-    </section>
-
-    <section class="runway">
-      <div class="runway-plane" id="runwayPlane" aria-hidden="true">
-        <svg viewBox="0 0 128 64"><path d="M8 32 120 10 78 31 120 54 68 42 48 58 53 39 8 32Z"/></svg>
-      </div>
-    </section>
-
-    <section class="band bottom">
-      <div class="rail" id="bottomRail"></div>
-    </section>
+    <div class="center-trail"></div>
+    <div class="centerpiece" aria-hidden="true">
+      <svg viewBox="0 0 160 80">
+        <defs>
+          <linearGradient id="planeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#fff8fd"></stop>
+            <stop offset="55%" stop-color="#b9d0ff"></stop>
+            <stop offset="100%" stop-color="#6fa6ff"></stop>
+          </linearGradient>
+        </defs>
+        <path d="M10 40 150 12 98 38 150 68 85 52 60 73 66 48 10 40Z"></path>
+      </svg>
+    </div>
+    <section class="cards" id="cards"></section>
   </main>
 
   <div class="overlay" id="lightbox">
@@ -600,7 +475,7 @@
 
     <section class="panel">
       <h3>上传图片</h3>
-      <p>为了尽可能快，这里会把新图压到更小。旧图不会自动变快，想提速需要删掉后重新上传。</p>
+      <p>这个版本彻底偏速度优先。新图会被压得很小，画质会明显牺牲。</p>
       <div class="field">
         <label for="uploadInput">选择图片</label>
         <input id="uploadInput" type="file" accept="image/*" multiple>
@@ -631,26 +506,28 @@
       SUPABASE_ANON_KEY: "sb_publishable_BZMrBawoq266rDTBEcIXRQ_yCrQPJ8C",
       ALBUM_SLUG: "main",
       IMAGES_BUCKET: "wall-images",
-      MAX_UPLOAD_EDGE: 960,
-      TARGET_UPLOAD_BYTES: 240 * 1024,
-      MAX_UPLOAD_QUALITY: 0.58,
-      MIN_UPLOAD_QUALITY: 0.38,
-      RUNWAY_CYCLE_MS: 13000,
-      RUNWAY_ENTRY_LEAD_MS: 680,
-      REVEAL_STEP_MS: 110,
+      MAX_UPLOAD_EDGE: 640,
+      TARGET_UPLOAD_BYTES: 100 * 1024,
+      MAX_UPLOAD_QUALITY: 0.34,
+      MIN_UPLOAD_QUALITY: 0.18,
       USE_IMAGE_TRANSFORMS: true,
-      WALL_IMAGE_WIDTH: 240,
-      WALL_IMAGE_HEIGHT: 320,
-      WALL_IMAGE_QUALITY: 28,
-      LIGHTBOX_IMAGE_WIDTH: 960,
-      LIGHTBOX_IMAGE_QUALITY: 52,
+      WALL_IMAGE_WIDTH: 160,
+      WALL_IMAGE_HEIGHT: 220,
+      WALL_IMAGE_QUALITY: 18,
+      LIGHTBOX_IMAGE_WIDTH: 480,
+      LIGHTBOX_IMAGE_QUALITY: 30,
     };
 
-    const topRail = document.getElementById("topRail");
-    const bottomRail = document.getElementById("bottomRail");
+    const CARD_POSITIONS = [
+      { x: 22, y: 26 }, { x: 78, y: 24 },
+      { x: 16, y: 68 }, { x: 84, y: 70 },
+      { x: 32, y: 16 }, { x: 68, y: 18 },
+      { x: 28, y: 78 }, { x: 72, y: 80 },
+      { x: 10, y: 46 }, { x: 90, y: 48 }
+    ];
+
+    const cards = document.getElementById("cards");
     const stage = document.getElementById("stage");
-    const runway = document.querySelector(".runway");
-    const runwayPlane = document.getElementById("runwayPlane");
     const lightbox = document.getElementById("lightbox");
     const lightboxImage = document.getElementById("lightboxImage");
     const lightboxCaption = document.getElementById("lightboxCaption");
@@ -674,21 +551,15 @@
     const manageEmpty = document.getElementById("manageEmpty");
     const manageStatus = document.getElementById("manageStatus");
 
-    const planeSvg = '<svg viewBox="0 0 128 64" aria-hidden="true"><path d="M8 32 120 10 78 31 120 54 68 42 48 58 53 39 8 32Z"/></svg>';
-
     let supabase = null;
     let currentSession = null;
     let currentImages = [];
     let audioElement = null;
     let sourceObserver = null;
-    let revealSweepRaf = 0;
-    let revealTimeouts = [];
-    let runwayCycleStartedAt = performance.now();
     let tapCount = 0;
     let tapTimer = null;
     let pendingLightboxTimeout = 0;
     let longPressTimer = 0;
-    const warmedImageUrls = new Set();
 
     init();
 
@@ -707,9 +578,6 @@
       stage.addEventListener("pointermove", onStagePressEnd, { passive: true });
       stage.addEventListener("pointercancel", onStagePressEnd, { passive: true });
       stage.addEventListener("pointerleave", onStagePressEnd, { passive: true });
-      topRail.addEventListener("scroll", requestRevealSweep, { passive: true });
-      bottomRail.addEventListener("scroll", requestRevealSweep, { passive: true });
-      window.addEventListener("resize", requestRevealSweep);
       closeEditor.addEventListener("click", closeEditorPanel);
       lightbox.addEventListener("click", closeLightbox);
       musicToggle.addEventListener("click", toggleMusicPlayback);
@@ -728,12 +596,10 @@
           email: emailInput.value.trim(),
           password: passwordInput.value,
         });
-
         if (error) {
           setAuthStatus(`登录失败：${error.message}`);
           return;
         }
-
         passwordInput.value = "";
         setAuthStatus("登录成功。");
         await refreshSession();
@@ -754,13 +620,9 @@
       if (editorPanel.contains(event.target) || lightbox.contains(event.target)) {
         return;
       }
-
       tapCount += 1;
       clearTimeout(tapTimer);
-      tapTimer = setTimeout(() => {
-        tapCount = 0;
-      }, 700);
-
+      tapTimer = setTimeout(() => { tapCount = 0; }, 700);
       if (tapCount >= 3) {
         tapCount = 0;
         cancelPendingLightbox();
@@ -773,7 +635,6 @@
       if (editorPanel.contains(event.target) || lightbox.contains(event.target)) {
         return;
       }
-
       onStagePressEnd();
       longPressTimer = window.setTimeout(() => {
         longPressTimer = 0;
@@ -784,9 +645,7 @@
     }
 
     function onStagePressEnd() {
-      if (!longPressTimer) {
-        return;
-      }
+      if (!longPressTimer) return;
       window.clearTimeout(longPressTimer);
       longPressTimer = 0;
     }
@@ -836,12 +695,10 @@
         .select("music_url")
         .eq("slug", CONFIG.ALBUM_SLUG)
         .maybeSingle();
-
       if (error) {
         setSettingsStatus(`读取设置失败：${error.message}`);
         return;
       }
-
       musicInput.value = data?.music_url || "";
       syncMusic(data?.music_url || "");
     }
@@ -853,7 +710,6 @@
         .eq("album_slug", CONFIG.ALBUM_SLUG)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true });
-
       if (error) {
         setManageStatus(`读取图片失败：${error.message}`);
         return;
@@ -875,10 +731,7 @@
     }
 
     function getWallUrl(filePath, fallbackUrl) {
-      if (!CONFIG.USE_IMAGE_TRANSFORMS) {
-        return fallbackUrl;
-      }
-
+      if (!CONFIG.USE_IMAGE_TRANSFORMS) return fallbackUrl;
       return getPublicUrl(filePath, {
         transform: {
           width: CONFIG.WALL_IMAGE_WIDTH,
@@ -890,10 +743,7 @@
     }
 
     function getFullUrl(filePath, fallbackUrl) {
-      if (!CONFIG.USE_IMAGE_TRANSFORMS) {
-        return fallbackUrl;
-      }
-
+      if (!CONFIG.USE_IMAGE_TRANSFORMS) return fallbackUrl;
       return getPublicUrl(filePath, {
         transform: {
           width: CONFIG.LIGHTBOX_IMAGE_WIDTH,
@@ -909,57 +759,41 @@
     }
 
     function renderWall() {
-      topRail.innerHTML = "";
-      bottomRail.innerHTML = "";
-
+      cards.innerHTML = "";
       if (sourceObserver) {
         sourceObserver.disconnect();
       }
-      clearRevealTimeouts();
 
       sourceObserver = new IntersectionObserver((entries) => {
         for (const entry of entries) {
-          if (!entry.isIntersecting) {
-            continue;
-          }
+          if (!entry.isIntersecting) continue;
           startTileLoad(entry.target);
           sourceObserver.unobserve(entry.target);
         }
-      }, { rootMargin: "180px" });
+      }, { rootMargin: "120px" });
 
       currentImages.forEach((image, index) => {
         const tile = createTile(image, index);
-        const targetRail = index % 2 === 0 ? topRail : bottomRail;
-        targetRail.appendChild(tile);
+        cards.appendChild(tile);
         sourceObserver.observe(tile);
       });
-
-      syncRailDensity(topRail);
-      syncRailDensity(bottomRail);
-      restartRunwayCycle();
     }
 
     function createTile(image, index) {
       const tile = document.createElement("article");
       tile.className = "tile";
-      tile.style.setProperty("--delay", "0ms");
-      tile.style.setProperty("--float-duration", `${8 + (index % 4) * 1.15}s`);
-      tile.style.setProperty("--float-delay", `${(index % 5) * 0.6}s`);
+      tile.style.left = `${CARD_POSITIONS[index % CARD_POSITIONS.length].x}%`;
+      tile.style.top = `${CARD_POSITIONS[index % CARD_POSITIONS.length].y}%`;
+      tile.style.setProperty("--float-duration", `${7.5 + (index % 4) * 0.8}s`);
+      tile.style.setProperty("--float-delay", `${(index % 5) * 0.45}s`);
       tile.dataset.wallSrc = image.wallUrl;
       tile.dataset.wallFallback = image.originalUrl;
-      tile.dataset.fullSrc = image.fullUrl;
-
-      const plane = document.createElement("div");
-      plane.className = "tile-plane";
-      plane.innerHTML = planeSvg;
 
       const img = document.createElement("img");
       img.alt = image.caption || `图片 ${index + 1}`;
       img.decoding = "async";
       img.loading = "lazy";
-      img.addEventListener("load", () => {
-        tile.classList.add("loaded");
-      }, { once: true });
+      img.addEventListener("load", () => tile.classList.add("loaded"), { once: true });
       img.addEventListener("error", () => {
         if (img.src !== tile.dataset.wallFallback) {
           img.src = tile.dataset.wallFallback;
@@ -968,12 +802,15 @@
         tile.classList.add("loaded");
       });
 
-      const caption = document.createElement("div");
-      caption.className = "caption";
-      caption.textContent = image.caption || "";
-
-      tile.append(plane, img, caption);
+      tile.append(img);
       tile.addEventListener("click", () => scheduleLightboxOpen(image, index));
+
+      const revealDelay = 120 + index * 110;
+      window.setTimeout(() => {
+        tile.classList.add("visible");
+        window.setTimeout(() => tile.classList.add("floating"), 860);
+      }, revealDelay);
+
       return tile;
     }
 
@@ -984,117 +821,19 @@
         if (!editorPanel.classList.contains("open")) {
           openLightbox(image, index);
         }
-      }, 520);
+      }, 420);
     }
 
     function cancelPendingLightbox() {
-      if (!pendingLightboxTimeout) {
-        return;
-      }
+      if (!pendingLightboxTimeout) return;
       window.clearTimeout(pendingLightboxTimeout);
       pendingLightboxTimeout = 0;
     }
 
     function startTileLoad(tile) {
       const img = tile.querySelector("img");
-      if (!img || img.src) {
-        return;
-      }
+      if (!img || img.src) return;
       img.src = tile.dataset.wallSrc;
-      warmImageCache(tile.dataset.fullSrc);
-    }
-
-    function warmImageCache(url) {
-      if (!url || warmedImageUrls.has(url)) {
-        return;
-      }
-      warmedImageUrls.add(url);
-      const image = new Image();
-      image.decoding = "async";
-      image.src = url;
-    }
-
-    function syncRailDensity(rail) {
-      rail.classList.toggle("compact", rail.scrollWidth <= rail.clientWidth + 4);
-    }
-
-    function restartRunwayCycle() {
-      runwayCycleStartedAt = performance.now();
-      runwayPlane.style.animation = "none";
-      void runwayPlane.offsetWidth;
-      runwayPlane.style.animation = "";
-      requestRevealSweep();
-    }
-
-    function requestRevealSweep() {
-      if (revealSweepRaf) {
-        return;
-      }
-
-      revealSweepRaf = requestAnimationFrame(() => {
-        revealSweepRaf = 0;
-        scheduleVisibleReveal();
-      });
-    }
-
-    function scheduleVisibleReveal() {
-      const pendingTiles = [...document.querySelectorAll(".tile")]
-        .filter((tile) => !tile.classList.contains("visible"))
-        .filter((tile) => tile.dataset.revealScheduled !== "1")
-        .filter(isTileVisibleInRail)
-        .sort((left, right) => {
-          const leftRect = left.getBoundingClientRect();
-          const rightRect = right.getBoundingClientRect();
-          return (leftRect.left + leftRect.width / 2) - (rightRect.left + rightRect.width / 2);
-        });
-
-      for (const [index, tile] of pendingTiles.entries()) {
-        const delay = getDelayUntilPlanePass(tile) + index * CONFIG.REVEAL_STEP_MS;
-        tile.dataset.revealScheduled = "1";
-        const timeoutId = window.setTimeout(() => {
-          tile.classList.add("visible");
-          window.setTimeout(() => tile.classList.add("floating"), 920);
-          delete tile.dataset.revealScheduled;
-          startTileLoad(tile);
-        }, delay);
-        revealTimeouts.push(timeoutId);
-      }
-    }
-
-    function isTileVisibleInRail(tile) {
-      const rail = tile.parentElement;
-      if (!rail) {
-        return false;
-      }
-
-      const tileRect = tile.getBoundingClientRect();
-      const railRect = rail.getBoundingClientRect();
-      return tileRect.right > railRect.left + 10 && tileRect.left < railRect.right - 10;
-    }
-
-    function getDelayUntilPlanePass(tile) {
-      const tileRect = tile.getBoundingClientRect();
-      const runwayRect = runway.getBoundingClientRect();
-      const centerX = tileRect.left + tileRect.width / 2;
-      const ratio = clamp((centerX - runwayRect.left) / runwayRect.width, 0, 1);
-      const targetElapsed =
-        CONFIG.RUNWAY_ENTRY_LEAD_MS +
-        ratio * (CONFIG.RUNWAY_CYCLE_MS - CONFIG.RUNWAY_ENTRY_LEAD_MS * 2);
-      const elapsed = (performance.now() - runwayCycleStartedAt) % CONFIG.RUNWAY_CYCLE_MS;
-      return elapsed <= targetElapsed
-        ? targetElapsed - elapsed
-        : CONFIG.RUNWAY_CYCLE_MS - elapsed + targetElapsed;
-    }
-
-    function clearRevealTimeouts() {
-      for (const timeoutId of revealTimeouts) {
-        clearTimeout(timeoutId);
-      }
-      revealTimeouts = [];
-    }
-
-    function clamp(value, min, max) {
-      return Math.min(max, Math.max(min, value));
     }
 
     function openLightbox(image, index) {
@@ -1103,14 +842,13 @@
       lightboxImage.alt = image.caption || `图片 ${index + 1}`;
       lightboxCaption.textContent = image.caption || "";
       lightbox.classList.add("open");
+
       if (image.fullUrl && image.fullUrl !== image.wallUrl) {
         lightboxImage.classList.add("upgrading");
         const upgrade = new Image();
         upgrade.decoding = "async";
         upgrade.onload = () => {
-          if (!lightbox.classList.contains("open")) {
-            return;
-          }
+          if (!lightbox.classList.contains("open")) return;
           lightboxImage.src = image.fullUrl;
           lightboxImage.classList.remove("upgrading");
         };
@@ -1122,6 +860,7 @@
         };
         upgrade.src = image.fullUrl;
       }
+
       lightboxImage.onerror = () => {
         if (lightboxImage.src !== image.originalUrl) {
           lightboxImage.src = image.originalUrl;
@@ -1135,18 +874,15 @@
         setSettingsStatus("先登录，再保存。");
         return;
       }
-
       setSettingsStatus("正在保存...");
       const { error } = await supabase.from("album_settings").upsert({
         slug: CONFIG.ALBUM_SLUG,
         music_url: musicInput.value.trim(),
       }, { onConflict: "slug" });
-
       if (error) {
         setSettingsStatus(`保存失败：${error.message}`);
         return;
       }
-
       syncMusic(musicInput.value.trim());
       setSettingsStatus("已保存。");
     }
@@ -1157,13 +893,11 @@
         audioElement.remove();
         audioElement = null;
       }
-
       if (!url) {
         musicToggle.hidden = true;
         musicToggle.textContent = "播放";
         return;
       }
-
       audioElement = document.createElement("audio");
       audioElement.src = url;
       audioElement.loop = true;
@@ -1174,10 +908,7 @@
     }
 
     async function toggleMusicPlayback() {
-      if (!audioElement) {
-        return;
-      }
-
+      if (!audioElement) return;
       if (audioElement.paused) {
         try {
           await audioElement.play();
@@ -1187,7 +918,6 @@
         }
         return;
       }
-
       audioElement.pause();
       musicToggle.textContent = "播放";
     }
@@ -1204,10 +934,9 @@
         return;
       }
 
-      const captions = captionsInput.value
-        .split(/\r?\n/)
-        .map((line) => line.trim());
+      const captions = captionsInput.value.split(/\r?\n/).map((line) => line.trim());
       const baseOrder = currentImages.length ? Math.max(...currentImages.map((item) => item.sort_order || 0)) + 1 : 1;
+      const rowsToInsert = [];
 
       setUploadStatus(`准备上传 ${files.length} 张图片...`);
 
@@ -1226,18 +955,19 @@
           return;
         }
 
-        const insertResult = await supabase.from("album_images").insert({
+        rowsToInsert.push({
           album_slug: CONFIG.ALBUM_SLUG,
           title: captions[offset] || "",
           file_path: filePath,
           sort_order: baseOrder + offset,
         });
+      }
 
-        if (insertResult.error) {
-          await supabase.storage.from(CONFIG.IMAGES_BUCKET).remove([filePath]);
-          setUploadStatus(`写入图片记录失败：${insertResult.error.message}`);
-          return;
-        }
+      const insertResult = await supabase.from("album_images").insert(rowsToInsert);
+      if (insertResult.error) {
+        await supabase.storage.from(CONFIG.IMAGES_BUCKET).remove(rowsToInsert.map((row) => row.file_path));
+        setUploadStatus(`写入图片记录失败：${insertResult.error.message}`);
+        return;
       }
 
       uploadInput.value = "";
@@ -1271,10 +1001,10 @@
           }
 
           if (quality > CONFIG.MIN_UPLOAD_QUALITY) {
-            quality = Math.max(CONFIG.MIN_UPLOAD_QUALITY, quality - 0.06);
+            quality = Math.max(CONFIG.MIN_UPLOAD_QUALITY, quality - 0.04);
           } else {
-            width = Math.max(640, Math.round(width * 0.9));
-            height = Math.max(640, Math.round(height * 0.9));
+            width = Math.max(420, Math.round(width * 0.88));
+            height = Math.max(420, Math.round(height * 0.88));
           }
 
           attempt += 1;
@@ -1303,7 +1033,6 @@
       if (typeof createImageBitmap === "function") {
         return createImageBitmap(file);
       }
-
       const image = new Image();
       const objectUrl = URL.createObjectURL(file);
       image.src = objectUrl;
@@ -1317,7 +1046,6 @@
       if (longest <= maxEdge) {
         return { width, height };
       }
-
       const scale = maxEdge / longest;
       return {
         width: Math.max(1, Math.round(width * scale)),
@@ -1335,19 +1063,16 @@
       manageList.innerHTML = "";
       const loggedIn = Boolean(currentSession?.user);
       manageEmpty.hidden = currentImages.length > 0;
-
       if (!loggedIn) {
         manageEmpty.hidden = false;
         manageEmpty.textContent = "先登录，再管理图片。";
         return;
       }
-
       if (!currentImages.length) {
         manageEmpty.hidden = false;
         manageEmpty.textContent = "还没有图片。";
         return;
       }
-
       manageEmpty.hidden = true;
 
       currentImages.forEach((image, index) => {
@@ -1359,24 +1084,18 @@
         preview.alt = image.caption || `图片 ${index + 1}`;
         preview.loading = "lazy";
         preview.onerror = () => {
-          if (preview.src !== image.originalUrl) {
-            preview.src = image.originalUrl;
-          }
+          if (preview.src !== image.originalUrl) preview.src = image.originalUrl;
         };
 
         const right = document.createElement("div");
-
         const field = document.createElement("div");
         field.className = "field";
-
         const label = document.createElement("label");
         label.textContent = `图片 ${index + 1} 的一句话`;
-
         const input = document.createElement("textarea");
         input.value = image.caption || "";
         input.maxLength = 120;
         input.rows = 3;
-
         field.append(label, input);
 
         const row = document.createElement("div");
@@ -1428,14 +1147,12 @@
         setManageStatus("先登录，再编辑图片。");
         return;
       }
-
       setManageStatus("正在保存...");
       const { error } = await supabase.from("album_images").update(patch).eq("id", id);
       if (error) {
         setManageStatus(`保存失败：${error.message}`);
         return;
       }
-
       setManageStatus(successMessage);
       await loadWall();
     }
@@ -1445,12 +1162,9 @@
         setManageStatus("先登录，再调整顺序。");
         return;
       }
-
       const source = currentImages[fromIndex];
       const target = currentImages[toIndex];
-      if (!source || !target) {
-        return;
-      }
+      if (!source || !target) return;
 
       setManageStatus("正在调整顺序...");
       const sourceOrder = source.sort_order || fromIndex + 1;
@@ -1477,11 +1191,8 @@
         setManageStatus("先登录，再删除图片。");
         return;
       }
-
       const confirmed = window.confirm("确认删除这张图片吗？");
-      if (!confirmed) {
-        return;
-      }
+      if (!confirmed) return;
 
       setManageStatus("正在删除...");
       const removeResult = await supabase.storage.from(CONFIG.IMAGES_BUCKET).remove([image.file_path]);
@@ -1504,21 +1215,10 @@
       return name.replace(/[^a-zA-Z0-9._-]/g, "-");
     }
 
-    function setAuthStatus(message) {
-      authStatus.textContent = message;
-    }
-
-    function setSettingsStatus(message) {
-      settingsStatus.textContent = message;
-    }
-
-    function setUploadStatus(message) {
-      uploadStatus.textContent = message;
-    }
-
-    function setManageStatus(message) {
-      manageStatus.textContent = message;
-    }
+    function setAuthStatus(message) { authStatus.textContent = message; }
+    function setSettingsStatus(message) { settingsStatus.textContent = message; }
+    function setUploadStatus(message) { uploadStatus.textContent = message; }
+    function setManageStatus(message) { manageStatus.textContent = message; }
   </script>
 </body>
 </html>
