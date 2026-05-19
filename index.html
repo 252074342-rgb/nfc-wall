@@ -74,8 +74,7 @@
       overflow: hidden; cursor: pointer;
       animation: cardFloat var(--fd, 6s) ease-in-out infinite alternate;
       animation-delay: var(--fdl, 0s);
-      transition: opacity 0.6s, filter 0.6s;
-      will-change: transform;
+      will-change: transform, opacity;
     }
 
     .card img {
@@ -87,24 +86,23 @@
 
     /* ── Fly-out (left exit) ── */
     .card.flying-out {
-      animation: cardFlyOut 0.55s ease-in forwards !important;
+      animation: cardFlyOut 0.5s ease-in forwards !important;
       pointer-events: none;
     }
     @keyframes cardFlyOut {
-      0%   { transform: translateX(0) translateZ(0) scale(1); opacity: 1; filter: blur(0); }
-      100% { transform: translateX(-80px) translateZ(-40px) scale(0.5); opacity: 0; filter: blur(6px); }
+      0%   { transform: translateX(0) translateZ(0) scale(1); opacity: 1; }
+      100% { transform: translateX(-70px) translateZ(-35px) scale(0.55); opacity: 0; }
     }
 
-    /* ── Fly-in (right enter) ── */
+    /* ── Fly-in (right enter) — GPU-safe, no blur ── */
     .card.flying-in {
-      animation: cardFlyIn 1.8s cubic-bezier(0.22, 0.6, 0.25, 1) forwards !important;
+      animation: cardFlyIn 1.5s cubic-bezier(0.22, 0.6, 0.28, 1) forwards !important;
     }
     @keyframes cardFlyIn {
-      0%   { transform: translateX(100px) translateZ(-70px) scale(0.4); opacity: 0; filter: blur(10px); }
-      20%  { transform: translateX(70px) translateZ(-45px) scale(0.55); opacity: 0.2; filter: blur(7px); }
-      45%  { transform: translateX(30px) translateZ(-18px) scale(0.76); opacity: 0.55; filter: blur(2px); }
-      70%  { transform: translateX(8px) translateZ(-4px) scale(0.94); opacity: 0.88; filter: blur(0px); }
-      100% { transform: translateX(0) translateZ(0) scale(1); opacity: 1; filter: blur(0); }
+      0%   { transform: translateX(90px) translateZ(-50px) scale(0.45); opacity: 0; }
+      30%  { transform: translateX(40px) translateZ(-15px) scale(0.75); opacity: 0.5; }
+      65%  { transform: translateX(8px) translateZ(-3px) scale(0.95); opacity: 0.9; }
+      100% { transform: translateX(0) translateZ(0) scale(1); opacity: 1; }
     }
 
     /* ── Float (normal state) ── */
@@ -367,10 +365,10 @@
     const manageStatus = document.getElementById("manageStatus");
 
     let supabase, currentSession, currentImages = [], audioElement;
-    let windowStart = 0, cycleTimer = null;
+    let windowStart = 0, cycleTimer = null, resumeTimer = null;
     let tapCount = 0, tapTimer = null, pendingLightboxTimeout = 0, longPressTimer = 0;
     let swipeX0 = 0, swipeY0 = 0, swipeActive = false;
-    let cyclingPaused = false;
+    let userActive = false, lightboxOpen = false;
 
     // Card elements in order: [col0-top, col0-bot, col1-top, col1-bot, col2-top, col2-bot]
     const cardSlots = Array.from(track.querySelectorAll(".card[data-slot]"));
@@ -415,14 +413,17 @@
 
     function onSwipeStart(e) {
       if (editorPanel.classList.contains("open")) return;
+      markUserActive();
       swipeX0 = e.touches[0].clientX; swipeY0 = e.touches[0].clientY; swipeActive = false;
     }
     function onSwipeMove(e) {
       if (!swipeX0) return;
+      markUserActive();
       const dx = e.touches[0].clientX - swipeX0, dy = e.touches[0].clientY - swipeY0;
       if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) swipeActive = true;
     }
     function onSwipeEnd(e) {
+      markUserActive();
       if (!swipeActive || !swipeX0) { swipeX0 = 0; return; }
       const dx = (e.changedTouches[0]?.clientX || 0) - swipeX0; swipeX0 = 0;
       if (Math.abs(dx) > 40) manualCycle(dx < 0 ? 1 : -1);
@@ -554,10 +555,18 @@
     function startAutoCycle() {
       clearTimeout(cycleTimer);
       function tick() {
-        cycleForward();
+        if (!userActive && !lightboxOpen && !editorPanel.classList.contains("open")) {
+          cycleForward();
+        }
         cycleTimer = setTimeout(tick, CYCLE_INTERVAL);
       }
       cycleTimer = setTimeout(tick, CYCLE_INTERVAL);
+    }
+
+    function markUserActive() {
+      userActive = true;
+      clearTimeout(resumeTimer);
+      resumeTimer = setTimeout(() => { userActive = false; }, 1500);
     }
 
     // ── Camera oscillation ──
@@ -581,6 +590,7 @@
     }
     function cancelPendingLightbox() { clearTimeout(pendingLightboxTimeout); pendingLightboxTimeout = 0; }
     function openLightbox(image, index) {
+      lightboxOpen = true;
       lightboxImage.alt = image.caption || `图片 ${index + 1}`;
       lightboxCaption.textContent = image.caption || "";
       lightbox.classList.add("open");
@@ -592,22 +602,24 @@
         up.src = image.fullUrl;
       }
     }
-    function closeLightbox() { lightbox.classList.remove("open"); lightboxImage.src = ""; lightboxImage.alt = ""; lightboxCaption.textContent = ""; }
+    function closeLightbox() { lightboxOpen = false; lightbox.classList.remove("open"); lightboxImage.src = ""; lightboxImage.alt = ""; lightboxCaption.textContent = ""; }
 
     // ── Editor ──
     function onStageTap(e) {
+      markUserActive();
       if (editorPanel.contains(e.target) || lightbox.contains(e.target)) return;
       tapCount++; clearTimeout(tapTimer); tapTimer = setTimeout(() => { tapCount = 0; }, 700);
       if (tapCount >= 3) { tapCount = 0; cancelPendingLightbox(); onStagePressEnd(); openEditorPanel(); }
     }
     function onStagePressStart(e) {
+      markUserActive();
       if (editorPanel.contains(e.target) || lightbox.contains(e.target)) return;
       onStagePressEnd();
       longPressTimer = setTimeout(() => { longPressTimer = 0; tapCount = 0; cancelPendingLightbox(); openEditorPanel(); }, 650);
     }
     function onStagePressEnd() { clearTimeout(longPressTimer); longPressTimer = 0; }
-    function openEditorPanel() { cyclingPaused = true; editorPanel.classList.add("open"); editorPanel.setAttribute("aria-hidden", "false"); }
-    function closeEditorPanel() { cyclingPaused = false; editorPanel.classList.remove("open"); editorPanel.setAttribute("aria-hidden", "true"); }
+    function openEditorPanel() { editorPanel.classList.add("open"); editorPanel.setAttribute("aria-hidden", "false"); }
+    function closeEditorPanel() { editorPanel.classList.remove("open"); editorPanel.setAttribute("aria-hidden", "true"); }
 
     // ── Auth / Music ──
     async function refreshSession() {
