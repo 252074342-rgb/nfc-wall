@@ -6,12 +6,10 @@
   <title></title>
   <style>
     :root {
-      --bg: #06060e;
+      --bg: #060810;
       --text: #eef2ff;
       --muted: #9aabd9;
       --line: rgba(179, 197, 255, 0.16);
-      --glow: rgba(77, 166, 255, 0.45);
-      --pink: #f05080;
     }
 
     * { box-sizing: border-box; }
@@ -21,38 +19,31 @@
       height: 100%;
       margin: 0;
       overflow: hidden;
+      background: #060810;
     }
 
     body {
       color: var(--text);
       font-family: "Trebuchet MS", "Microsoft YaHei", "PingFang SC", sans-serif;
-      background: #06060e;
     }
 
+    /* ── Full-screen stage ── */
     .stage {
       position: relative;
       width: 100%;
       height: 100%;
       overflow: hidden;
       isolation: isolate;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* ── NFC dark zone ── */
-    .nfc-zone {
-      position: relative;
-      flex: 0 0 62%;
       background:
-        radial-gradient(ellipse at 50% 30%, rgba(77, 166, 255, 0.10), transparent 55%),
-        radial-gradient(ellipse at 50% 55%, rgba(240, 80, 128, 0.06), transparent 50%),
-        radial-gradient(circle at 30% 70%, rgba(77, 140, 255, 0.05), transparent 40%),
-        radial-gradient(circle at 70% 60%, rgba(180, 130, 255, 0.04), transparent 35%),
+        radial-gradient(ellipse at 50% 30%, rgba(77, 166, 255, 0.08), transparent 55%),
+        radial-gradient(ellipse at 50% 55%, rgba(240, 80, 128, 0.05), transparent 50%),
+        radial-gradient(circle at 30% 70%, rgba(77, 140, 255, 0.04), transparent 40%),
+        radial-gradient(circle at 70% 60%, rgba(180, 130, 255, 0.03), transparent 35%),
         linear-gradient(180deg, #08081a 0%, #0a0c18 40%, #0c0e1a 100%);
-      overflow: hidden;
     }
 
-    .nfc-zone::before {
+    /* ── Stars ── */
+    .stage::before {
       content: "";
       position: absolute;
       inset: 0;
@@ -60,14 +51,66 @@
       z-index: 0;
       background-image:
         radial-gradient(circle at 12% 18%, rgba(255,255,255,0.9) 0 1px, transparent 1.2px),
-        radial-gradient(circle at 28% 72%, rgba(255,255,255,0.6) 0 0.8px, transparent 1.1px),
+        radial-gradient(circle at 28% 62%, rgba(255,255,255,0.6) 0 0.8px, transparent 1.1px),
         radial-gradient(circle at 44% 22%, rgba(255,255,255,0.8) 0 1px, transparent 1.3px),
-        radial-gradient(circle at 58% 78%, rgba(255,255,255,0.7) 0 0.9px, transparent 1.2px),
+        radial-gradient(circle at 58% 68%, rgba(255,255,255,0.7) 0 0.9px, transparent 1.2px),
         radial-gradient(circle at 72% 28%, rgba(255,255,255,0.75) 0 1px, transparent 1.3px),
-        radial-gradient(circle at 85% 68%, rgba(255,255,255,0.65) 0 0.9px, transparent 1.1px),
-        radial-gradient(circle at 15% 48%, rgba(255,255,255,0.7) 0 0.8px, transparent 1.1px),
-        radial-gradient(circle at 92% 15%, rgba(255,255,255,0.8) 0 1px, transparent 1.2px);
-      opacity: 0.7;
+        radial-gradient(circle at 85% 58%, rgba(255,255,255,0.65) 0 0.9px, transparent 1.1px),
+        radial-gradient(circle at 15% 78%, rgba(255,255,255,0.7) 0 0.8px, transparent 1.1px),
+        radial-gradient(circle at 92% 15%, rgba(255,255,255,0.8) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 35% 85%, rgba(255,255,255,0.6) 0 0.9px, transparent 1.2px),
+        radial-gradient(circle at 65% 42%, rgba(255,255,255,0.7) 0 0.8px, transparent 1.1px),
+        radial-gradient(circle at 8% 42%, rgba(255,255,255,0.75) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 48% 92%, rgba(255,255,255,0.55) 0 0.9px, transparent 1.1px);
+      opacity: 0.8;
+    }
+
+    /* ── NFC pink wave sweep ── */
+    .nfc-wave {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .wave-bar {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: 30%;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(240, 80, 128, 0.03) 20%,
+        rgba(240, 100, 150, 0.12) 45%,
+        rgba(255, 140, 180, 0.22) 55%,
+        rgba(240, 100, 150, 0.12) 65%,
+        rgba(240, 80, 128, 0.03) 80%,
+        transparent 100%
+      );
+      filter: blur(4px);
+      animation: waveSweep 4.5s ease-in-out infinite;
+      will-change: left;
+    }
+
+    .wave-bar:nth-child(2) {
+      animation-delay: 2.25s;
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(150, 180, 255, 0.03) 20%,
+        rgba(120, 160, 255, 0.10) 45%,
+        rgba(160, 200, 255, 0.18) 55%,
+        rgba(120, 160, 255, 0.10) 65%,
+        rgba(150, 180, 255, 0.03) 80%,
+        transparent 100%
+      );
+    }
+
+    @keyframes waveSweep {
+      0%   { left: -35%; opacity: 0; }
+      8%   { opacity: 1; }
+      50%  { left: 55%; opacity: 1; }
+      92%  { opacity: 0; }
+      100% { left: 110%; opacity: 0; }
     }
 
     /* ── Paper plane ── */
@@ -80,109 +123,49 @@
 
     .plane-group {
       position: absolute;
-      top: 48%;
+      top: 45%;
       animation: planeFly 5.5s ease-in-out infinite;
     }
 
     .plane-group svg {
       display: block;
-      width: min(18vw, 90px);
+      width: min(16vw, 80px);
       height: auto;
       fill: url(#planeGradient);
-      stroke: rgba(245, 248, 255, 0.4);
+      stroke: rgba(245, 248, 255, 0.35);
       stroke-width: 1;
-      filter: drop-shadow(0 6px 14px rgba(117, 154, 255, 0.45));
+      filter: drop-shadow(0 4px 12px rgba(117, 154, 255, 0.5));
     }
 
     .plane-trail {
       position: absolute;
-      top: 48%;
-      height: 1.6px;
-      background: linear-gradient(90deg, transparent, rgba(162, 191, 255, 0.85) 30%, rgba(220, 235, 255, 0.95) 60%, transparent);
-      filter: blur(1.2px);
+      top: 45%;
+      height: 1.4px;
+      background: linear-gradient(90deg, transparent, rgba(162, 191, 255, 0.08), rgba(200, 225, 255, 0.55) 30%, rgba(220, 235, 255, 0.85) 55%, transparent);
+      filter: blur(1px);
       z-index: 0;
       animation: trailFollow 5.5s ease-in-out infinite;
     }
 
     @keyframes planeFly {
-      0% {
-        left: -15%;
-        transform: translateY(0) rotate(-6deg);
-      }
-      15% {
-        transform: translateY(-18px) rotate(-3deg);
-      }
-      30% {
-        transform: translateY(8px) rotate(-8deg);
-      }
-      45% {
-        left: 55%;
-        transform: translateY(-8px) rotate(2deg);
-      }
-      60% {
-        transform: translateY(12px) rotate(-4deg);
-      }
-      75% {
-        transform: translateY(-14px) rotate(-1deg);
-      }
-      90% {
-        left: 112%;
-        transform: translateY(4px) rotate(-5deg);
-      }
-      100% {
-        left: 112%;
-        transform: translateY(0) rotate(-6deg);
-      }
+      0%   { left: -18%; transform: translateY(0) rotate(-5deg); }
+      15%  { transform: translateY(-16px) rotate(-2deg); }
+      30%  { transform: translateY(6px) rotate(-7deg); }
+      45%  { left: 55%; transform: translateY(-6px) rotate(3deg); }
+      60%  { transform: translateY(10px) rotate(-3deg); }
+      75%  { transform: translateY(-12px) rotate(0deg); }
+      90%  { left: 115%; transform: translateY(3px) rotate(-4deg); }
+      100% { left: 115%; transform: translateY(0) rotate(-5deg); }
     }
 
     @keyframes trailFollow {
-      0% {
-        left: -15%;
-        width: 18%;
-        opacity: 0;
-      }
-      8% {
-        opacity: 0.9;
-      }
-      30% {
-        left: -5%;
-        width: 28%;
-        opacity: 0.85;
-      }
-      55% {
-        left: 18%;
-        width: 36%;
-        opacity: 0.9;
-      }
-      80% {
-        left: 45%;
-        width: 40%;
-        opacity: 0.7;
-      }
-      95% {
-        opacity: 0;
-      }
-      100% {
-        left: 75%;
-        width: 20%;
-        opacity: 0;
-      }
-    }
-
-    /* ── Ripple on tap ── */
-    .tap-ripple {
-      position: absolute;
-      border-radius: 50%;
-      border: 1px solid rgba(77, 166, 255, 0.6);
-      background: radial-gradient(circle, rgba(77, 166, 255, 0.15), transparent);
-      pointer-events: none;
-      animation: tapRipple 0.9s ease-out forwards;
-      z-index: 4;
-    }
-
-    @keyframes tapRipple {
-      0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
-      100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+      0%   { left: -18%; width: 14%; opacity: 0; }
+      8%   { opacity: 0.85; }
+      30%  { left: -8%; width: 24%; opacity: 0.8; }
+      55%  { left: 14%; width: 32%; opacity: 0.85; }
+      80%  { left: 40%; width: 36%; opacity: 0.6; }
+      95%  { opacity: 0; }
+      100% { left: 70%; width: 16%; opacity: 0; }
     }
 
     /* ── Photo cards ── */
@@ -196,17 +179,17 @@
     .tile {
       position: absolute;
       width: min(22vw, 110px);
-      min-width: 80px;
+      min-width: 82px;
       border-radius: 18px;
       padding: 6px 6px 8px;
       background:
-        linear-gradient(180deg, rgba(224, 234, 255, 0.14), rgba(100, 130, 180, 0.10)),
-        linear-gradient(180deg, rgba(10, 15, 28, 0.94), rgba(5, 9, 20, 0.98));
-      border: 1px solid rgba(200, 220, 255, 0.14);
+        linear-gradient(180deg, rgba(224, 234, 255, 0.15), rgba(100, 130, 180, 0.10)),
+        linear-gradient(180deg, rgba(10, 15, 28, 0.95), rgba(5, 9, 20, 0.99));
+      border: 1px solid rgba(200, 220, 255, 0.15);
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,0.03),
-        0 14px 30px rgba(0,0,0,0.35),
-        0 0 22px rgba(77, 150, 255, 0.08);
+        0 14px 30px rgba(0,0,0,0.38),
+        0 0 22px rgba(77, 150, 255, 0.10);
       opacity: 0;
       transform: translate3d(-50%, -50%, 0) scale(1.06);
       pointer-events: auto;
@@ -216,7 +199,7 @@
 
     .tile.visible {
       opacity: 1;
-      animation: tileAppear 0.75s cubic-bezier(0.22, 0.7, 0.2, 1) forwards;
+      animation: tileAppear 0.7s cubic-bezier(0.22, 0.7, 0.2, 1) forwards;
     }
 
     .tile.floating {
@@ -231,7 +214,7 @@
       inset: 6px 6px 8px;
       border-radius: 13px;
       border: 1px solid rgba(200, 225, 255, 0.12);
-      box-shadow: 0 0 10px rgba(120, 170, 255, 0.1);
+      box-shadow: 0 0 10px rgba(120, 170, 255, 0.12);
       pointer-events: none;
     }
 
@@ -241,7 +224,7 @@
       aspect-ratio: 4 / 5;
       object-fit: cover;
       border-radius: 13px;
-      border: 1px solid rgba(200, 225, 255, 0.15);
+      border: 1px solid rgba(200, 225, 255, 0.16);
       background: linear-gradient(180deg, #11192a, #070d17);
       opacity: 0;
       transition: opacity 0.24s ease;
@@ -249,79 +232,20 @@
 
     .tile.loaded img { opacity: 1; }
 
-    /* ── Pink accent strip ── */
-    .accent-strip {
-      position: relative;
-      z-index: 6;
-      flex: 0 0 6px;
-      background: linear-gradient(90deg,
-        rgba(240, 80, 128, 0.2),
-        rgba(240, 80, 128, 0.8) 20%,
-        rgba(255, 120, 160, 0.9) 50%,
-        rgba(240, 80, 128, 0.8) 80%,
-        rgba(240, 80, 128, 0.2)
-      );
-      box-shadow: 0 0 18px rgba(240, 80, 128, 0.4), 0 0 4px rgba(240, 80, 128, 0.5);
-    }
-
-    .accent-strip::after {
-      content: "";
+    /* ── Ripple on tap ── */
+    .tap-ripple {
       position: absolute;
-      inset: -3px 0;
-      background: linear-gradient(90deg,
-        transparent,
-        rgba(255, 150, 190, 0.3) 30%,
-        rgba(255, 150, 190, 0.5) 50%,
-        rgba(255, 150, 190, 0.3) 70%,
-        transparent
-      );
-      filter: blur(8px);
+      border-radius: 50%;
+      border: 1px solid rgba(77, 166, 255, 0.5);
+      background: radial-gradient(circle, rgba(77, 166, 255, 0.12), transparent);
       pointer-events: none;
+      animation: tapRipple 0.9s ease-out forwards;
+      z-index: 4;
     }
 
-    /* ── Info zone (white bottom) ── */
-    .info-zone {
-      position: relative;
-      flex: 1;
-      background:
-        linear-gradient(180deg, #fafafc 0%, #f4f4f8 40%, #eeeef4 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px 24px;
-      text-align: center;
-      z-index: 2;
-    }
-
-    .info-zone h1 {
-      margin: 0 0 8px;
-      font-size: clamp(26px, 4vw, 38px);
-      font-weight: 700;
-      color: #1a1a2e;
-      letter-spacing: -0.02em;
-      line-height: 1.2;
-    }
-
-    .info-zone .subtitle {
-      margin: 0 0 6px;
-      font-size: 15px;
-      color: #666680;
-      line-height: 1.6;
-    }
-
-    .info-zone .hint {
-      margin: 0;
-      font-size: 12px;
-      color: #999ab0;
-      line-height: 1.6;
-    }
-
-    .info-zone .nfc-tag-icon {
-      width: 44px;
-      height: 44px;
-      margin-bottom: 10px;
-      opacity: 0.5;
+    @keyframes tapRipple {
+      0%   { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
     }
 
     /* ── Lightbox ── */
@@ -335,14 +259,8 @@
       backdrop-filter: blur(14px);
       z-index: 25;
     }
-
     .overlay.open { display: grid; }
-
-    .overlay figure {
-      margin: 0;
-      width: min(1080px, 100%);
-    }
-
+    .overlay figure { margin: 0; width: min(1080px, 100%); }
     .overlay img {
       display: block;
       width: 100%;
@@ -353,12 +271,7 @@
       background: rgba(255, 255, 255, 0.04);
       transition: opacity 0.18s ease, filter 0.18s ease;
     }
-
-    .overlay img.upgrading {
-      opacity: 0.9;
-      filter: blur(4px);
-    }
-
+    .overlay img.upgrading { opacity: 0.9; filter: blur(4px); }
     .overlay figcaption {
       margin-top: 10px;
       text-align: center;
@@ -383,17 +296,8 @@
       overflow-y: auto;
       backdrop-filter: blur(16px);
     }
-
     .editor.open { transform: translateX(0); }
-
-    .editor-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-
+    .editor-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
     .editor-head h2 { margin: 0; font-size: 22px; }
 
     .panel {
@@ -403,9 +307,7 @@
       border: 1px solid rgba(175, 194, 255, 0.12);
       background: rgba(255, 255, 255, 0.04);
     }
-
     .panel h3 { margin: 0 0 12px; font-size: 17px; }
-
     .panel p, .manage-empty, .status {
       margin: 0 0 14px;
       color: var(--muted);
@@ -415,13 +317,7 @@
     }
 
     .field { margin-bottom: 12px; }
-    .field label {
-      display: block;
-      margin-bottom: 8px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-
+    .field label { display: block; margin-bottom: 8px; color: var(--muted); font-size: 13px; }
     .field input, .field textarea {
       width: 100%;
       padding: 13px 14px;
@@ -432,18 +328,9 @@
       font: inherit;
       outline: none;
     }
+    .field textarea { min-height: 100px; resize: vertical; }
 
-    .field textarea {
-      min-height: 100px;
-      resize: vertical;
-    }
-
-    .row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 8px;
-    }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
 
     .session-line {
       display: flex;
@@ -459,7 +346,6 @@
     }
 
     .manage-list { display: grid; gap: 12px; }
-
     .manage-card {
       display: grid;
       grid-template-columns: 74px minmax(0, 1fr);
@@ -469,7 +355,6 @@
       border: 1px solid rgba(175, 194, 255, 0.12);
       background: rgba(255, 255, 255, 0.04);
     }
-
     .manage-card img {
       display: block;
       width: 74px;
@@ -483,100 +368,76 @@
       border: 0;
       border-radius: 999px;
       padding: 12px 16px;
-      background: linear-gradient(135deg, #4da6ff, #f05080);
+      background: linear-gradient(135deg, #6da8ff, #f06090);
       color: #fff;
       font: inherit;
       font-weight: 600;
       cursor: pointer;
-      box-shadow: 0 12px 28px rgba(77, 150, 255, 0.25);
+      box-shadow: 0 12px 28px rgba(100, 150, 255, 0.25);
       transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
     }
-
     button.secondary {
       background: rgba(255, 255, 255, 0.06);
       color: var(--text);
       border: 1px solid rgba(175, 194, 255, 0.14);
       box-shadow: none;
     }
-
     button.small { padding: 9px 12px; font-size: 13px; }
     button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
 
-    /* ── Responsive ── */
     @media (max-width: 860px) {
-      .nfc-zone { flex: 0 0 58%; }
-      .tile { width: min(26vw, 100px); min-width: 76px; }
-      .plane-group svg { width: min(22vw, 72px); }
+      .tile { width: min(26vw, 100px); min-width: 74px; }
+      .plane-group svg { width: min(20vw, 68px); }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation: none !important;
-        transition: none !important;
-      }
+      *, *::before, *::after { animation: none !important; transition: none !important; }
       .tile, .tile img { opacity: 1 !important; transform: translate3d(-50%, -50%, 0) !important; }
     }
 
     @keyframes tileAppear {
-      0% {
-        opacity: 0;
-        transform: translate3d(-50%, -50%, 0) scale(1.12);
-      }
-      100% {
-        opacity: 1;
-        transform: translate3d(-50%, -50%, 0) scale(1);
-      }
+      0%   { opacity: 0; transform: translate3d(-50%, -50%, 0) scale(1.12); }
+      100% { opacity: 1; transform: translate3d(-50%, -50%, 0) scale(1); }
     }
 
     @keyframes tileOrbit {
-      0% { transform: translate3d(-50%, -50%, 0) translate3d(0, 0, 0) rotate(-1deg) scale(1); }
-      33% { transform: translate3d(-50%, -50%, 0) translate3d(5px, -9px, 0) rotate(0.3deg) scale(1.02); }
-      66% { transform: translate3d(-50%, -50%, 0) translate3d(-5px, 6px, 0) rotate(-1deg) scale(0.995); }
-      100% { transform: translate3d(-50%, -50%, 0) translate3d(3px, -4px, 0) rotate(0.6deg) scale(1.01); }
+      0%   { transform: translate3d(-50%, -50%, 0) translate3d(0, 0, 0) rotate(-0.8deg) scale(1); }
+      33%  { transform: translate3d(-50%, -50%, 0) translate3d(4px, -8px, 0) rotate(0.3deg) scale(1.015); }
+      66%  { transform: translate3d(-50%, -50%, 0) translate3d(-4px, 5px, 0) rotate(-0.9deg) scale(0.995); }
+      100% { transform: translate3d(-50%, -50%, 0) translate3d(2px, -3px, 0) rotate(0.5deg) scale(1.008); }
     }
   </style>
 </head>
 <body>
   <main class="stage" id="stage">
-    <!-- ── Dark NFC zone ── -->
-    <section class="nfc-zone" id="nfcZone">
-      <!-- Paper plane flying across -->
-      <div class="plane-layer" aria-hidden="true">
-        <div class="plane-trail"></div>
-        <div class="plane-group">
-          <svg viewBox="0 0 160 80">
-            <defs>
-              <linearGradient id="planeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#fff8fd"></stop>
-                <stop offset="55%" stop-color="#b9d0ff"></stop>
-                <stop offset="100%" stop-color="#6fa6ff"></stop>
-              </linearGradient>
-            </defs>
-            <path d="M10 40 150 12 98 38 150 68 85 52 60 73 66 48 10 40Z"></path>
-          </svg>
-        </div>
+    <!-- NFC wave sweep -->
+    <div class="nfc-wave" aria-hidden="true">
+      <div class="wave-bar"></div>
+      <div class="wave-bar"></div>
+    </div>
+
+    <!-- Paper plane -->
+    <div class="plane-layer" aria-hidden="true">
+      <div class="plane-trail"></div>
+      <div class="plane-group">
+        <svg viewBox="0 0 160 80">
+          <defs>
+            <linearGradient id="planeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#fff8fd"></stop>
+              <stop offset="55%" stop-color="#b9d0ff"></stop>
+              <stop offset="100%" stop-color="#6fa6ff"></stop>
+            </linearGradient>
+          </defs>
+          <path d="M10 40 150 12 98 38 150 68 85 52 60 73 66 48 10 40Z"></path>
+        </svg>
       </div>
+    </div>
 
-      <!-- Photo cards -->
-      <div class="cards" id="cards"></div>
-    </section>
-
-    <!-- Pink accent strip -->
-    <div class="accent-strip" aria-hidden="true"></div>
-
-    <!-- White info zone -->
-    <section class="info-zone">
-      <svg class="nfc-tag-icon" viewBox="0 0 24 24" fill="none" stroke="#999ab0" stroke-width="1.3">
-        <rect x="3" y="7" width="18" height="12" rx="2"/>
-        <path d="M7 12h2M11 12h6M7 15h4"/>
-      </svg>
-      <h1 id="pageTitle">我们的照片</h1>
-      <p class="subtitle">轻触钥匙扣，打开这一页</p>
-      <p class="hint">用手机 NFC 碰一下钥匙扣即可查看</p>
-    </section>
+    <!-- Photo cards -->
+    <div class="cards" id="cards"></div>
   </main>
 
-  <!-- ── Lightbox ── -->
+  <!-- Lightbox -->
   <div class="overlay" id="lightbox">
     <figure>
       <img id="lightboxImage" alt="">
@@ -584,7 +445,7 @@
     </figure>
   </div>
 
-  <!-- ── Editor panel ── -->
+  <!-- Editor panel -->
   <aside class="editor" id="editorPanel" aria-hidden="true">
     <div class="editor-head">
       <h2>编辑</h2>
@@ -679,7 +540,6 @@
 
     const cards = document.getElementById("cards");
     const stage = document.getElementById("stage");
-    const nfcZone = document.getElementById("nfcZone");
     const lightbox = document.getElementById("lightbox");
     const lightboxImage = document.getElementById("lightboxImage");
     const lightboxCaption = document.getElementById("lightboxCaption");
@@ -725,12 +585,12 @@
     }
 
     function bindUi() {
-      nfcZone.addEventListener("pointerup", onStageTap, { passive: true });
-      nfcZone.addEventListener("pointerdown", onStagePressStart, { passive: true });
-      nfcZone.addEventListener("pointermove", onStagePressEnd, { passive: true });
-      nfcZone.addEventListener("pointercancel", onStagePressEnd, { passive: true });
-      nfcZone.addEventListener("pointerleave", onStagePressEnd, { passive: true });
-      nfcZone.addEventListener("click", spawnTapRipple, { passive: true });
+      stage.addEventListener("pointerup", onStageTap, { passive: true });
+      stage.addEventListener("pointerdown", onStagePressStart, { passive: true });
+      stage.addEventListener("pointermove", onStagePressEnd, { passive: true });
+      stage.addEventListener("pointercancel", onStagePressEnd, { passive: true });
+      stage.addEventListener("pointerleave", onStagePressEnd, { passive: true });
+      stage.addEventListener("click", spawnTapRipple, { passive: true });
       closeEditor.addEventListener("click", closeEditorPanel);
       lightbox.addEventListener("click", closeLightbox);
       musicToggle.addEventListener("click", toggleMusicPlayback);
@@ -772,7 +632,7 @@
     function spawnTapRipple(event) {
       if (editorPanel.classList.contains("open")) return;
       if (event.target.closest(".tile")) return;
-      const rect = nfcZone.getBoundingClientRect();
+      const rect = stage.getBoundingClientRect();
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
       const ripple = document.createElement("div");
@@ -781,14 +641,12 @@
       ripple.style.top = y + "px";
       ripple.style.width = "60px";
       ripple.style.height = "60px";
-      nfcZone.appendChild(ripple);
+      stage.appendChild(ripple);
       ripple.addEventListener("animationend", () => ripple.remove());
     }
 
     function onStageTap(event) {
-      if (editorPanel.contains(event.target) || lightbox.contains(event.target)) {
-        return;
-      }
+      if (editorPanel.contains(event.target) || lightbox.contains(event.target)) return;
       tapCount += 1;
       clearTimeout(tapTimer);
       tapTimer = setTimeout(() => { tapCount = 0; }, 700);
@@ -801,9 +659,7 @@
     }
 
     function onStagePressStart(event) {
-      if (editorPanel.contains(event.target) || lightbox.contains(event.target)) {
-        return;
-      }
+      if (editorPanel.contains(event.target) || lightbox.contains(event.target)) return;
       onStagePressEnd();
       longPressTimer = window.setTimeout(() => {
         longPressTimer = 0;
@@ -838,10 +694,7 @@
 
     async function refreshSession() {
       const { data, error } = await supabase.auth.getSession();
-      if (error) {
-        setAuthStatus(`会话读取失败：${error.message}`);
-        return;
-      }
+      if (error) { setAuthStatus(`会话读取失败：${error.message}`); return; }
       currentSession = data.session;
       updateAuthUi();
     }
@@ -864,10 +717,7 @@
         .select("music_url")
         .eq("slug", CONFIG.ALBUM_SLUG)
         .maybeSingle();
-      if (error) {
-        setSettingsStatus(`读取设置失败：${error.message}`);
-        return;
-      }
+      if (error) { setSettingsStatus(`读取设置失败：${error.message}`); return; }
       musicInput.value = data?.music_url || "";
       syncMusic(data?.music_url || "");
     }
@@ -879,10 +729,7 @@
         .eq("album_slug", CONFIG.ALBUM_SLUG)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true });
-      if (error) {
-        setManageStatus(`读取图片失败：${error.message}`);
-        return;
-      }
+      if (error) { setManageStatus(`读取图片失败：${error.message}`); return; }
 
       currentImages = (data || []).map((item) => {
         const originalUrl = getPublicUrl(item.file_path);
@@ -901,25 +748,12 @@
 
     function getWallUrl(filePath, fallbackUrl) {
       if (!CONFIG.USE_IMAGE_TRANSFORMS) return fallbackUrl;
-      return getPublicUrl(filePath, {
-        transform: {
-          width: CONFIG.WALL_IMAGE_WIDTH,
-          height: CONFIG.WALL_IMAGE_HEIGHT,
-          quality: CONFIG.WALL_IMAGE_QUALITY,
-          resize: "cover",
-        },
-      });
+      return getPublicUrl(filePath, { transform: { width: CONFIG.WALL_IMAGE_WIDTH, height: CONFIG.WALL_IMAGE_HEIGHT, quality: CONFIG.WALL_IMAGE_QUALITY, resize: "cover" } });
     }
 
     function getFullUrl(filePath, fallbackUrl) {
       if (!CONFIG.USE_IMAGE_TRANSFORMS) return fallbackUrl;
-      return getPublicUrl(filePath, {
-        transform: {
-          width: CONFIG.LIGHTBOX_IMAGE_WIDTH,
-          quality: CONFIG.LIGHTBOX_IMAGE_QUALITY,
-          resize: "contain",
-        },
-      });
+      return getPublicUrl(filePath, { transform: { width: CONFIG.LIGHTBOX_IMAGE_WIDTH, quality: CONFIG.LIGHTBOX_IMAGE_QUALITY, resize: "contain" } });
     }
 
     function getPublicUrl(filePath, options) {
@@ -929,9 +763,7 @@
 
     function renderWall() {
       cards.innerHTML = "";
-      if (sourceObserver) {
-        sourceObserver.disconnect();
-      }
+      if (sourceObserver) { sourceObserver.disconnect(); }
 
       sourceObserver = new IntersectionObserver((entries) => {
         for (const entry of entries) {
@@ -965,10 +797,7 @@
       img.loading = "lazy";
       img.addEventListener("load", () => tile.classList.add("loaded"), { once: true });
       img.addEventListener("error", () => {
-        if (img.src !== tile.dataset.wallFallback) {
-          img.src = tile.dataset.wallFallback;
-          return;
-        }
+        if (img.src !== tile.dataset.wallFallback) { img.src = tile.dataset.wallFallback; return; }
         tile.classList.add("loaded");
       });
 
@@ -981,7 +810,7 @@
       const revealDelay = 120 + index * 110;
       window.setTimeout(() => {
         tile.classList.add("visible");
-        window.setTimeout(() => tile.classList.add("floating"), 760);
+        window.setTimeout(() => tile.classList.add("floating"), 720);
       }, revealDelay);
 
       return tile;
@@ -991,9 +820,7 @@
       cancelPendingLightbox();
       pendingLightboxTimeout = window.setTimeout(() => {
         pendingLightboxTimeout = 0;
-        if (!editorPanel.classList.contains("open")) {
-          openLightbox(image, index);
-        }
+        if (!editorPanel.classList.contains("open")) { openLightbox(image, index); }
       }, 420);
     }
 
@@ -1026,51 +853,33 @@
           lightboxImage.classList.remove("upgrading");
         };
         upgrade.onerror = () => {
-          if (image.originalUrl && image.originalUrl !== image.wallUrl) {
-            lightboxImage.src = image.originalUrl;
-          }
+          if (image.originalUrl && image.originalUrl !== image.wallUrl) { lightboxImage.src = image.originalUrl; }
           lightboxImage.classList.remove("upgrading");
         };
         upgrade.src = image.fullUrl;
       }
 
       lightboxImage.onerror = () => {
-        if (lightboxImage.src !== image.originalUrl) {
-          lightboxImage.src = image.originalUrl;
-        }
+        if (lightboxImage.src !== image.originalUrl) { lightboxImage.src = image.originalUrl; }
         lightboxImage.classList.remove("upgrading");
       };
     }
 
     async function saveSettings() {
-      if (!currentSession?.user) {
-        setSettingsStatus("先登录，再保存。");
-        return;
-      }
+      if (!currentSession?.user) { setSettingsStatus("先登录，再保存。"); return; }
       setSettingsStatus("正在保存...");
       const { error } = await supabase.from("album_settings").upsert({
         slug: CONFIG.ALBUM_SLUG,
         music_url: musicInput.value.trim(),
       }, { onConflict: "slug" });
-      if (error) {
-        setSettingsStatus(`保存失败：${error.message}`);
-        return;
-      }
+      if (error) { setSettingsStatus(`保存失败：${error.message}`); return; }
       syncMusic(musicInput.value.trim());
       setSettingsStatus("已保存。");
     }
 
     function syncMusic(url) {
-      if (audioElement) {
-        audioElement.pause();
-        audioElement.remove();
-        audioElement = null;
-      }
-      if (!url) {
-        musicToggle.hidden = true;
-        musicToggle.textContent = "播放";
-        return;
-      }
+      if (audioElement) { audioElement.pause(); audioElement.remove(); audioElement = null; }
+      if (!url) { musicToggle.hidden = true; musicToggle.textContent = "播放"; return; }
       audioElement = document.createElement("audio");
       audioElement.src = url;
       audioElement.loop = true;
@@ -1083,12 +892,8 @@
     async function toggleMusicPlayback() {
       if (!audioElement) return;
       if (audioElement.paused) {
-        try {
-          await audioElement.play();
-          musicToggle.textContent = "暂停";
-        } catch {
-          setSettingsStatus("音频无法播放，请检查链接。");
-        }
+        try { await audioElement.play(); musicToggle.textContent = "暂停"; }
+        catch { setSettingsStatus("音频无法播放，请检查链接。"); }
         return;
       }
       audioElement.pause();
@@ -1096,16 +901,9 @@
     }
 
     async function uploadImages() {
-      if (!currentSession?.user) {
-        setUploadStatus("先登录，再上传图片。");
-        return;
-      }
-
+      if (!currentSession?.user) { setUploadStatus("先登录，再上传图片。"); return; }
       const files = Array.from(uploadInput.files || []).filter((file) => file.type.startsWith("image/"));
-      if (!files.length) {
-        setUploadStatus("先选择至少一张图片。");
-        return;
-      }
+      if (!files.length) { setUploadStatus("先选择至少一张图片。"); return; }
 
       const captions = captionsInput.value.split(/\r?\n/).map((line) => line.trim());
       const baseOrder = currentImages.length ? Math.max(...currentImages.map((item) => item.sort_order || 0)) + 1 : 1;
@@ -1123,17 +921,8 @@
           upsert: false,
         });
 
-        if (uploadResult.error) {
-          setUploadStatus(`上传失败：${uploadResult.error.message}`);
-          return;
-        }
-
-        rowsToInsert.push({
-          album_slug: CONFIG.ALBUM_SLUG,
-          title: captions[offset] || "",
-          file_path: filePath,
-          sort_order: baseOrder + offset,
-        });
+        if (uploadResult.error) { setUploadStatus(`上传失败：${uploadResult.error.message}`); return; }
+        rowsToInsert.push({ album_slug: CONFIG.ALBUM_SLUG, title: captions[offset] || "", file_path: filePath, sort_order: baseOrder + offset });
       }
 
       const insertResult = await supabase.from("album_images").insert(rowsToInsert);
@@ -1150,10 +939,7 @@
     }
 
     async function prepareUploadFile(file) {
-      if (!file.type.startsWith("image/") || file.type === "image/gif" || file.type === "image/svg+xml") {
-        return file;
-      }
-
+      if (!file.type.startsWith("image/") || file.type === "image/gif" || file.type === "image/svg+xml") return file;
       try {
         const bitmap = await loadBitmap(file);
         let { width, height } = fitSize(bitmap.width, bitmap.height, CONFIG.MAX_UPLOAD_EDGE);
@@ -1163,39 +949,21 @@
 
         while (attempt < 6) {
           const canvas = document.createElement("canvas");
-          canvas.width = width;
-          canvas.height = height;
+          canvas.width = width; canvas.height = height;
           const context = canvas.getContext("2d", { alpha: true });
           context.drawImage(bitmap, 0, 0, width, height);
           blob = await canvasToBlob(canvas, "image/webp", quality);
-
-          if (blob && blob.size <= CONFIG.TARGET_UPLOAD_BYTES) {
-            break;
-          }
-
-          if (quality > CONFIG.MIN_UPLOAD_QUALITY) {
-            quality = Math.max(CONFIG.MIN_UPLOAD_QUALITY, quality - 0.04);
-          } else {
-            width = Math.max(420, Math.round(width * 0.88));
-            height = Math.max(420, Math.round(height * 0.88));
-          }
-
+          if (blob && blob.size <= CONFIG.TARGET_UPLOAD_BYTES) break;
+          if (quality > CONFIG.MIN_UPLOAD_QUALITY) { quality = Math.max(CONFIG.MIN_UPLOAD_QUALITY, quality - 0.04); }
+          else { width = Math.max(420, Math.round(width * 0.88)); height = Math.max(420, Math.round(height * 0.88)); }
           attempt += 1;
         }
 
-        if (typeof bitmap.close === "function") {
-          bitmap.close();
-        }
-
-        if (!blob || blob.size >= file.size * 0.96) {
-          return file;
-        }
+        if (typeof bitmap.close === "function") bitmap.close();
+        if (!blob || blob.size >= file.size * 0.96) return file;
 
         const baseName = file.name.replace(/\.[^.]+$/, "") || "photo";
-        return new File([blob], `${baseName}.webp`, {
-          type: "image/webp",
-          lastModified: Date.now(),
-        });
+        return new File([blob], `${baseName}.webp`, { type: "image/webp", lastModified: Date.now() });
       } catch (error) {
         console.warn("Image compression skipped:", error);
         return file;
@@ -1203,9 +971,7 @@
     }
 
     async function loadBitmap(file) {
-      if (typeof createImageBitmap === "function") {
-        return createImageBitmap(file);
-      }
+      if (typeof createImageBitmap === "function") return createImageBitmap(file);
       const image = new Image();
       const objectUrl = URL.createObjectURL(file);
       image.src = objectUrl;
@@ -1216,36 +982,21 @@
 
     function fitSize(width, height, maxEdge) {
       const longest = Math.max(width, height);
-      if (longest <= maxEdge) {
-        return { width, height };
-      }
+      if (longest <= maxEdge) return { width, height };
       const scale = maxEdge / longest;
-      return {
-        width: Math.max(1, Math.round(width * scale)),
-        height: Math.max(1, Math.round(height * scale)),
-      };
+      return { width: Math.max(1, Math.round(width * scale)), height: Math.max(1, Math.round(height * scale)) };
     }
 
     function canvasToBlob(canvas, type, quality) {
-      return new Promise((resolve) => {
-        canvas.toBlob(resolve, type, quality);
-      });
+      return new Promise((resolve) => { canvas.toBlob(resolve, type, quality); });
     }
 
     function renderManageList() {
       manageList.innerHTML = "";
       const loggedIn = Boolean(currentSession?.user);
       manageEmpty.hidden = currentImages.length > 0;
-      if (!loggedIn) {
-        manageEmpty.hidden = false;
-        manageEmpty.textContent = "先登录，再管理图片。";
-        return;
-      }
-      if (!currentImages.length) {
-        manageEmpty.hidden = false;
-        manageEmpty.textContent = "还没有图片。";
-        return;
-      }
+      if (!loggedIn) { manageEmpty.hidden = false; manageEmpty.textContent = "先登录，再管理图片。"; return; }
+      if (!currentImages.length) { manageEmpty.hidden = false; manageEmpty.textContent = "还没有图片。"; return; }
       manageEmpty.hidden = true;
 
       currentImages.forEach((image, index) => {
@@ -1256,9 +1007,7 @@
         preview.src = image.wallUrl;
         preview.alt = image.caption || `图片 ${index + 1}`;
         preview.loading = "lazy";
-        preview.onerror = () => {
-          if (preview.src !== image.originalUrl) preview.src = image.originalUrl;
-        };
+        preview.onerror = () => { if (preview.src !== image.originalUrl) preview.src = image.originalUrl; };
 
         const right = document.createElement("div");
         const field = document.createElement("div");
@@ -1275,38 +1024,20 @@
         row.className = "row";
 
         const saveBtn = document.createElement("button");
-        saveBtn.className = "secondary small";
-        saveBtn.type = "button";
-        saveBtn.textContent = "保存句子";
-        saveBtn.addEventListener("click", async () => {
-          await updateImage(image.id, { title: input.value.trim() }, "句子已保存。");
-        });
+        saveBtn.className = "secondary small"; saveBtn.type = "button"; saveBtn.textContent = "保存句子";
+        saveBtn.addEventListener("click", async () => { await updateImage(image.id, { title: input.value.trim() }, "句子已保存。"); });
 
         const upBtn = document.createElement("button");
-        upBtn.className = "secondary small";
-        upBtn.type = "button";
-        upBtn.textContent = "前移";
-        upBtn.disabled = index === 0;
-        upBtn.addEventListener("click", async () => {
-          await moveImage(index, index - 1);
-        });
+        upBtn.className = "secondary small"; upBtn.type = "button"; upBtn.textContent = "前移"; upBtn.disabled = index === 0;
+        upBtn.addEventListener("click", async () => { await moveImage(index, index - 1); });
 
         const downBtn = document.createElement("button");
-        downBtn.className = "secondary small";
-        downBtn.type = "button";
-        downBtn.textContent = "后移";
-        downBtn.disabled = index === currentImages.length - 1;
-        downBtn.addEventListener("click", async () => {
-          await moveImage(index, index + 1);
-        });
+        downBtn.className = "secondary small"; downBtn.type = "button"; downBtn.textContent = "后移"; downBtn.disabled = index === currentImages.length - 1;
+        downBtn.addEventListener("click", async () => { await moveImage(index, index + 1); });
 
         const deleteBtn = document.createElement("button");
-        deleteBtn.className = "small";
-        deleteBtn.type = "button";
-        deleteBtn.textContent = "删除";
-        deleteBtn.addEventListener("click", async () => {
-          await deleteImage(image);
-        });
+        deleteBtn.className = "small"; deleteBtn.type = "button"; deleteBtn.textContent = "删除";
+        deleteBtn.addEventListener("click", async () => { await deleteImage(image); });
 
         row.append(saveBtn, upBtn, downBtn, deleteBtn);
         right.append(field, row);
@@ -1316,25 +1047,16 @@
     }
 
     async function updateImage(id, patch, successMessage) {
-      if (!currentSession?.user) {
-        setManageStatus("先登录，再编辑图片。");
-        return;
-      }
+      if (!currentSession?.user) { setManageStatus("先登录，再编辑图片。"); return; }
       setManageStatus("正在保存...");
       const { error } = await supabase.from("album_images").update(patch).eq("id", id);
-      if (error) {
-        setManageStatus(`保存失败：${error.message}`);
-        return;
-      }
+      if (error) { setManageStatus(`保存失败：${error.message}`); return; }
       setManageStatus(successMessage);
       await loadWall();
     }
 
     async function moveImage(fromIndex, toIndex) {
-      if (!currentSession?.user) {
-        setManageStatus("先登录，再调整顺序。");
-        return;
-      }
+      if (!currentSession?.user) { setManageStatus("先登录，再调整顺序。"); return; }
       const source = currentImages[fromIndex];
       const target = currentImages[toIndex];
       if (!source || !target) return;
@@ -1344,49 +1066,30 @@
       const targetOrder = target.sort_order || toIndex + 1;
 
       const first = await supabase.from("album_images").update({ sort_order: targetOrder }).eq("id", source.id);
-      if (first.error) {
-        setManageStatus(`调整失败：${first.error.message}`);
-        return;
-      }
-
+      if (first.error) { setManageStatus(`调整失败：${first.error.message}`); return; }
       const second = await supabase.from("album_images").update({ sort_order: sourceOrder }).eq("id", target.id);
-      if (second.error) {
-        setManageStatus(`调整失败：${second.error.message}`);
-        return;
-      }
+      if (second.error) { setManageStatus(`调整失败：${second.error.message}`); return; }
 
       setManageStatus("顺序已更新。");
       await loadWall();
     }
 
     async function deleteImage(image) {
-      if (!currentSession?.user) {
-        setManageStatus("先登录，再删除图片。");
-        return;
-      }
+      if (!currentSession?.user) { setManageStatus("先登录，再删除图片。"); return; }
       const confirmed = window.confirm("确认删除这张图片吗？");
       if (!confirmed) return;
 
       setManageStatus("正在删除...");
       const removeResult = await supabase.storage.from(CONFIG.IMAGES_BUCKET).remove([image.file_path]);
-      if (removeResult.error) {
-        setManageStatus(`删除云端图片失败：${removeResult.error.message}`);
-        return;
-      }
-
+      if (removeResult.error) { setManageStatus(`删除云端图片失败：${removeResult.error.message}`); return; }
       const deleteResult = await supabase.from("album_images").delete().eq("id", image.id);
-      if (deleteResult.error) {
-        setManageStatus(`删除图片记录失败：${deleteResult.error.message}`);
-        return;
-      }
+      if (deleteResult.error) { setManageStatus(`删除图片记录失败：${deleteResult.error.message}`); return; }
 
       setManageStatus("图片已删除。");
       await loadWall();
     }
 
-    function sanitizeFileName(name) {
-      return name.replace(/[^a-zA-Z0-9._-]/g, "-");
-    }
+    function sanitizeFileName(name) { return name.replace(/[^a-zA-Z0-9._-]/g, "-"); }
 
     function setAuthStatus(message) { authStatus.textContent = message; }
     function setSettingsStatus(message) { settingsStatus.textContent = message; }
