@@ -6,11 +6,13 @@
   <title></title>
   <style>
     :root {
-      --bg: #02050b;
+      --bg: #06060e;
       --text: #eef2ff;
       --muted: #9aabd9;
       --line: rgba(179, 197, 255, 0.16);
-      --glow: rgba(152, 186, 255, 0.38);
+      --glow: rgba(77, 166, 255, 0.45);
+      --pink: #f05080;
+      --pink-glow: rgba(240, 80, 128, 0.5);
     }
 
     * { box-sizing: border-box; }
@@ -25,84 +27,139 @@
     body {
       color: var(--text);
       font-family: "Trebuchet MS", "Microsoft YaHei", "PingFang SC", sans-serif;
-      background:
-        radial-gradient(circle at 18% 18%, rgba(97, 122, 255, 0.14), transparent 28%),
-        radial-gradient(circle at 82% 22%, rgba(244, 149, 255, 0.08), transparent 24%),
-        linear-gradient(180deg, #03060d 0%, #02050a 52%, #010207 100%);
+      background: #06060e;
     }
 
-    body::before,
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-    }
-
-    body::before {
-      background-image:
-        radial-gradient(circle at 9% 14%, rgba(255, 255, 255, 0.95) 0 1.2px, transparent 1.4px),
-        radial-gradient(circle at 22% 68%, rgba(255, 255, 255, 0.72) 0 1.1px, transparent 1.4px),
-        radial-gradient(circle at 38% 28%, rgba(255, 255, 255, 0.88) 0 1px, transparent 1.3px),
-        radial-gradient(circle at 51% 18%, rgba(255, 255, 255, 0.7) 0 1.2px, transparent 1.5px),
-        radial-gradient(circle at 66% 64%, rgba(255, 255, 255, 0.76) 0 1.2px, transparent 1.5px),
-        radial-gradient(circle at 78% 26%, rgba(255, 255, 255, 0.84) 0 1.1px, transparent 1.4px),
-        radial-gradient(circle at 88% 78%, rgba(255, 255, 255, 0.68) 0 1.2px, transparent 1.4px),
-        radial-gradient(circle at 16% 88%, rgba(255, 255, 255, 0.72) 0 1px, transparent 1.2px);
-      animation: starsFloat 18s linear infinite;
-      opacity: 0.9;
-    }
-
-    body::after {
-      background:
-        radial-gradient(circle at center, rgba(154, 182, 255, 0.08), transparent 34%),
-        radial-gradient(circle at 50% 52%, rgba(131, 161, 255, 0.06), transparent 24%);
-      filter: blur(18px);
-    }
-
+    /* ── Main stage ── */
     .stage {
       position: relative;
       width: 100%;
       height: 100%;
       overflow: hidden;
       isolation: isolate;
+      display: flex;
+      flex-direction: column;
     }
 
-    .centerpiece {
+    /* ── NFC dark zone (top ~60%) ── */
+    .nfc-zone {
+      position: relative;
+      flex: 0 0 62%;
+      background:
+        radial-gradient(ellipse at 50% 30%, rgba(77, 166, 255, 0.10), transparent 55%),
+        radial-gradient(ellipse at 50% 55%, rgba(240, 80, 128, 0.06), transparent 50%),
+        radial-gradient(circle at 30% 70%, rgba(77, 140, 255, 0.05), transparent 40%),
+        radial-gradient(circle at 70% 60%, rgba(180, 130, 255, 0.04), transparent 35%),
+        linear-gradient(180deg, #08081a 0%, #0a0c18 40%, #0c0e1a 100%);
+      overflow: hidden;
+    }
+
+    .nfc-zone::before {
+      content: "";
       position: absolute;
-      inset: 50% auto auto 50%;
-      width: min(46vw, 260px);
-      max-width: 260px;
-      transform: translate(-50%, -50%);
+      inset: 0;
       pointer-events: none;
-      filter: drop-shadow(0 14px 34px rgba(117, 154, 255, 0.34));
-      animation: planeHero 9.5s ease-in-out infinite;
-      z-index: 2;
+      background-image:
+        radial-gradient(circle at 12% 18%, rgba(255,255,255,0.9) 0 1px, transparent 1.2px),
+        radial-gradient(circle at 28% 72%, rgba(255,255,255,0.6) 0 0.8px, transparent 1.1px),
+        radial-gradient(circle at 44% 22%, rgba(255,255,255,0.8) 0 1px, transparent 1.3px),
+        radial-gradient(circle at 58% 78%, rgba(255,255,255,0.7) 0 0.9px, transparent 1.2px),
+        radial-gradient(circle at 72% 28%, rgba(255,255,255,0.75) 0 1px, transparent 1.3px),
+        radial-gradient(circle at 85% 68%, rgba(255,255,255,0.65) 0 0.9px, transparent 1.1px),
+        radial-gradient(circle at 15% 48%, rgba(255,255,255,0.7) 0 0.8px, transparent 1.1px),
+        radial-gradient(circle at 92% 15%, rgba(255,255,255,0.8) 0 1px, transparent 1.2px);
+      opacity: 0.7;
     }
 
-    .centerpiece svg {
-      width: 100%;
-      height: auto;
-      display: block;
-      fill: url(#planeGradient);
-      stroke: rgba(245, 248, 255, 0.4);
-      stroke-width: 1.1;
-    }
-
-    .center-trail {
+    /* ── NFC indicator ── */
+    .nfc-indicator {
       position: absolute;
-      inset: 50% auto auto 50%;
-      width: min(72vw, 420px);
-      height: 2px;
-      transform: translate(-50%, -50%);
-      background: linear-gradient(90deg, rgba(255,255,255,0), rgba(162, 191, 255, 0.8), rgba(255,255,255,0));
-      filter: blur(0.8px);
-      opacity: 0.8;
-      z-index: 1;
+      top: 8%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 80px;
+      z-index: 5;
       pointer-events: none;
-      animation: trailPulse 9.5s ease-in-out infinite;
     }
 
+    .nfc-core {
+      position: absolute;
+      inset: 14px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(30,40,70,0.95), rgba(15,20,45,0.98));
+      border: 1.5px solid rgba(120, 180, 255, 0.5);
+      box-shadow:
+        0 0 20px rgba(77, 166, 255, 0.4),
+        0 0 40px rgba(77, 166, 255, 0.15),
+        inset 0 0 15px rgba(77, 166, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: nfcCorePulse 2s ease-in-out infinite;
+    }
+
+    .nfc-core svg {
+      width: 28px;
+      height: 28px;
+      fill: none;
+      stroke: rgba(170, 210, 255, 0.9);
+      stroke-width: 1.6;
+    }
+
+    .nfc-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1.2px solid rgba(77, 166, 255, 0.5);
+      animation: nfcRingExpand 2s ease-out infinite;
+      opacity: 0;
+    }
+
+    .nfc-ring:nth-child(2) { animation-delay: 0.65s; }
+    .nfc-ring:nth-child(3) { animation-delay: 1.3s; }
+
+    @keyframes nfcCorePulse {
+      0%, 100% {
+        box-shadow: 0 0 20px rgba(77, 166, 255, 0.4), 0 0 40px rgba(77, 166, 255, 0.15), inset 0 0 15px rgba(77, 166, 255, 0.1);
+        border-color: rgba(120, 180, 255, 0.5);
+      }
+      50% {
+        box-shadow: 0 0 35px rgba(77, 166, 255, 0.7), 0 0 70px rgba(77, 166, 255, 0.3), inset 0 0 25px rgba(77, 166, 255, 0.2);
+        border-color: rgba(170, 220, 255, 0.8);
+      }
+    }
+
+    @keyframes nfcRingExpand {
+      0% {
+        transform: scale(0.7);
+        opacity: 0.9;
+        border-width: 1.4px;
+      }
+      100% {
+        transform: scale(2.8);
+        opacity: 0;
+        border-width: 0.3px;
+      }
+    }
+
+    /* ── Ripple on tap ── */
+    .tap-ripple {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(77, 166, 255, 0.6);
+      background: radial-gradient(circle, rgba(77, 166, 255, 0.15), transparent);
+      pointer-events: none;
+      animation: tapRipple 0.9s ease-out forwards;
+      z-index: 4;
+    }
+
+    @keyframes tapRipple {
+      0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+    }
+
+    /* ── Photo cards ── */
     .cards {
       position: absolute;
       inset: 0;
@@ -112,40 +169,41 @@
 
     .tile {
       position: absolute;
-      width: min(30vw, 150px);
-      min-width: 110px;
-      border-radius: 20px;
-      padding: 7px 7px 9px;
+      width: min(22vw, 110px);
+      min-width: 80px;
+      border-radius: 18px;
+      padding: 6px 6px 8px;
       background:
-        linear-gradient(180deg, rgba(224, 234, 255, 0.16), rgba(123, 146, 203, 0.12)),
-        linear-gradient(180deg, rgba(10, 15, 26, 0.92), rgba(5, 9, 18, 0.98));
-      border: 1px solid rgba(230, 238, 255, 0.16);
+        linear-gradient(180deg, rgba(224, 234, 255, 0.14), rgba(100, 130, 180, 0.10)),
+        linear-gradient(180deg, rgba(10, 15, 28, 0.94), rgba(5, 9, 20, 0.98));
+      border: 1px solid rgba(200, 220, 255, 0.14);
       box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,0.04),
-        0 16px 34px rgba(0,0,0,0.34),
-        0 0 28px rgba(124, 157, 255, 0.12);
+        inset 0 0 0 1px rgba(255,255,255,0.03),
+        0 14px 30px rgba(0,0,0,0.35),
+        0 0 22px rgba(77, 150, 255, 0.08);
       opacity: 0;
-      transform: translate3d(-50%, -50%, 0) scale(1.08);
+      transform: translate3d(-50%, -50%, 0) scale(1.06);
       pointer-events: auto;
       cursor: pointer;
+      backdrop-filter: blur(4px);
     }
 
     .tile.visible {
-      animation: tileAppear 0.85s cubic-bezier(0.22, 0.7, 0.2, 1) forwards;
+      animation: tileAppear 0.75s cubic-bezier(0.22, 0.7, 0.2, 1) forwards;
     }
 
     .tile.floating {
-      animation: tileOrbit var(--float-duration, 10s) ease-in-out infinite alternate;
+      animation: tileOrbit var(--float-duration, 9s) ease-in-out infinite alternate;
       animation-delay: var(--float-delay, 0s);
     }
 
     .tile::before {
       content: "";
       position: absolute;
-      inset: 7px 7px 9px;
-      border-radius: 14px;
-      border: 1px solid rgba(210, 225, 255, 0.14);
-      box-shadow: 0 0 18px rgba(152, 186, 255, 0.18);
+      inset: 6px 6px 8px;
+      border-radius: 13px;
+      border: 1px solid rgba(200, 225, 255, 0.12);
+      box-shadow: 0 0 10px rgba(120, 170, 255, 0.1);
       pointer-events: none;
     }
 
@@ -154,25 +212,99 @@
       width: 100%;
       aspect-ratio: 4 / 5;
       object-fit: cover;
-      border-radius: 14px;
-      border: 1px solid rgba(224, 234, 255, 0.18);
+      border-radius: 13px;
+      border: 1px solid rgba(200, 225, 255, 0.15);
       background: linear-gradient(180deg, #11192a, #070d17);
       opacity: 0;
       transition: opacity 0.24s ease;
     }
 
-    .tile.loaded img {
-      opacity: 1;
+    .tile.loaded img { opacity: 1; }
+
+    /* ── Pink accent strip ── */
+    .accent-strip {
+      position: relative;
+      z-index: 6;
+      flex: 0 0 6px;
+      background: linear-gradient(90deg,
+        rgba(240, 80, 128, 0.2),
+        rgba(240, 80, 128, 0.8) 20%,
+        rgba(255, 120, 160, 0.9) 50%,
+        rgba(240, 80, 128, 0.8) 80%,
+        rgba(240, 80, 128, 0.2)
+      );
+      box-shadow: 0 0 18px rgba(240, 80, 128, 0.4), 0 0 4px rgba(240, 80, 128, 0.5);
     }
 
+    .accent-strip::after {
+      content: "";
+      position: absolute;
+      inset: -3px 0;
+      background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 150, 190, 0.3) 30%,
+        rgba(255, 150, 190, 0.5) 50%,
+        rgba(255, 150, 190, 0.3) 70%,
+        transparent
+      );
+      filter: blur(8px);
+      pointer-events: none;
+    }
+
+    /* ── Info zone (white bottom) ── */
+    .info-zone {
+      position: relative;
+      flex: 1;
+      background:
+        linear-gradient(180deg, #fafafc 0%, #f4f4f8 40%, #eeeef4 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 24px;
+      text-align: center;
+      z-index: 2;
+    }
+
+    .info-zone h1 {
+      margin: 0 0 8px;
+      font-size: clamp(26px, 4vw, 38px);
+      font-weight: 700;
+      color: #1a1a2e;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .info-zone .subtitle {
+      margin: 0 0 6px;
+      font-size: 15px;
+      color: #666680;
+      line-height: 1.6;
+    }
+
+    .info-zone .hint {
+      margin: 0;
+      font-size: 12px;
+      color: #999ab0;
+      line-height: 1.6;
+    }
+
+    .info-zone .nfc-tag-icon {
+      width: 44px;
+      height: 44px;
+      margin-bottom: 10px;
+      opacity: 0.5;
+    }
+
+    /* ── Lightbox ── */
     .overlay {
       position: fixed;
       inset: 0;
       display: none;
       place-items: center;
       padding: 16px;
-      background: rgba(2, 4, 10, 0.92);
-      backdrop-filter: blur(12px);
+      background: rgba(2, 4, 10, 0.94);
+      backdrop-filter: blur(14px);
       z-index: 25;
     }
 
@@ -208,6 +340,7 @@
       white-space: pre-wrap;
     }
 
+    /* ── Editor panel ── */
     .editor {
       position: fixed;
       inset: 0 0 0 auto;
@@ -322,12 +455,12 @@
       border: 0;
       border-radius: 999px;
       padding: 12px 16px;
-      background: linear-gradient(135deg, #9ab5ff, #f3aff7);
-      color: #07101f;
+      background: linear-gradient(135deg, #4da6ff, #f05080);
+      color: #fff;
       font: inherit;
       font-weight: 600;
       cursor: pointer;
-      box-shadow: 0 12px 28px rgba(148, 175, 255, 0.22);
+      box-shadow: 0 12px 28px rgba(77, 150, 255, 0.25);
       transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
     }
 
@@ -341,9 +474,12 @@
     button.small { padding: 9px 12px; font-size: 13px; }
     button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
 
+    /* ── Responsive ── */
     @media (max-width: 860px) {
-      .centerpiece { width: min(54vw, 250px); }
-      .tile { width: min(31vw, 142px); min-width: 104px; }
+      .nfc-zone { flex: 0 0 58%; }
+      .tile { width: min(26vw, 100px); min-width: 76px; }
+      .nfc-indicator { width: 64px; height: 64px; top: 6%; }
+      .nfc-core svg { width: 22px; height: 22px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -352,40 +488,6 @@
         transition: none !important;
       }
       .tile, .tile img { opacity: 1 !important; transform: translate3d(-50%, -50%, 0) !important; }
-    }
-
-    @keyframes starsFloat {
-      from { transform: translateY(0); }
-      50% { transform: translateY(7px); }
-      to { transform: translateY(0); }
-    }
-
-    @keyframes planeHero {
-      0% {
-        transform: translate(-50%, -50%) translate3d(-4vw, 0, -240px) scale(0.62) rotateX(20deg) rotateY(-24deg) rotate(-10deg);
-        opacity: 0;
-      }
-      12% {
-        transform: translate(-50%, -50%) translate3d(-1vw, 0, -120px) scale(0.78) rotateX(12deg) rotateY(-16deg) rotate(-7deg);
-        opacity: 0.86;
-      }
-      50% {
-        transform: translate(-50%, -50%) translate3d(0, 0, 90px) scale(1.16) rotateX(2deg) rotateY(0deg) rotate(0deg);
-        opacity: 1;
-      }
-      84% {
-        transform: translate(-50%, -50%) translate3d(2vw, 0, -120px) scale(0.8) rotateX(12deg) rotateY(16deg) rotate(6deg);
-        opacity: 0.86;
-      }
-      100% {
-        transform: translate(-50%, -50%) translate3d(5vw, 0, -260px) scale(0.6) rotateX(18deg) rotateY(24deg) rotate(8deg);
-        opacity: 0;
-      }
-    }
-
-    @keyframes trailPulse {
-      0%, 100% { opacity: 0.48; transform: translate(-50%, -50%) scaleX(0.82); }
-      50% { opacity: 0.9; transform: translate(-50%, -50%) scaleX(1.06); }
     }
 
     @keyframes tileAppear {
@@ -401,30 +503,53 @@
 
     @keyframes tileOrbit {
       0% { transform: translate3d(-50%, -50%, 0) translate3d(0, 0, 0) rotate(-1deg) scale(1); }
-      33% { transform: translate3d(-50%, -50%, 0) translate3d(6px, -18px, 0) rotate(0.4deg) scale(1.028); }
-      66% { transform: translate3d(-50%, -50%, 0) translate3d(-8px, 10px, 0) rotate(-1.4deg) scale(0.992); }
-      100% { transform: translate3d(-50%, -50%, 0) translate3d(4px, -8px, 0) rotate(0.8deg) scale(1.012); }
+      33% { transform: translate3d(-50%, -50%, 0) translate3d(5px, -9px, 0) rotate(0.3deg) scale(1.02); }
+      66% { transform: translate3d(-50%, -50%, 0) translate3d(-5px, 6px, 0) rotate(-1deg) scale(0.995); }
+      100% { transform: translate3d(-50%, -50%, 0) translate3d(3px, -4px, 0) rotate(0.6deg) scale(1.01); }
     }
   </style>
 </head>
 <body>
   <main class="stage" id="stage">
-    <div class="center-trail"></div>
-    <div class="centerpiece" aria-hidden="true">
-      <svg viewBox="0 0 160 80">
-        <defs>
-          <linearGradient id="planeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#fff8fd"></stop>
-            <stop offset="55%" stop-color="#b9d0ff"></stop>
-            <stop offset="100%" stop-color="#6fa6ff"></stop>
-          </linearGradient>
-        </defs>
-        <path d="M10 40 150 12 98 38 150 68 85 52 60 73 66 48 10 40Z"></path>
+    <!-- ── Dark NFC zone ── -->
+    <section class="nfc-zone" id="nfcZone">
+      <!-- NFC indicator -->
+      <div class="nfc-indicator" aria-hidden="true">
+        <div class="nfc-ring"></div>
+        <div class="nfc-ring"></div>
+        <div class="nfc-ring"></div>
+        <div class="nfc-core">
+          <svg viewBox="0 0 24 24">
+            <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2Z" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M7 15l3-3 3 3 4-4" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="8" cy="9" r="1.5"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Photo cards -->
+      <div class="cards" id="cards"></div>
+
+      <!-- Tap ripple container -->
+      <div id="rippleContainer"></div>
+    </section>
+
+    <!-- Pink accent strip -->
+    <div class="accent-strip" aria-hidden="true"></div>
+
+    <!-- White info zone -->
+    <section class="info-zone">
+      <svg class="nfc-tag-icon" viewBox="0 0 24 24" fill="none" stroke="#999ab0" stroke-width="1.3">
+        <rect x="3" y="7" width="18" height="12" rx="2"/>
+        <path d="M7 12h2M11 12h6M7 15h4"/>
       </svg>
-    </div>
-    <section class="cards" id="cards"></section>
+      <h1 id="pageTitle">我们的照片</h1>
+      <p class="subtitle">轻触钥匙扣，打开这一页</p>
+      <p class="hint">用手机 NFC 碰一下钥匙扣即可查看</p>
+    </section>
   </main>
 
+  <!-- ── Lightbox ── -->
   <div class="overlay" id="lightbox">
     <figure>
       <img id="lightboxImage" alt="">
@@ -432,6 +557,7 @@
     </figure>
   </div>
 
+  <!-- ── Editor panel ── -->
   <aside class="editor" id="editorPanel" aria-hidden="true">
     <div class="editor-head">
       <h2>编辑</h2>
@@ -475,7 +601,7 @@
 
     <section class="panel">
       <h3>上传图片</h3>
-      <p>这个版本彻底偏速度优先。新图会被压得很小，画质会明显牺牲。</p>
+      <p>新图会被压缩优化，画质会有所牺牲。</p>
       <div class="field">
         <label for="uploadInput">选择图片</label>
         <input id="uploadInput" type="file" accept="image/*" multiple>
@@ -519,15 +645,14 @@
     };
 
     const CARD_POSITIONS = [
-      { x: 22, y: 26 }, { x: 78, y: 24 },
-      { x: 16, y: 68 }, { x: 84, y: 70 },
-      { x: 32, y: 16 }, { x: 68, y: 18 },
-      { x: 28, y: 78 }, { x: 72, y: 80 },
-      { x: 10, y: 46 }, { x: 90, y: 48 }
+      { x: 62, y: 42 }, { x: 78, y: 58 }, { x: 54, y: 68 },
+      { x: 32, y: 72 }, { x: 80, y: 32 }, { x: 22, y: 48 },
+      { x: 68, y: 28 }, { x: 86, y: 72 }, { x: 38, y: 34 }, { x: 20, y: 66 }
     ];
 
     const cards = document.getElementById("cards");
     const stage = document.getElementById("stage");
+    const nfcZone = document.getElementById("nfcZone");
     const lightbox = document.getElementById("lightbox");
     const lightboxImage = document.getElementById("lightboxImage");
     const lightboxCaption = document.getElementById("lightboxCaption");
@@ -573,11 +698,12 @@
     }
 
     function bindUi() {
-      stage.addEventListener("pointerup", onStageTap, { passive: true });
-      stage.addEventListener("pointerdown", onStagePressStart, { passive: true });
-      stage.addEventListener("pointermove", onStagePressEnd, { passive: true });
-      stage.addEventListener("pointercancel", onStagePressEnd, { passive: true });
-      stage.addEventListener("pointerleave", onStagePressEnd, { passive: true });
+      nfcZone.addEventListener("pointerup", onStageTap, { passive: true });
+      nfcZone.addEventListener("pointerdown", onStagePressStart, { passive: true });
+      nfcZone.addEventListener("pointermove", onStagePressEnd, { passive: true });
+      nfcZone.addEventListener("pointercancel", onStagePressEnd, { passive: true });
+      nfcZone.addEventListener("pointerleave", onStagePressEnd, { passive: true });
+      nfcZone.addEventListener("click", spawnTapRipple, { passive: true });
       closeEditor.addEventListener("click", closeEditorPanel);
       lightbox.addEventListener("click", closeLightbox);
       musicToggle.addEventListener("click", toggleMusicPlayback);
@@ -614,6 +740,22 @@
 
       saveSettingsBtn.addEventListener("click", saveSettings);
       uploadBtn.addEventListener("click", uploadImages);
+    }
+
+    function spawnTapRipple(event) {
+      if (editorPanel.classList.contains("open")) return;
+      if (event.target.closest(".tile")) return;
+      const rect = nfcZone.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      const ripple = document.createElement("div");
+      ripple.className = "tap-ripple";
+      ripple.style.left = x + "px";
+      ripple.style.top = y + "px";
+      ripple.style.width = "60px";
+      ripple.style.height = "60px";
+      nfcZone.appendChild(ripple);
+      ripple.addEventListener("animationend", () => ripple.remove());
     }
 
     function onStageTap(event) {
@@ -782,8 +924,9 @@
     function createTile(image, index) {
       const tile = document.createElement("article");
       tile.className = "tile";
-      tile.style.left = `${CARD_POSITIONS[index % CARD_POSITIONS.length].x}%`;
-      tile.style.top = `${CARD_POSITIONS[index % CARD_POSITIONS.length].y}%`;
+      const pos = CARD_POSITIONS[index % CARD_POSITIONS.length];
+      tile.style.left = pos.x + "%";
+      tile.style.top = pos.y + "%";
       tile.style.setProperty("--float-duration", `${7.5 + (index % 4) * 0.8}s`);
       tile.style.setProperty("--float-delay", `${(index % 5) * 0.45}s`);
       tile.dataset.wallSrc = image.wallUrl;
@@ -803,12 +946,15 @@
       });
 
       tile.append(img);
-      tile.addEventListener("click", () => scheduleLightboxOpen(image, index));
+      tile.addEventListener("click", (e) => {
+        e.stopPropagation();
+        scheduleLightboxOpen(image, index);
+      });
 
       const revealDelay = 120 + index * 110;
       window.setTimeout(() => {
         tile.classList.add("visible");
-        window.setTimeout(() => tile.classList.add("floating"), 860);
+        window.setTimeout(() => tile.classList.add("floating"), 760);
       }, revealDelay);
 
       return tile;
