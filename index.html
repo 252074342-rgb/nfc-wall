@@ -832,14 +832,20 @@
         setUploadStatus(`处理第 ${i+1}/${files.length} 张...`);
         await new Promise(r => setTimeout(r, 50));
         let upFile = file;
-        if (file.size > 800 * 1024) {
-          try { upFile = await simpleCompress(file); setUploadStatus(`已压缩，上传中 ${i+1}/${files.length}...`); }
+        if (file.size > 2 * 1024 * 1024) {
+          setUploadStatus(`正在压缩第 ${i+1}/${files.length} 张...`);
+          try { upFile = await simpleCompress(file); }
           catch(e) { upFile = file; }
         }
+        setUploadStatus(`正在上传第 ${i+1}/${files.length} 张...`);
         await new Promise(r => setTimeout(r, 30));
         const fp = `${CONFIG.ALBUM_SLUG}/${Date.now()}-${safeUUID()}-${sanitizeFileName(upFile.name)}`;
         const up = await supabase.storage.from(CONFIG.IMAGES_BUCKET).upload(fp, upFile, { cacheControl:"31536000", upsert:false });
-        if (up.error) { const m=`上传失败：${up.error.message}`; setUploadStatus(m); showToast(m); return; }
+        if (up.error) {
+          let hint = up.error.message || "";
+          if (hint.includes("JWT") || hint.includes("auth") || hint.includes("policy") || hint.includes("permission")) hint += "（请尝试退出后重新登录）";
+          const m = `上传失败：${hint}`; setUploadStatus(m); showToast(m); return;
+        }
         rows.push({ album_slug:CONFIG.ALBUM_SLUG, title:captions[i]||"", file_path:fp, sort_order:bo+i });
       }
       const ins = await supabase.from("album_images").insert(rows);
@@ -898,7 +904,7 @@
     }
     async function updateImage(id,patch,msg) { if(!currentSession?.user){setManageStatus("先登录");return;} setManageStatus("保存中..."); const{error}=await supabase.from("album_images").update(patch).eq("id",id); if(error){setManageStatus(`失败：${error.message}`);return;} setManageStatus(msg); await loadWall(); }
     async function moveImage(from,to) { if(!currentSession?.user){setManageStatus("先登录");return;} const src=currentImages[from],tgt=currentImages[to]; if(!src||!tgt)return; setManageStatus("调整中..."); const so=src.sort_order||from+1, to_=tgt.sort_order||to+1; const f=await supabase.from("album_images").update({sort_order:to_}).eq("id",src.id); if(f.error){setManageStatus(`失败：${f.error.message}`);return;} const s=await supabase.from("album_images").update({sort_order:so}).eq("id",tgt.id); if(s.error){setManageStatus(`失败：${s.error.message}`);return;} setManageStatus("已更新"); await loadWall(); }
-    async function deleteImage(image) { if(!currentSession?.user){setManageStatus("先登录");return;} if(!window.confirm("确认删除？"))return; setManageStatus("删除中..."); const r=await supabase.storage.from(CONFIG.IMAGES_BUCKET).remove([image.file_path]); if(r.error){setManageStatus(`失败：${r.error.message}`);return;} const d=await supabase.from("album_images").delete().eq("id",image.id); if(d.error){setManageStatus(`失败：${d.error.message}`);return;} setManageStatus("已删除"); await loadWall(); }
+    async function deleteImage(image) { if(!currentSession?.user){setManageStatus("先登录");showToast("请先登录");return;} if(!window.confirm("确认删除？"))return; setManageStatus("删除中..."); const r=await supabase.storage.from(CONFIG.IMAGES_BUCKET).remove([image.file_path]); if(r.error){const m=`删除失败：${r.error.message}`; setManageStatus(m);showToast(m);return;} const d=await supabase.from("album_images").delete().eq("id",image.id); if(d.error){const m=`删除失败：${d.error.message}`; setManageStatus(m);showToast(m);return;} setManageStatus("已删除");showToast("图片已删除"); await loadWall(); }
 
     function setAuthStatus(m){authStatus.textContent=m;}
     function setSettingsStatus(m){settingsStatus.textContent=m;}
