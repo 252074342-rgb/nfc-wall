@@ -356,8 +356,8 @@
       SUPABASE_URL: "https://pnzbcsnoqrmtdkxyxfms.supabase.co",
       SUPABASE_ANON_KEY: "sb_publishable_BZMrBawoq266rDTBEcIXRQ_yCrQPJ8C",
       ALBUM_SLUG: "main", IMAGES_BUCKET: "wall-images",
-      MAX_UPLOAD_EDGE: 1200, TARGET_UPLOAD_BYTES: 200 * 1024,
-      MAX_UPLOAD_QUALITY: 0.72, MIN_UPLOAD_QUALITY: 0.40,
+      MAX_UPLOAD_EDGE: 800, TARGET_UPLOAD_BYTES: 150 * 1024,
+      MAX_UPLOAD_QUALITY: 0.65, MIN_UPLOAD_QUALITY: 0.35,
       USE_IMAGE_TRANSFORMS: false,
       WALL_IMAGE_WIDTH: 200, WALL_IMAGE_HEIGHT: 260, WALL_IMAGE_QUALITY: 55,
       LIGHTBOX_IMAGE_WIDTH: 1280, LIGHTBOX_IMAGE_QUALITY: 82,
@@ -750,8 +750,8 @@
       if (!currentSession?.user) { setSettingsStatus("先登录"); return; }
       setSettingsStatus("保存中...");
       const { error } = await supabase.from("album_settings").upsert({ slug: CONFIG.ALBUM_SLUG, music_url: musicInput.value.trim() }, { onConflict: "slug" });
-      if (error) { setSettingsStatus(`失败：${error.message}`); return; }
-      syncMusic(musicInput.value.trim()); setSettingsStatus("已保存。");
+      if (error) { const m=`保存失败：${error.message}`; setSettingsStatus(m); showToast(m); return; }
+      syncMusic(musicInput.value.trim()); setSettingsStatus("已保存。"); showToast("音乐链接已保存");
     }
 
     // ── Wall ──
@@ -829,10 +829,16 @@
       const rows = [];
       setUploadStatus(`准备上传 ${files.length} 张...`);
       for (const [i, file] of files.entries()) {
-        setUploadStatus(`压缩上传 ${i+1}/${files.length}...`);
-        const prep = await prepareUploadFile(file);
-        const fp = `${CONFIG.ALBUM_SLUG}/${Date.now()}-${safeUUID()}-${sanitizeFileName(prep.name)}`;
-        const up = await supabase.storage.from(CONFIG.IMAGES_BUCKET).upload(fp, prep, { cacheControl:"31536000", upsert:false });
+        setUploadStatus(`处理第 ${i+1}/${files.length} 张...`);
+        await new Promise(r => setTimeout(r, 50));
+        let upFile = file;
+        if (file.size > 800 * 1024) {
+          try { upFile = await simpleCompress(file); setUploadStatus(`已压缩，上传中 ${i+1}/${files.length}...`); }
+          catch(e) { upFile = file; }
+        }
+        await new Promise(r => setTimeout(r, 30));
+        const fp = `${CONFIG.ALBUM_SLUG}/${Date.now()}-${safeUUID()}-${sanitizeFileName(upFile.name)}`;
+        const up = await supabase.storage.from(CONFIG.IMAGES_BUCKET).upload(fp, upFile, { cacheControl:"31536000", upsert:false });
         if (up.error) { const m=`上传失败：${up.error.message}`; setUploadStatus(m); showToast(m); return; }
         rows.push({ album_slug:CONFIG.ALBUM_SLUG, title:captions[i]||"", file_path:fp, sort_order:bo+i });
       }
@@ -841,31 +847,27 @@
       uploadInput.value = ""; captionsInput.value = "";
       setUploadStatus(`已上传 ${files.length} 张。`); await loadWall();
     }
-    async function prepareUploadFile(file) {
-      if (!file.type.startsWith("image/")||file.type==="image/gif"||file.type==="image/svg+xml") return file;
-      try {
-        const bmp = await loadBitmap(file);
-        let { width, height } = fitSize(bmp.width, bmp.height, CONFIG.MAX_UPLOAD_EDGE);
-        let q = CONFIG.MAX_UPLOAD_QUALITY, blob = null;
-        for (let a=0;a<6;a++) {
-          const cv = document.createElement("canvas"); cv.width=width; cv.height=height;
-          cv.getContext("2d",{alpha:true}).drawImage(bmp,0,0,width,height);
-          blob = await canvasToBlob(cv,"image/webp",q);
-          if (blob && blob.size<=CONFIG.TARGET_UPLOAD_BYTES) break;
-          if (q>CONFIG.MIN_UPLOAD_QUALITY) q=Math.max(CONFIG.MIN_UPLOAD_QUALITY,q-0.05);
-          else { width=Math.max(500,Math.round(width*.88)); height=Math.max(500,Math.round(height*.88)); }
-        }
-        if (typeof bmp.close==="function") bmp.close();
-        if (!blob||blob.size>=file.size*.96) return file;
-        return new File([blob],`${file.name.replace(/\.[^.]+$/,"")||"photo"}.webp`,{type:"image/webp",lastModified:Date.now()});
-      } catch(e) { console.warn(e); return file; }
+    function simpleCompress(file) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        const timeout = setTimeout(() => { URL.revokeObjectURL(url); resolve(file); }, 12000);
+        img.onload = () => {
+          clearTimeout(timeout); URL.revokeObjectURL(url);
+          let w = img.width, h = img.height;
+          const max = 800;
+          if (Math.max(w,h) > max) { const s = max/Math.max(w,h); w=Math.round(w*s); h=Math.round(h*s); }
+          const cv = document.createElement("canvas"); cv.width=w; cv.height=h;
+          cv.getContext("2d").drawImage(img,0,0,w,h);
+          cv.toBlob(b => {
+            if (b && b.size < file.size) resolve(new File([b], file.name.replace(/\.[^.]+$/,"")+".webp", {type:"image/webp"}));
+            else resolve(file);
+          }, "image/webp", 0.6);
+        };
+        img.onerror = () => { clearTimeout(timeout); URL.revokeObjectURL(url); resolve(file); };
+        img.src = url;
+      });
     }
-    async function loadBitmap(file) {
-      if (typeof createImageBitmap==="function") return createImageBitmap(file);
-      const img=new Image(); const u=URL.createObjectURL(file); img.src=u; await img.decode(); URL.revokeObjectURL(u); return img;
-    }
-    function fitSize(w,h,max) { const L=Math.max(w,h); if (L<=max) return {width:w,height:h}; const s=max/L; return {width:Math.max(1,Math.round(w*s)),height:Math.max(1,Math.round(h*s))}; }
-    function canvasToBlob(c,t,q) { return new Promise(r=>c.toBlob(r,t,q)); }
     function sanitizeFileName(n) { return n.replace(/[^a-zA-Z0-9._-]/g,"-"); }
 
     // ── Manage ──
