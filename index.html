@@ -4,9 +4,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link rel="preconnect" href="https://pnzbcsnoqrmtdkxyxfms.supabase.co" crossorigin>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
   <title></title>
   <style>
     * { box-sizing: border-box; }
@@ -92,7 +89,8 @@
     }
 
     .card .caption {
-      font-family: "ZCOOL KuaiLe", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+      font-weight: 500;
       font-size: clamp(12px, 2.4vw, 15px);
       color: #e0e8ff;
       text-align: center;
@@ -199,6 +197,18 @@
       100% { opacity: 0.85; }
     }
 
+    /* ── Toast ── */
+    .toast {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      z-index: 10; pointer-events: none;
+      padding: 14px 24px; border-radius: 14px;
+      background: rgba(0,0,0,0.85); color: #ff9090;
+      font-size: 13px; text-align: center; line-height: 1.6;
+      border: 1px solid rgba(255,100,100,0.3);
+      max-width: 80%;
+    }
+    .toast:empty { display: none; }
+
     /* ── Dots ── */
     .swipe-dots {
       position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
@@ -296,6 +306,7 @@
         </svg>
       </div>
     </div>
+    <div class="toast" id="toast"></div>
     <div class="swipe-dots" id="swipeDots"></div>
   </main>
 
@@ -347,7 +358,7 @@
       ALBUM_SLUG: "main", IMAGES_BUCKET: "wall-images",
       MAX_UPLOAD_EDGE: 1200, TARGET_UPLOAD_BYTES: 200 * 1024,
       MAX_UPLOAD_QUALITY: 0.72, MIN_UPLOAD_QUALITY: 0.40,
-      USE_IMAGE_TRANSFORMS: true,
+      USE_IMAGE_TRANSFORMS: false,
       WALL_IMAGE_WIDTH: 200, WALL_IMAGE_HEIGHT: 260, WALL_IMAGE_QUALITY: 55,
       LIGHTBOX_IMAGE_WIDTH: 1280, LIGHTBOX_IMAGE_QUALITY: 82,
     };
@@ -358,6 +369,7 @@
     const camera = document.getElementById("camera");
     const track = document.getElementById("track");
     const planeGroup = document.getElementById("planeGroup");
+    const toast = document.getElementById("toast");
     const swipeDots = document.getElementById("swipeDots");
     const lightbox = document.getElementById("lightbox");
     const lightboxImage = document.getElementById("lightboxImage");
@@ -743,11 +755,21 @@
     }
 
     // ── Wall ──
+    function showToast(msg) { toast.textContent = msg; setTimeout(() => { if (toast.textContent === msg) toast.textContent = ""; }, 8000); }
+    function clearToast() { toast.textContent = ""; }
+
     async function loadWall() {
+      clearToast();
       const { data, error } = await supabase.from("album_images")
         .select("id, title, file_path, sort_order, created_at")
         .eq("album_slug", CONFIG.ALBUM_SLUG).order("sort_order").order("created_at");
-      if (error) { setManageStatus(`读取失败：${error.message}`); return; }
+      if (error) {
+        const msg = `连接失败：${error.message}\n请检查 Supabase 项目是否被暂停`;
+        setManageStatus(msg); showToast(msg); return;
+      }
+      if (!data || data.length === 0) {
+        showToast("相册为空，请登录后上传照片");
+      }
       currentImages = (data || []).map(item => {
         const ou = getPublicUrl(item.file_path);
         return { ...item, caption: item.title || "", originalUrl: ou,
@@ -811,7 +833,7 @@
         const prep = await prepareUploadFile(file);
         const fp = `${CONFIG.ALBUM_SLUG}/${Date.now()}-${safeUUID()}-${sanitizeFileName(prep.name)}`;
         const up = await supabase.storage.from(CONFIG.IMAGES_BUCKET).upload(fp, prep, { cacheControl:"31536000", upsert:false });
-        if (up.error) { setUploadStatus(`上传失败：${up.error.message}`); return; }
+        if (up.error) { const m=`上传失败：${up.error.message}`; setUploadStatus(m); showToast(m); return; }
         rows.push({ album_slug:CONFIG.ALBUM_SLUG, title:captions[i]||"", file_path:fp, sort_order:bo+i });
       }
       const ins = await supabase.from("album_images").insert(rows);
