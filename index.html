@@ -4,6 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link rel="preconnect" href="https://pnzbcsnoqrmtdkxyxfms.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
   <title></title>
   <style>
     * { box-sizing: border-box; }
@@ -59,6 +62,15 @@
     .card {
       position: relative;
       width: 88%; max-width: 150px;
+      cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      animation: cardFloat var(--fd, 6s) ease-in-out infinite alternate;
+      animation-delay: var(--fdl, 0s);
+    }
+
+    .card .img-wrap {
+      position: relative;
+      width: 100%;
       aspect-ratio: 4 / 5;
       border-radius: 16px; padding: 5px;
       background: linear-gradient(180deg,
@@ -69,9 +81,7 @@
         0 10px 36px rgba(0,0,0,0.42),
         0 0 22px rgba(100,160,240,0.10),
         inset 0 0 0 1px rgba(255,255,255,0.04);
-      overflow: hidden; cursor: pointer;
-      animation: cardFloat var(--fd, 6s) ease-in-out infinite alternate;
-      animation-delay: var(--fdl, 0s);
+      overflow: hidden;
     }
 
     .card img {
@@ -79,6 +89,21 @@
       object-fit: cover; border-radius: 12px;
       background: linear-gradient(180deg, #11192a, #070d17);
       transition: opacity 0.3s ease;
+    }
+
+    .card .caption {
+      font-family: "ZCOOL KuaiLe", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: clamp(12px, 2.4vw, 15px);
+      color: #e0e8ff;
+      text-align: center;
+      line-height: 1.4;
+      padding: 2px 4px;
+      letter-spacing: 0.04em;
+      text-shadow: 0 0 10px rgba(160,200,255,0.4), 0 1px 3px rgba(0,0,0,0.6);
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     /* ── Fly-out (left exit) ── */
@@ -113,13 +138,15 @@
     }
 
     /* ── Plane highlights middle column ── */
-    .card.highlighted {
+    .card.highlighted .img-wrap {
       border-color: rgba(170,220,255,0.85) !important;
       box-shadow:
         0 10px 44px rgba(0,0,0,0.44),
         0 0 45px rgba(150,210,255,0.6),
         0 0 75px rgba(110,170,250,0.35),
         inset 0 0 0 1px rgba(255,255,255,0.12) !important;
+    }
+    .card.highlighted {
       z-index: 4; opacity: 1 !important; filter: brightness(1.18) !important;
       animation: cardFloatStrong var(--fd, 6s) ease-in-out infinite alternate !important;
       animation-delay: var(--fdl, 0s) !important;
@@ -498,14 +525,22 @@
       card.style.setProperty("--fd", `${5.5 + (idx % 5) * 0.7}s`);
       card.style.setProperty("--fdl", `${(idx % 7) * 0.6}s`);
 
-      const img = card.querySelector("img") || document.createElement("img");
+      // Ensure structure: .img-wrap > img, then .caption
+      let wrap = card.querySelector(".img-wrap");
+      if (!wrap) { wrap = document.createElement("div"); wrap.className = "img-wrap"; card.appendChild(wrap); }
+      let img = wrap.querySelector("img");
+      if (!img) { img = document.createElement("img"); wrap.appendChild(img); }
       img.alt = currentImages[idx].caption || "";
       img.decoding = "async";
-      if (img.src !== (currentImages[idx].wallUrl || currentImages[idx].originalUrl)) {
-        img.src = currentImages[idx].wallUrl || currentImages[idx].originalUrl;
+      const src = currentImages[idx].wallUrl || currentImages[idx].originalUrl;
+      if (img.src !== src) {
+        img.src = src;
         img.addEventListener("load", () => card.classList.add("loaded"), { once: true });
       }
-      if (!card.contains(img)) card.appendChild(img);
+
+      let cap = card.querySelector(".caption");
+      if (!cap) { cap = document.createElement("div"); cap.className = "caption"; card.appendChild(cap); }
+      cap.textContent = currentImages[idx].caption || "";
     }
 
     function manualCycle(dir) {
@@ -655,6 +690,7 @@
       signOutBtn.hidden = !ok; loginForm.hidden = ok;
       saveSettingsBtn.disabled = !ok; uploadBtn.disabled = !ok;
       uploadInput.disabled = !ok; captionsInput.disabled = !ok;
+      uploadMusicBtn.disabled = !ok; musicUpload.disabled = !ok;
       renderManageList();
     }
     async function loadSettings() {
@@ -728,6 +764,8 @@
         c.style.visibility = "";
         const img = c.querySelector("img");
         if (img) { img.src = ""; img.alt = ""; }
+        const cap = c.querySelector(".caption");
+        if (cap) cap.textContent = "";
       });
     }
 
