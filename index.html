@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <link rel="preconnect" href="https://pnzbcsnoqrmtdkxyxfms.supabase.co" crossorigin>
   <title></title>
   <style>
     * { box-sizing: border-box; }
@@ -318,7 +319,7 @@
       ALBUM_SLUG: "main", IMAGES_BUCKET: "wall-images",
       MAX_UPLOAD_EDGE: 1200, TARGET_UPLOAD_BYTES: 200 * 1024,
       MAX_UPLOAD_QUALITY: 0.72, MIN_UPLOAD_QUALITY: 0.40,
-      USE_IMAGE_TRANSFORMS: true,
+      USE_IMAGE_TRANSFORMS: false,
       WALL_IMAGE_WIDTH: 260, WALL_IMAGE_HEIGHT: 340, WALL_IMAGE_QUALITY: 35,
       LIGHTBOX_IMAGE_WIDTH: 1280, LIGHTBOX_IMAGE_QUALITY: 82,
     };
@@ -660,13 +661,30 @@
     function syncMusic(url) {
       if (audioElement) { audioElement.pause(); audioElement.remove(); audioElement = null; }
       if (!url) { musicToggle.hidden = true; musicToggle.textContent = "播放"; return; }
-      audioElement = document.createElement("audio"); audioElement.src = url; audioElement.loop = true; audioElement.preload = "none";
-      document.body.appendChild(audioElement); musicToggle.hidden = false; musicToggle.textContent = "播放";
+      audioElement = document.createElement("audio");
+      audioElement.src = url; audioElement.loop = true; audioElement.preload = "auto";
+      document.body.appendChild(audioElement);
+      musicToggle.hidden = false; musicToggle.textContent = "播放";
+
+      // Try autoplay on first user interaction (mobile requires gesture)
+      function tryAutoplay() {
+        if (audioElement && audioElement.paused) {
+          audioElement.play().then(() => {
+            musicToggle.textContent = "暂停";
+          }).catch(() => {});
+        }
+        document.removeEventListener("click", tryAutoplay);
+        document.removeEventListener("touchend", tryAutoplay);
+      }
+      document.addEventListener("click", tryAutoplay, { once: true });
+      document.addEventListener("touchend", tryAutoplay, { once: true });
     }
     async function toggleMusicPlayback() {
       if (!audioElement) return;
-      if (audioElement.paused) { try { await audioElement.play(); musicToggle.textContent = "暂停"; } catch { setSettingsStatus("音频无法播放"); } }
-      else { audioElement.pause(); musicToggle.textContent = "播放"; }
+      if (audioElement.paused) {
+        try { await audioElement.play(); musicToggle.textContent = "暂停"; }
+        catch { setSettingsStatus("音频无法播放，请检查链接是否以 .mp3 结尾"); }
+      } else { audioElement.pause(); musicToggle.textContent = "播放"; }
     }
     async function saveSettings() {
       if (!currentSession?.user) { setSettingsStatus("先登录"); return; }
