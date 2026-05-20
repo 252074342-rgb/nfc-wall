@@ -290,8 +290,9 @@
     </section>
     <section class="panel">
       <h3>背景音乐</h3>
-      <div class="field"><label for="musicInput">音频直链</label><input id="musicInput" type="url" placeholder="https://example.com/music.mp3"></div>
-      <div class="row"><button id="saveSettingsBtn" type="button">保存</button><button class="secondary" id="musicToggle" type="button" hidden>播放</button></div>
+      <div class="field"><label for="musicInput">音频直链（或直接上传）</label><input id="musicInput" type="url" placeholder="https://example.com/music.mp3"></div>
+      <div class="field"><label for="musicUpload">上传音乐文件</label><input id="musicUpload" type="file" accept="audio/*"></div>
+      <div class="row"><button id="uploadMusicBtn" type="button">上传到云端</button><button id="saveSettingsBtn" type="button">保存</button><button class="secondary" id="musicToggle" type="button" hidden>播放</button></div>
       <div class="status" id="settingsStatus"></div>
     </section>
     <section class="panel">
@@ -319,8 +320,8 @@
       ALBUM_SLUG: "main", IMAGES_BUCKET: "wall-images",
       MAX_UPLOAD_EDGE: 1200, TARGET_UPLOAD_BYTES: 200 * 1024,
       MAX_UPLOAD_QUALITY: 0.72, MIN_UPLOAD_QUALITY: 0.40,
-      USE_IMAGE_TRANSFORMS: false,
-      WALL_IMAGE_WIDTH: 260, WALL_IMAGE_HEIGHT: 340, WALL_IMAGE_QUALITY: 35,
+      USE_IMAGE_TRANSFORMS: true,
+      WALL_IMAGE_WIDTH: 200, WALL_IMAGE_HEIGHT: 260, WALL_IMAGE_QUALITY: 55,
       LIGHTBOX_IMAGE_WIDTH: 1280, LIGHTBOX_IMAGE_QUALITY: 82,
     };
 
@@ -343,6 +344,8 @@
     const passwordInput = document.getElementById("passwordInput");
     const authStatus = document.getElementById("authStatus");
     const musicInput = document.getElementById("musicInput");
+    const musicUpload = document.getElementById("musicUpload");
+    const uploadMusicBtn = document.getElementById("uploadMusicBtn");
     const saveSettingsBtn = document.getElementById("saveSettingsBtn");
     const musicToggle = document.getElementById("musicToggle");
     const settingsStatus = document.getElementById("settingsStatus");
@@ -399,6 +402,7 @@
       });
       saveSettingsBtn.addEventListener("click", saveSettings);
       uploadBtn.addEventListener("click", uploadImages);
+      uploadMusicBtn.addEventListener("click", uploadMusic);
     }
 
     function onSwipeStart(e) {
@@ -730,6 +734,22 @@
     function getWallUrl(fp, fb) { return CONFIG.USE_IMAGE_TRANSFORMS ? getPublicUrl(fp, { transform: { width: CONFIG.WALL_IMAGE_WIDTH, height: CONFIG.WALL_IMAGE_HEIGHT, quality: CONFIG.WALL_IMAGE_QUALITY, resize: "cover" } }) : fb; }
     function getFullUrl(fp, fb) { return CONFIG.USE_IMAGE_TRANSFORMS ? getPublicUrl(fp, { transform: { width: CONFIG.LIGHTBOX_IMAGE_WIDTH, quality: CONFIG.LIGHTBOX_IMAGE_QUALITY, resize: "contain" } }) : fb; }
     function getPublicUrl(fp, opts) { const { data } = supabase.storage.from(CONFIG.IMAGES_BUCKET).getPublicUrl(fp, opts); return data.publicUrl; }
+
+    // ── Music upload ──
+    async function uploadMusic() {
+      if (!currentSession?.user) { setSettingsStatus("先登录"); return; }
+      const file = musicUpload.files[0];
+      if (!file) { setSettingsStatus("先选择音乐文件"); return; }
+      if (file.size > 20 * 1024 * 1024) { setSettingsStatus("文件不能超过 20MB"); return; }
+      setSettingsStatus("正在上传音乐...");
+      const fp = `${CONFIG.ALBUM_SLUG}/music-${Date.now()}-${sanitizeFileName(file.name)}`;
+      const up = await supabase.storage.from(CONFIG.IMAGES_BUCKET).upload(fp, file, { cacheControl: "31536000", upsert: false });
+      if (up.error) { setSettingsStatus(`上传失败：${up.error.message}`); return; }
+      const { data } = supabase.storage.from(CONFIG.IMAGES_BUCKET).getPublicUrl(fp);
+      musicInput.value = data.publicUrl;
+      musicUpload.value = "";
+      setSettingsStatus("音乐已上传，点保存生效。");
+    }
 
     // ── Upload ──
     async function uploadImages() {
