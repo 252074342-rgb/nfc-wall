@@ -384,6 +384,14 @@
     const manageEmpty = document.getElementById("manageEmpty");
     const manageStatus = document.getElementById("manageStatus");
 
+    function safeUUID() {
+      if (typeof crypto !== "undefined" && crypto.randomUUID) return safeUUID();
+      return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0, v = c === "x" ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
     let supabase, currentSession, currentImages = [], audioElement;
     let windowStart = 0, cycleTimer = null, resumeTimer = null;
     let tapCount = 0, tapTimer = null, pendingLightboxTimeout = 0, longPressTimer = 0;
@@ -801,7 +809,7 @@
       for (const [i, file] of files.entries()) {
         setUploadStatus(`压缩上传 ${i+1}/${files.length}...`);
         const prep = await prepareUploadFile(file);
-        const fp = `${CONFIG.ALBUM_SLUG}/${Date.now()}-${crypto.randomUUID()}-${sanitizeFileName(prep.name)}`;
+        const fp = `${CONFIG.ALBUM_SLUG}/${Date.now()}-${safeUUID()}-${sanitizeFileName(prep.name)}`;
         const up = await supabase.storage.from(CONFIG.IMAGES_BUCKET).upload(fp, prep, { cacheControl:"31536000", upsert:false });
         if (up.error) { setUploadStatus(`上传失败：${up.error.message}`); return; }
         rows.push({ album_slug:CONFIG.ALBUM_SLUG, title:captions[i]||"", file_path:fp, sort_order:bo+i });
