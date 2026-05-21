@@ -909,10 +909,15 @@
           canvas.height = height;
           const ctx = canvas.getContext("2d");
           ctx.drawImage(img, 0, 0, width, height);
-          canvas.toBlob((blob) => {
-            URL.revokeObjectURL(url);
-            resolve(blob || file);
-          }, "image/jpeg", CONFIG.MAX_UPLOAD_QUALITY);
+          URL.revokeObjectURL(url);
+          if (canvas.toBlob) {
+            canvas.toBlob((blob) => {
+              resolve(blob || file);
+            }, "image/jpeg", CONFIG.MAX_UPLOAD_QUALITY);
+          } else {
+            const dataUrl = canvas.toDataURL("image/jpeg", CONFIG.MAX_UPLOAD_QUALITY);
+            fetch(dataUrl).then(r => r.blob()).then(b => resolve(b || file)).catch(() => resolve(file));
+          }
         };
         img.onerror = () => {
           URL.revokeObjectURL(url);
