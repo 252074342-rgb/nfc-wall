@@ -356,8 +356,8 @@
       SUPABASE_URL: "https://pnzbcsnoqrmtdkxyxfms.supabase.co",
       SUPABASE_ANON_KEY: "sb_publishable_BZMrBawoq266rDTBEcIXRQ_yCrQPJ8C",
       ALBUM_SLUG: "main", IMAGES_BUCKET: "wall-images",
-      MAX_UPLOAD_EDGE: 800, TARGET_UPLOAD_BYTES: 150 * 1024,
-      MAX_UPLOAD_QUALITY: 0.65, MIN_UPLOAD_QUALITY: 0.35,
+      MAX_UPLOAD_EDGE: 1600, TARGET_UPLOAD_BYTES: 400 * 1024,
+      MAX_UPLOAD_QUALITY: 0.85, MIN_UPLOAD_QUALITY: 0.6,
       USE_IMAGE_TRANSFORMS: false,
       WALL_IMAGE_WIDTH: 200, WALL_IMAGE_HEIGHT: 260, WALL_IMAGE_QUALITY: 55,
       LIGHTBOX_IMAGE_WIDTH: 1280, LIGHTBOX_IMAGE_QUALITY: 82,
@@ -735,21 +735,27 @@
       if (!url) { musicToggle.hidden = true; musicToggle.textContent = "播放"; return; }
       audioElement = document.createElement("audio");
       audioElement.src = url; audioElement.loop = true; audioElement.preload = "auto";
+      audioElement.volume = 1;
       document.body.appendChild(audioElement);
       musicToggle.hidden = false; musicToggle.textContent = "播放";
 
-      // Try autoplay on first user interaction (mobile requires gesture)
-      function tryAutoplay() {
-        if (audioElement && audioElement.paused) {
-          audioElement.play().then(() => {
-            musicToggle.textContent = "暂停";
-          }).catch(() => {});
+      // Try autoplay immediately (NFC / intent open)
+      audioElement.play().then(() => {
+        musicToggle.textContent = "暂停";
+      }).catch(() => {
+        // Autoplay blocked — wait for user gesture
+        function tryPlay() {
+          if (audioElement && audioElement.paused) {
+            audioElement.play().then(() => {
+              musicToggle.textContent = "暂停";
+            }).catch(() => {});
+          }
+          document.removeEventListener("click", tryPlay);
+          document.removeEventListener("touchend", tryPlay);
         }
-        document.removeEventListener("click", tryAutoplay);
-        document.removeEventListener("touchend", tryAutoplay);
-      }
-      document.addEventListener("click", tryAutoplay, { once: true });
-      document.addEventListener("touchend", tryAutoplay, { once: true });
+        document.addEventListener("click", tryPlay, { once: true });
+        document.addEventListener("touchend", tryPlay, { once: true });
+      });
     }
     async function toggleMusicPlayback() {
       if (!audioElement) return;
