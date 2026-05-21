@@ -209,6 +209,33 @@
     }
     .toast:empty { display: none; }
 
+    /* ── Splash (tap to start) ── */
+    .splash {
+      position: fixed; inset: 0; z-index: 50;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
+      background: radial-gradient(ellipse at 50% 40%, rgba(60,100,200,0.15), transparent 60%),
+                  linear-gradient(180deg, #08081a 0%, #0a0c18 100%);
+      cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
+      transition: opacity 0.6s ease;
+    }
+    .splash.hide { opacity: 0; pointer-events: none; }
+    .splash-icon {
+      width: min(120px, 30vw); height: min(120px, 30vw);
+      border-radius: 50%; border: 2px solid rgba(180,210,255,0.3);
+      background: rgba(255,255,255,0.06);
+      display: flex; align-items: center; justify-content: center;
+      animation: splashPulse 2s ease-in-out infinite;
+    }
+    .splash-icon svg { width: 40%; height: 40%; fill: rgba(200,220,255,0.8); }
+    .splash-text {
+      font-size: clamp(15px, 3.5vw, 18px); color: rgba(200,220,255,0.7);
+      letter-spacing: 0.1em;
+    }
+    @keyframes splashPulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(120,170,255,0.15); }
+      50% { transform: scale(1.05); box-shadow: 0 0 50px rgba(120,170,255,0.3); }
+    }
+
     /* ── Dots ── */
     .swipe-dots {
       position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
@@ -310,6 +337,13 @@
     <div class="swipe-dots" id="swipeDots"></div>
   </main>
 
+  <div class="splash" id="splash">
+    <div class="splash-icon">
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    </div>
+    <div class="splash-text">轻触开启</div>
+  </div>
+
   <div class="overlay" id="lightbox">
     <figure><img id="lightboxImage" alt=""><figcaption id="lightboxCaption"></figcaption></figure>
   </div>
@@ -356,8 +390,8 @@
       SUPABASE_URL: "https://pnzbcsnoqrmtdkxyxfms.supabase.co",
       SUPABASE_ANON_KEY: "sb_publishable_BZMrBawoq266rDTBEcIXRQ_yCrQPJ8C",
       ALBUM_SLUG: "main", IMAGES_BUCKET: "wall-images",
-      MAX_UPLOAD_EDGE: 1600, TARGET_UPLOAD_BYTES: 400 * 1024,
-      MAX_UPLOAD_QUALITY: 0.85, MIN_UPLOAD_QUALITY: 0.6,
+      MAX_UPLOAD_EDGE: 2048, TARGET_UPLOAD_BYTES: 600 * 1024,
+      MAX_UPLOAD_QUALITY: 0.92, MIN_UPLOAD_QUALITY: 0.7,
       USE_IMAGE_TRANSFORMS: false,
       WALL_IMAGE_WIDTH: 200, WALL_IMAGE_HEIGHT: 260, WALL_IMAGE_QUALITY: 55,
       LIGHTBOX_IMAGE_WIDTH: 1280, LIGHTBOX_IMAGE_QUALITY: 82,
@@ -371,6 +405,7 @@
     const planeGroup = document.getElementById("planeGroup");
     const toast = document.getElementById("toast");
     const swipeDots = document.getElementById("swipeDots");
+    const splash = document.getElementById("splash");
     const lightbox = document.getElementById("lightbox");
     const lightboxImage = document.getElementById("lightboxImage");
     const lightboxCaption = document.getElementById("lightboxCaption");
@@ -452,6 +487,15 @@
       saveSettingsBtn.addEventListener("click", saveSettings);
       uploadBtn.addEventListener("click", uploadImages);
       uploadMusicBtn.addEventListener("click", uploadMusic);
+
+      // Splash: tap once to unlock music
+      splash.addEventListener("click", () => {
+        splash.classList.add("hide");
+        setTimeout(() => splash.remove(), 600);
+        if (audioElement && audioElement.paused) {
+          audioElement.play().then(() => { musicToggle.textContent = "暂停"; }).catch(() => {});
+        }
+      });
     }
 
     function onSwipeStart(e) {
@@ -738,24 +782,6 @@
       audioElement.volume = 1;
       document.body.appendChild(audioElement);
       musicToggle.hidden = false; musicToggle.textContent = "播放";
-
-      // Try autoplay immediately (NFC / intent open)
-      audioElement.play().then(() => {
-        musicToggle.textContent = "暂停";
-      }).catch(() => {
-        // Autoplay blocked — wait for user gesture
-        function tryPlay() {
-          if (audioElement && audioElement.paused) {
-            audioElement.play().then(() => {
-              musicToggle.textContent = "暂停";
-            }).catch(() => {});
-          }
-          document.removeEventListener("click", tryPlay);
-          document.removeEventListener("touchend", tryPlay);
-        }
-        document.addEventListener("click", tryPlay, { once: true });
-        document.addEventListener("touchend", tryPlay, { once: true });
-      });
     }
     async function toggleMusicPlayback() {
       if (!audioElement) return;
