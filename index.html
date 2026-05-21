@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link rel="preconnect" href="https://pnzbcsnoqrmtdkxyxfms.supabase.co" crossorigin>
   <link rel="preconnect" href="https://fonts.loli.net" crossorigin>
-  <link href="https://fonts.loli.net/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+  <link rel="preload" href="https://fonts.loli.net/css2?family=ZCOOL+KuaiLe&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.loli.net/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet"></noscript>
   <title></title>
   <style>
     * { box-sizing: border-box; }
@@ -273,12 +274,16 @@
     button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
 
     @media (max-width: 600px) {
-      .card { max-width: 130px; }
       .column { gap: clamp(100px, 30vh, 200px); padding: 0 2px; }
+      .column[data-col="1"] { flex: 1.4; }
+      .column[data-col="1"] .card { max-width: 170px; width: 92%; }
+      .column[data-col="0"] .card, .column[data-col="2"] .card { max-width: 120px; }
       .plane-group svg { width: min(44vw, 160px); }
     }
     @media (min-width: 900px) {
       .card { max-width: 155px; }
+      .column[data-col="1"] .card { max-width: 180px; }
+      .column[data-col="0"] .card, .column[data-col="2"] .card { max-width: 140px; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -495,16 +500,17 @@
           audioElement.play().then(() => {
             musicToggle.textContent = "暂停";
           }).catch(() => {
-            // Retry once after a brief delay
+            // Retry after delay
             setTimeout(() => {
               if (audioElement && audioElement.paused) {
                 audioElement.play().then(() => { musicToggle.textContent = "暂停"; }).catch(() => {});
               }
-            }, 200);
+            }, 300);
           });
         }
       }
-      splash.addEventListener("pointerdown", unlockAndPlay);
+      splash.addEventListener("pointerdown", unlockAndPlay, { once: true });
+      splash.addEventListener("click", unlockAndPlay, { once: true });
     }
 
     function onSwipeStart(e) {
@@ -765,6 +771,18 @@
       uploadMusicBtn.disabled = !ok; musicUpload.disabled = !ok;
       renderManageList();
     }
+
+    // Pre-load music from localStorage immediately (before async init)
+    (function initLocalMusic() {
+      try {
+        const localUrl = localStorage.getItem("nfc_wall_music") || "";
+        if (localUrl) {
+          musicInput.value = localUrl;
+          syncMusic(localUrl);
+        }
+      } catch(e) {}
+    })();
+
     async function loadSettings() {
       try {
         const { data, error } = await supabase.from("album_settings").select("music_url").eq("slug", CONFIG.ALBUM_SLUG).maybeSingle();
@@ -773,11 +791,16 @@
         const localUrl = (() => { try { return localStorage.getItem("nfc_wall_music") || ""; } catch(e) { return ""; } })();
         const finalUrl = cloudUrl || localUrl;
         musicInput.value = finalUrl;
-        if (finalUrl) syncMusic(finalUrl);
+        // Only sync if URL changed or no audio playing yet
+        if (finalUrl && (!audioElement || audioElement.src !== new URL(finalUrl, location.href).href)) {
+          syncMusic(finalUrl);
+        }
       } catch(e) {
         const localUrl = (() => { try { return localStorage.getItem("nfc_wall_music") || ""; } catch(ex) { return ""; } })();
         musicInput.value = localUrl;
-        if (localUrl) syncMusic(localUrl);
+        if (localUrl && (!audioElement || audioElement.src !== new URL(localUrl, location.href).href)) {
+          syncMusic(localUrl);
+        }
       }
     }
     function syncMusic(url) {
