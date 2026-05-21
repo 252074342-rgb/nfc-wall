@@ -4,9 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link rel="preconnect" href="https://pnzbcsnoqrmtdkxyxfms.supabase.co" crossorigin>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.loli.net" crossorigin>
+  <link href="https://fonts.loli.net/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
   <title></title>
   <style>
     * { box-sizing: border-box; }
@@ -43,10 +42,6 @@
     .camera {
       position: absolute; inset: 0; z-index: 3; overflow: hidden;
       transition: transform 0.3s ease;
-    }
-
-    .track {
-      display: flex; height: 100%; padding: 12px 0;
     }
 
     /* ── Column (always exactly 3) ── */
@@ -107,24 +102,13 @@
       white-space: nowrap;
     }
 
-    /* ── Fly-out (left exit) ── */
-    .card.flying-out {
-      animation: cardFlyOut 0.5s ease-in forwards !important;
-      pointer-events: none;
+    /* ── Scroll transition ── */
+    .track {
+      display: flex; height: 100%; padding: 12px 0;
+      transition: transform 0.45s cubic-bezier(0.22, 0.6, 0.28, 1);
     }
-    @keyframes cardFlyOut {
-      0%   { transform: translateX(0) scale(1); opacity: 1; }
-      100% { transform: translateX(-70px) scale(0.55); opacity: 0; }
-    }
-
-    /* ── Fly-in (right enter) — 2D GPU-safe ── */
-    .card.flying-in {
-      animation: cardFlyIn 0.9s cubic-bezier(0.22, 0.6, 0.28, 1) forwards !important;
-    }
-    @keyframes cardFlyIn {
-      0%   { transform: translateX(70px) scale(0.65); opacity: 0; }
-      100% { transform: translateX(0) scale(1); opacity: 1; }
-    }
+    .track.scroll-left { transform: translateX(-34%); }
+    .track.scroll-right { transform: translateX(34%); }
 
     /* ── Float (normal state) ── */
     .card.floating {
@@ -153,9 +137,9 @@
       animation-delay: var(--fdl, 0s) !important;
     }
     @keyframes cardFloatStrong {
-      0%   { transform: scale(1.08) translateY(0) rotate(-0.5deg); }
-      50%  { transform: scale(1.08) translateY(-12px) rotate(0.4deg); }
-      100% { transform: scale(1.08) translateY(-2px) rotate(-0.3deg); }
+      0%   { transform: scale(1.15) translateY(0) rotate(-0.5deg); }
+      50%  { transform: scale(1.15) translateY(-12px) rotate(0.4deg); }
+      100% { transform: scale(1.15) translateY(-2px) rotate(-0.3deg); }
     }
 
     /* ── Plane ── */
@@ -561,44 +545,35 @@
       const p = new Image(); p.src = url;
     }
 
-    function cycleForward() {
-      if (currentImages.length < 2) return;
+    let cycling = false;
 
-      // Preload next batch images before animation starts
+    function cycleForward() {
+      if (currentImages.length < 2 || cycling) return;
+      cycling = true;
+
       const nextStart = (windowStart + 2) % currentImages.length;
       for (let s = 0; s < 6; s++) {
         const idx = (nextStart + s) % currentImages.length;
-        if (currentImages[idx]) {
-          preloadImage(currentImages[idx].wallUrl || currentImages[idx].originalUrl);
-        }
+        if (currentImages[idx]) preloadImage(currentImages[idx].wallUrl || currentImages[idx].originalUrl);
       }
 
-      // 1. Left column flies out
-      cardSlots[0].classList.add("flying-out"); cardSlots[0].classList.remove("floating","highlighted");
-      cardSlots[1].classList.add("flying-out"); cardSlots[1].classList.remove("floating","highlighted");
+      // 1. Slide track left
+      track.classList.add("scroll-left");
 
-      // 2. After fly-out, update window and refill all cards silently
-      setTimeout(() => {
+      // 2. After transition, snap cards to new content
+      track.addEventListener("transitionend", function onEnd() {
+        track.removeEventListener("transitionend", onEnd);
+        // Disable transition, update content, reset position
+        track.style.transition = "none";
+        track.classList.remove("scroll-left");
         windowStart = nextStart;
-
-        cardSlots.forEach((card, slot) => {
-          card.classList.remove("flying-in", "flying-out");
-          card.classList.add("floating");
-          card.style.visibility = "";
-          fillCardContent(card, slot);
-        });
-
-        // 3. Right column flies in
-        cardSlots[4].classList.add("flying-in"); cardSlots[4].classList.remove("floating");
-        cardSlots[5].classList.add("flying-in"); cardSlots[5].classList.remove("floating");
-        setTimeout(() => {
-          cardSlots[4].classList.remove("flying-in"); cardSlots[4].classList.add("floating");
-          cardSlots[5].classList.remove("flying-in"); cardSlots[5].classList.add("floating");
-        }, 900);
-      }, 350);
-
-      highlightMiddleColumn();
-      updateDots();
+        fillAllCards();
+        updateDots();
+        // Force reflow, then re-enable transition
+        track.offsetHeight;
+        track.style.transition = "";
+        cycling = false;
+      });
     }
 
     function fillCardContent(card, slot) {
@@ -631,34 +606,31 @@
     }
 
     function manualCycle(dir) {
-      if (currentImages.length < 2) return;
+      if (currentImages.length < 2 || cycling) return;
       if (dir > 0) { cycleForward(); return; }
 
-      // Preload
+      cycling = true;
       const prevStart = (windowStart - 2 + currentImages.length) % currentImages.length;
       for (let s = 0; s < 6; s++) {
         const idx = (prevStart + s) % currentImages.length;
         if (currentImages[idx]) preloadImage(currentImages[idx].wallUrl || currentImages[idx].originalUrl);
       }
 
-      // Reverse: right exits, all refill, left enters
-      cardSlots[4].classList.add("flying-out"); cardSlots[4].classList.remove("floating","highlighted");
-      cardSlots[5].classList.add("flying-out"); cardSlots[5].classList.remove("floating","highlighted");
-      setTimeout(() => {
+      // 1. Slide track right
+      track.classList.add("scroll-right");
+
+      // 2. After transition, snap cards to new content
+      track.addEventListener("transitionend", function onEnd() {
+        track.removeEventListener("transitionend", onEnd);
+        track.style.transition = "none";
+        track.classList.remove("scroll-right");
         windowStart = prevStart;
-        cardSlots.forEach((card, slot) => {
-          card.classList.remove("flying-in", "flying-out");
-          card.classList.add("floating"); card.style.visibility = "";
-          fillCardContent(card, slot);
-        });
-        cardSlots[0].classList.add("flying-in"); cardSlots[0].classList.remove("floating");
-        cardSlots[1].classList.add("flying-in"); cardSlots[1].classList.remove("floating");
-        setTimeout(() => {
-          cardSlots[0].classList.remove("flying-in"); cardSlots[0].classList.add("floating");
-          cardSlots[1].classList.remove("flying-in"); cardSlots[1].classList.add("floating");
-        }, 900);
-      }, 350);
-      highlightMiddleColumn(); updateDots();
+        fillAllCards();
+        updateDots();
+        track.offsetHeight;
+        track.style.transition = "";
+        cycling = false;
+      });
     }
 
     // ── Highlight middle column (plane hovers there) ──
@@ -870,7 +842,7 @@
 
     function resetAllCards() {
       cardSlots.forEach(c => {
-        c.classList.remove("flying-in", "flying-out", "highlighted", "loaded");
+        c.classList.remove("highlighted", "loaded");
         c.classList.add("floating");
         c.style.visibility = "";
         const img = c.querySelector("img");
