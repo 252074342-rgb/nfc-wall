@@ -52,9 +52,7 @@
       align-items: center; justify-content: center;
       gap: clamp(130px, 34vh, 240px);
       padding: 0 4px;
-      transition: flex 0.4s ease;
     }
-    .column[data-col="1"] { flex: 1.25; }
 
     /* ── Cards ── */
     .card {
@@ -275,15 +273,10 @@
 
     @media (max-width: 600px) {
       .column { gap: clamp(100px, 30vh, 200px); padding: 0 2px; }
-      .column[data-col="1"] { flex: 1.12; }
-      .column[data-col="1"] .card { max-width: 140px; width: 90%; }
-      .column[data-col="0"] .card, .column[data-col="2"] .card { max-width: 125px; }
       .plane-group svg { width: min(44vw, 160px); }
     }
     @media (min-width: 900px) {
       .card { max-width: 155px; }
-      .column[data-col="1"] .card { max-width: 170px; }
-      .column[data-col="0"] .card, .column[data-col="2"] .card { max-width: 145px; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; transition: none !important; }
