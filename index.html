@@ -4,13 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link rel="preconnect" href="https://pnzbcsnoqrmtdkxyxfms.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
   <title></title>
   <style>
     * { box-sizing: border-box; }
     html, body {
       width: 100%; height: 100%; margin: 0; overflow: hidden;
       background: #060810; color: #eef2ff;
-      font-family: "Trebuchet MS", "Microsoft YaHei", "PingFang SC", sans-serif;
+      font-family: "ZCOOL KuaiLe", "Trebuchet MS", "Microsoft YaHei", "PingFang SC", sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
 
@@ -89,7 +92,7 @@
     }
 
     .card .caption {
-      font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+      font-family: "ZCOOL KuaiLe", "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
       font-weight: 500;
       font-size: clamp(12px, 2.4vw, 15px);
       color: #e0e8ff;
@@ -489,13 +492,22 @@
       uploadMusicBtn.addEventListener("click", uploadMusic);
 
       // Splash: tap once to unlock music
-      splash.addEventListener("click", () => {
+      function unlockAndPlay() {
         splash.classList.add("hide");
         setTimeout(() => splash.remove(), 600);
+        // Play a silent buffer to unlock mobile audio context
+        try {
+          const actx = new (window.AudioContext || window.webkitAudioContext)();
+          const buf = actx.createBuffer(1, 1, 22050);
+          actx.createBufferSource().connect(actx.destination).start(0);
+          actx.resume();
+        } catch(e) {}
         if (audioElement && audioElement.paused) {
           audioElement.play().then(() => { musicToggle.textContent = "暂停"; }).catch(() => {});
         }
-      });
+      }
+      splash.addEventListener("click", unlockAndPlay);
+      splash.addEventListener("touchend", (e) => { e.preventDefault(); unlockAndPlay(); });
     }
 
     function onSwipeStart(e) {
