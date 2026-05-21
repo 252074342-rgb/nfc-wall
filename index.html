@@ -530,7 +530,16 @@
     }
 
     function fillAllCards() {
-      cardSlots.forEach((card, slot) => fillCardContent(card, slot));
+      const seen = new Set();
+      cardSlots.forEach((card, slot) => {
+        const idx = photoIdx(slot);
+        if (idx >= 0 && currentImages[idx] && !seen.has(idx)) {
+          seen.add(idx);
+          fillCardContent(card, slot);
+        } else {
+          card.style.visibility = "hidden";
+        }
+      });
       highlightMiddleColumn();
     }
 
