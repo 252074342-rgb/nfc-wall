@@ -57,7 +57,7 @@
     /* ── Cards ── */
     .card {
       position: relative;
-      width: 88%; max-width: 150px;
+      width: 120px;
       cursor: pointer;
       display: flex; flex-direction: column; align-items: center; gap: 6px;
       animation: cardFloat var(--fd, 6s) ease-in-out infinite alternate;
@@ -118,9 +118,9 @@
     }
 
     @keyframes cardFloat {
-      0%   { transform: translateY(0) rotate(-0.5deg); }
-      50%  { transform: translateY(-8px) rotate(0.4deg); }
-      100% { transform: translateY(-1px) rotate(-0.3deg); }
+      0%   { transform: translateY(0); }
+      50%  { transform: translateY(-8px); }
+      100% { transform: translateY(-1px); }
     }
 
     /* ── Plane highlights middle column ── */
@@ -272,11 +272,12 @@
     button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
 
     @media (max-width: 600px) {
+      .card { width: 105px; }
       .column { gap: clamp(100px, 30vh, 200px); padding: 0 2px; }
       .plane-group svg { width: min(44vw, 160px); }
     }
     @media (min-width: 900px) {
-      .card { max-width: 155px; }
+      .card { width: 140px; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; transition: none !important; }
