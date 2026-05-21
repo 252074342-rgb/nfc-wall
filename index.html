@@ -318,7 +318,7 @@
     <div class="editor-head"><h2>编辑</h2><button class="secondary" id="closeEditor" type="button">关闭</button></div>
     <section class="panel">
       <h3>管理员登录</h3>
-      <div class="session-line"><span id="sessionText">未登录</span><button class="secondary small" id="signOutBtn" type="button" hidden>退出</button></div>
+      <div class="session-line"><span id="sessionText">未登录</span><button class="secondary small" id="signOutBtn" type="button" hidden>退出</button><button class="secondary small" id="diagBtn" type="button" hidden>诊断</button></div>
       <form id="loginForm">
         <div class="field"><label for="emailInput">邮箱</label><input id="emailInput" type="email" autocomplete="username"></div>
         <div class="field"><label for="passwordInput">密码</label><input id="passwordInput" type="password" autocomplete="current-password"></div>
@@ -350,7 +350,7 @@
   </aside>
 
   <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm";
 
     const CONFIG = {
       SUPABASE_URL: "https://pnzbcsnoqrmtdkxyxfms.supabase.co",
@@ -377,6 +377,7 @@
     const editorPanel = document.getElementById("editorPanel");
     const closeEditor = document.getElementById("closeEditor");
     const sessionText = document.getElementById("sessionText");
+    const diagBtn = document.getElementById("diagBtn");
     const signOutBtn = document.getElementById("signOutBtn");
     const loginForm = document.getElementById("loginForm");
     const emailInput = document.getElementById("emailInput");
@@ -397,7 +398,7 @@
     const manageStatus = document.getElementById("manageStatus");
 
     function safeUUID() {
-      if (typeof crypto !== "undefined" && crypto.randomUUID) return safeUUID();
+      if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
       return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
         const r = Math.random() * 16 | 0, v = c === "x" ? r : (r & 0x3 | 0x8);
         return v.toString(16);
@@ -444,6 +445,7 @@
         if (error) { setAuthStatus(`登录失败：${error.message}`); return; }
         passwordInput.value = ""; setAuthStatus("登录成功。"); await refreshSession();
       });
+      diagBtn.addEventListener("click", runDiagnostic);
       signOutBtn.addEventListener("click", async () => {
         await supabase.auth.signOut(); currentSession = null; updateAuthUi(); setAuthStatus("已退出登录。");
       });
@@ -707,16 +709,26 @@
     function updateAuthUi() {
       const ok = Boolean(currentSession?.user);
       sessionText.textContent = ok ? `当前账号：${currentSession.user.email}` : "未登录";
-      signOutBtn.hidden = !ok; loginForm.hidden = ok;
+      signOutBtn.hidden = !ok; diagBtn.hidden = !ok; loginForm.hidden = ok;
       saveSettingsBtn.disabled = !ok; uploadBtn.disabled = !ok;
       uploadInput.disabled = !ok; captionsInput.disabled = !ok;
       uploadMusicBtn.disabled = !ok; musicUpload.disabled = !ok;
       renderManageList();
     }
     async function loadSettings() {
-      const { data, error } = await supabase.from("album_settings").select("music_url").eq("slug", CONFIG.ALBUM_SLUG).maybeSingle();
-      if (error) { setSettingsStatus(`读取设置失败：${error.message}`); return; }
-      musicInput.value = data?.music_url || ""; syncMusic(data?.music_url || "");
+      try {
+        const { data, error } = await supabase.from("album_settings").select("music_url").eq("slug", CONFIG.ALBUM_SLUG).maybeSingle();
+        if (error) { setSettingsStatus(`读取设置失败：${error.message}`); }
+        const cloudUrl = (!error && data?.music_url) ? data.music_url : "";
+        const localUrl = (() => { try { return localStorage.getItem("nfc_wall_music") || ""; } catch(e) { return ""; } })();
+        const finalUrl = cloudUrl || localUrl;
+        musicInput.value = finalUrl;
+        if (finalUrl) syncMusic(finalUrl);
+      } catch(e) {
+        const localUrl = (() => { try { return localStorage.getItem("nfc_wall_music") || ""; } catch(ex) { return ""; } })();
+        musicInput.value = localUrl;
+        if (localUrl) syncMusic(localUrl);
+      }
     }
     function syncMusic(url) {
       if (audioElement) { audioElement.pause(); audioElement.remove(); audioElement = null; }
@@ -747,11 +759,23 @@
       } else { audioElement.pause(); musicToggle.textContent = "播放"; }
     }
     async function saveSettings() {
-      if (!currentSession?.user) { setSettingsStatus("先登录"); return; }
+      const url = musicInput.value.trim();
+      // Always save to localStorage (works offline, never fails)
+      try { localStorage.setItem("nfc_wall_music", url); } catch(e) {}
+      syncMusic(url);
+
+      if (!currentSession?.user) {
+        setSettingsStatus("已本地保存（登录后可同步到云端）"); showToast("已本地保存");
+        return;
+      }
       setSettingsStatus("保存中...");
-      const { error } = await supabase.from("album_settings").upsert({ slug: CONFIG.ALBUM_SLUG, music_url: musicInput.value.trim() }, { onConflict: "slug" });
-      if (error) { const m=`保存失败：${error.message}`; setSettingsStatus(m); showToast(m); return; }
-      syncMusic(musicInput.value.trim()); setSettingsStatus("已保存。"); showToast("音乐链接已保存");
+      const { error } = await supabase.from("album_settings").upsert({ slug: CONFIG.ALBUM_SLUG, music_url: url }, { onConflict: "slug" });
+      if (error) {
+        setSettingsStatus(`云端同步失败（本地已保存）：${error.message}`);
+        showToast("已本地保存，云端同步失败");
+      } else {
+        setSettingsStatus("已保存。"); showToast("音乐链接已保存");
+      }
     }
 
     // ── Wall ──
@@ -760,30 +784,34 @@
 
     async function loadWall() {
       clearToast();
-      const { data, error } = await supabase.from("album_images")
-        .select("id, title, file_path, sort_order, created_at")
-        .eq("album_slug", CONFIG.ALBUM_SLUG).order("sort_order").order("created_at");
-      if (error) {
-        const msg = `连接失败：${error.message}\n请检查 Supabase 项目是否被暂停`;
-        setManageStatus(msg); showToast(msg); return;
-      }
-      if (!data || data.length === 0) {
-        showToast("相册为空，请登录后上传照片");
-      }
-      currentImages = (data || []).map(item => {
-        const ou = getPublicUrl(item.file_path);
-        return { ...item, caption: item.title || "", originalUrl: ou,
-          wallUrl: getWallUrl(item.file_path, ou), fullUrl: getFullUrl(item.file_path, ou) };
-      });
-      windowStart = 0;
-      clearTimeout(cycleTimer);
-      resetAllCards();
-      fillAllCards();
-      updateDots();
-      renderManageList();
-      if (currentImages.length > 0) {
-        startAutoCycle();
-        startCameraOscillation();
+      try {
+        const { data, error } = await supabase.from("album_images")
+          .select("id, title, file_path, sort_order, created_at")
+          .eq("album_slug", CONFIG.ALBUM_SLUG).order("sort_order").order("created_at");
+        if (error) {
+          const msg = `连接失败：${error.message}\n请检查 Supabase 项目是否被暂停`;
+          setManageStatus(msg); showToast(msg); return;
+        }
+        if (!data || data.length === 0) {
+          showToast("相册为空，请登录后上传照片");
+        }
+        currentImages = (data || []).map(item => {
+          const ou = getPublicUrl(item.file_path);
+          return { ...item, caption: item.title || "", originalUrl: ou,
+            wallUrl: getWallUrl(item.file_path, ou), fullUrl: getFullUrl(item.file_path, ou) };
+        });
+        windowStart = 0;
+        clearTimeout(cycleTimer);
+        resetAllCards();
+        fillAllCards();
+        updateDots();
+        renderManageList();
+        if (currentImages.length > 0) {
+          startAutoCycle();
+          startCameraOscillation();
+        }
+      } catch(e) {
+        showToast(`加载相册异常：${e.message}`);
       }
     }
 
@@ -812,67 +840,122 @@
       setSettingsStatus("正在上传音乐...");
       const fp = `${CONFIG.ALBUM_SLUG}/music-${Date.now()}-${sanitizeFileName(file.name)}`;
       const up = await supabase.storage.from(CONFIG.IMAGES_BUCKET).upload(fp, file, { cacheControl: "31536000", upsert: false });
-      if (up.error) { setSettingsStatus(`上传失败：${up.error.message}`); return; }
+      if (up.error) { setSettingsStatus(up.error.message); return; }
       const { data } = supabase.storage.from(CONFIG.IMAGES_BUCKET).getPublicUrl(fp);
       musicInput.value = data.publicUrl;
       musicUpload.value = "";
       setSettingsStatus("音乐已上传，点保存生效。");
     }
 
-    // ── Upload ──
-    async function uploadImages() {
-      if (!currentSession?.user) { setUploadStatus("先登录"); return; }
-      const files = Array.from(uploadInput.files||[]).filter(f=>f.type.startsWith("image/"));
-      if (!files.length) { setUploadStatus("先选择图片"); return; }
-      const captions = captionsInput.value.split(/\r?\n/).map(l=>l.trim());
-      const bo = currentImages.length ? Math.max(...currentImages.map(it=>it.sort_order||0))+1 : 1;
-      const rows = [];
-      setUploadStatus(`准备上传 ${files.length} 张...`);
-      for (const [i, file] of files.entries()) {
-        setUploadStatus(`处理第 ${i+1}/${files.length} 张...`);
-        await new Promise(r => setTimeout(r, 50));
-        let upFile = file;
-        if (file.size > 2 * 1024 * 1024) {
-          setUploadStatus(`正在压缩第 ${i+1}/${files.length} 张...`);
-          try { upFile = await simpleCompress(file); }
-          catch(e) { upFile = file; }
+    // ── Diagnostic ──
+    async function runDiagnostic() {
+      const lines = [];
+      const add = (s) => { lines.push(s); setUploadStatus(lines.join("\n")); showToast(s); };
+      try {
+        add("1/5 检测 Supabase 连接...");
+        const r1 = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/album_settings?select=slug&limit=1`, { headers: { apikey: CONFIG.SUPABASE_ANON_KEY } });
+        add(r1.ok ? "OK 数据库可访问" : `FAIL 数据库访问失败 HTTP ${r1.status}`);
+
+        add("2/5 检测存储桶...");
+        const r2 = await fetch(`${CONFIG.SUPABASE_URL}/storage/v1/object/${CONFIG.IMAGES_BUCKET}/main/.bucket-check`, { headers: { apikey: CONFIG.SUPABASE_ANON_KEY } });
+        const r2text = await r2.text().catch(() => "");
+        if (r2text.includes("Bucket") && r2text.includes("not found")) {
+          add(`FAIL 存储桶"${CONFIG.IMAGES_BUCKET}"不存在。请在 Supabase → Storage → New bucket 创建`);
+        } else {
+          add("OK 存储桶存在");
         }
-        setUploadStatus(`正在上传第 ${i+1}/${files.length} 张...`);
-        await new Promise(r => setTimeout(r, 30));
-        const fp = `${CONFIG.ALBUM_SLUG}/${Date.now()}-${safeUUID()}-${sanitizeFileName(upFile.name)}`;
-        const up = await supabase.storage.from(CONFIG.IMAGES_BUCKET).upload(fp, upFile, { cacheControl:"31536000", upsert:false });
-        if (up.error) {
-          let hint = up.error.message || "";
-          if (hint.includes("JWT") || hint.includes("auth") || hint.includes("policy") || hint.includes("permission")) hint += "（请尝试退出后重新登录）";
-          const m = `上传失败：${hint}`; setUploadStatus(m); showToast(m); return;
+
+        add("3/5 检测登录状态...");
+        const { data: sd } = await supabase.auth.getSession();
+        add(sd.session ? `OK 已登录 (${sd.session.user.email})` : "FAIL 未登录或登录过期");
+
+        const bucketOk = !r2text.includes("Bucket");
+        if (sd.session && bucketOk) {
+          add("4/5 尝试上传测试文件...");
+          const testFile = new File(["test"], "diag-test.txt", { type: "text/plain" });
+          const { error: upErr } = await supabase.storage.from(CONFIG.IMAGES_BUCKET).upload(`main/diag-${Date.now()}.txt`, testFile, {
+            cacheControl: "31536000",
+            upsert: false,
+          });
+          add(upErr ? `FAIL 上传失败：${upErr.message}` : "OK 上传成功！");
+          if (!upErr) {
+            add("5/5 诊断完成 — 上传功能正常！");
+          } else {
+            add("5/5 上传失败。请将上面 FAIL 信息截图");
+          }
+        } else {
+          add("跳过上传测试（需登录且桶存在）");
         }
-        rows.push({ album_slug:CONFIG.ALBUM_SLUG, title:captions[i]||"", file_path:fp, sort_order:bo+i });
+      } catch(e) {
+        add(`诊断异常：${e.message}`);
       }
-      const ins = await supabase.from("album_images").insert(rows);
-      if (ins.error) { await supabase.storage.from(CONFIG.IMAGES_BUCKET).remove(rows.map(r=>r.file_path)); setUploadStatus(`写入失败：${ins.error.message}`); return; }
-      uploadInput.value = ""; captionsInput.value = "";
-      setUploadStatus(`已上传 ${files.length} 张。`); await loadWall();
     }
-    function simpleCompress(file) {
+
+    // ── Image Compression ──
+    async function compressImage(file) {
       return new Promise((resolve) => {
         const img = new Image();
         const url = URL.createObjectURL(file);
-        const timeout = setTimeout(() => { URL.revokeObjectURL(url); resolve(file); }, 12000);
         img.onload = () => {
-          clearTimeout(timeout); URL.revokeObjectURL(url);
-          let w = img.width, h = img.height;
-          const max = 800;
-          if (Math.max(w,h) > max) { const s = max/Math.max(w,h); w=Math.round(w*s); h=Math.round(h*s); }
-          const cv = document.createElement("canvas"); cv.width=w; cv.height=h;
-          cv.getContext("2d").drawImage(img,0,0,w,h);
-          cv.toBlob(b => {
-            if (b && b.size < file.size) resolve(new File([b], file.name.replace(/\.[^.]+$/,"")+".webp", {type:"image/webp"}));
-            else resolve(file);
-          }, "image/webp", 0.6);
+          let { width, height } = img;
+          const maxEdge = CONFIG.MAX_UPLOAD_EDGE;
+          if (width > maxEdge || height > maxEdge) {
+            const ratio = Math.min(maxEdge / width, maxEdge / height);
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob((blob) => {
+            URL.revokeObjectURL(url);
+            resolve(blob || file);
+          }, "image/jpeg", CONFIG.MAX_UPLOAD_QUALITY);
         };
-        img.onerror = () => { clearTimeout(timeout); URL.revokeObjectURL(url); resolve(file); };
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          resolve(file);
+        };
         img.src = url;
       });
+    }
+
+    async function uploadImages() {
+      if (!currentSession?.user) { setUploadStatus("请先登录"); showToast("请先登录"); return; }
+      const files = Array.from(uploadInput.files||[]).filter(f=>f.type.startsWith("image/"));
+      if (!files.length) { setUploadStatus("请先选择图片"); return; }
+      const captions = captionsInput.value.split(/\r?\n/).map(l=>l.trim());
+      const bo = currentImages.length ? Math.max(...currentImages.map(it=>it.sort_order||0))+1 : 1;
+      const rows = [];
+      for (const [i, file] of files.entries()) {
+        const msg = `压缩上传 ${i+1}/${files.length}...`;
+        setUploadStatus(msg); showToast(msg);
+        await new Promise(r => setTimeout(r, 50));
+        const compressed = await compressImage(file);
+        const fp = `${CONFIG.ALBUM_SLUG}/${Date.now()}-${safeUUID()}-${sanitizeFileName(file.name)}`;
+        const { error: upErr } = await supabase.storage.from(CONFIG.IMAGES_BUCKET).upload(fp, compressed, {
+          cacheControl: "31536000",
+          upsert: false,
+        });
+        if (upErr) {
+          let hint = upErr.message;
+          if (hint.includes("policy")||hint.includes("violates")) hint += " — 请在 Supabase SQL Editor 重新执行 supabase-setup.sql";
+          if (hint.includes("JWT")||hint.includes("401")) hint += " — 请退出后重新登录";
+          setUploadStatus(hint); showToast(hint); return;
+        }
+        rows.push({ album_slug:CONFIG.ALBUM_SLUG, title:captions[i]||"", file_path:fp, sort_order:bo+i });
+      }
+      setUploadStatus("正在保存记录..."); showToast("正在保存记录...");
+      const { error: insErr } = await supabase.from("album_images").insert(rows);
+      if (insErr) {
+        await supabase.storage.from(CONFIG.IMAGES_BUCKET).remove(rows.map(r=>r.file_path));
+        const m = `数据库写入失败：${insErr.message}`; setUploadStatus(m); showToast(m); return;
+      }
+      uploadInput.value = ""; captionsInput.value = "";
+      const done = `已上传 ${files.length} 张图片`;
+      setUploadStatus(done); showToast(done); await loadWall();
     }
     function sanitizeFileName(n) { return n.replace(/[^a-zA-Z0-9._-]/g,"-"); }
 
