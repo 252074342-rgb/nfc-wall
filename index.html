@@ -12,7 +12,7 @@
     html, body {
       width: 100%; height: 100%; margin: 0; overflow: hidden;
       background: #060810; color: #eef2ff;
-      font-family: "ZCOOL KuaiLe", "Trebuchet MS", "Microsoft YaHei", "PingFang SC", sans-serif;
+      font-family: "Trebuchet MS", "Microsoft YaHei", "PingFang SC", sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
 
@@ -51,7 +51,9 @@
       align-items: center; justify-content: center;
       gap: clamp(130px, 34vh, 240px);
       padding: 0 4px;
+      transition: flex 0.4s ease;
     }
+    .column[data-col="1"] { flex: 1.25; }
 
     /* ── Cards ── */
     .card {
@@ -133,13 +135,6 @@
     }
     .card.highlighted {
       z-index: 4; opacity: 1 !important; filter: brightness(1.18) !important;
-      animation: cardFloatStrong var(--fd, 6s) ease-in-out infinite alternate !important;
-      animation-delay: var(--fdl, 0s) !important;
-    }
-    @keyframes cardFloatStrong {
-      0%   { transform: scale(1.15) translateY(0) rotate(-0.5deg); }
-      50%  { transform: scale(1.15) translateY(-12px) rotate(0.4deg); }
-      100% { transform: scale(1.15) translateY(-2px) rotate(-0.3deg); }
     }
 
     /* ── Plane ── */
@@ -476,22 +471,40 @@
       uploadMusicBtn.addEventListener("click", uploadMusic);
 
       // Splash: tap once to unlock music
+      let splashDone = false;
       function unlockAndPlay() {
+        if (splashDone) return;
+        splashDone = true;
         splash.classList.add("hide");
         setTimeout(() => splash.remove(), 600);
-        // Play a silent buffer to unlock mobile audio context
+        // Unlock AudioContext
         try {
-          const actx = new (window.AudioContext || window.webkitAudioContext)();
-          const buf = actx.createBuffer(1, 1, 22050);
-          actx.createBufferSource().connect(actx.destination).start(0);
-          actx.resume();
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) {
+            const ctx = new AC();
+            const buf = ctx.createBuffer(1, 1, 22050);
+            const src = ctx.createBufferSource();
+            src.buffer = buf;
+            src.connect(ctx.destination);
+            src.start(0);
+            ctx.resume();
+          }
         } catch(e) {}
-        if (audioElement && audioElement.paused) {
-          audioElement.play().then(() => { musicToggle.textContent = "暂停"; }).catch(() => {});
+        if (audioElement) {
+          audioElement.muted = false;
+          audioElement.play().then(() => {
+            musicToggle.textContent = "暂停";
+          }).catch(() => {
+            // Retry once after a brief delay
+            setTimeout(() => {
+              if (audioElement && audioElement.paused) {
+                audioElement.play().then(() => { musicToggle.textContent = "暂停"; }).catch(() => {});
+              }
+            }, 200);
+          });
         }
       }
-      splash.addEventListener("click", unlockAndPlay);
-      splash.addEventListener("touchend", (e) => { e.preventDefault(); unlockAndPlay(); });
+      splash.addEventListener("pointerdown", unlockAndPlay);
     }
 
     function onSwipeStart(e) {
@@ -772,7 +785,7 @@
       if (!url) { musicToggle.hidden = true; musicToggle.textContent = "播放"; return; }
       audioElement = document.createElement("audio");
       audioElement.src = url; audioElement.loop = true; audioElement.preload = "auto";
-      audioElement.volume = 1;
+      audioElement.muted = true;
       document.body.appendChild(audioElement);
       musicToggle.hidden = false; musicToggle.textContent = "播放";
     }
