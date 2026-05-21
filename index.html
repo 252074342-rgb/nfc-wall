@@ -275,15 +275,15 @@
 
     @media (max-width: 600px) {
       .column { gap: clamp(100px, 30vh, 200px); padding: 0 2px; }
-      .column[data-col="1"] { flex: 1.4; }
-      .column[data-col="1"] .card { max-width: 170px; width: 92%; }
-      .column[data-col="0"] .card, .column[data-col="2"] .card { max-width: 120px; }
+      .column[data-col="1"] { flex: 1.12; }
+      .column[data-col="1"] .card { max-width: 140px; width: 90%; }
+      .column[data-col="0"] .card, .column[data-col="2"] .card { max-width: 125px; }
       .plane-group svg { width: min(44vw, 160px); }
     }
     @media (min-width: 900px) {
       .card { max-width: 155px; }
-      .column[data-col="1"] .card { max-width: 180px; }
-      .column[data-col="0"] .card, .column[data-col="2"] .card { max-width: 140px; }
+      .column[data-col="1"] .card { max-width: 170px; }
+      .column[data-col="0"] .card, .column[data-col="2"] .card { max-width: 145px; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; transition: none !important; }
