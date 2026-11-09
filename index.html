@@ -193,6 +193,7 @@
     /* ── Splash (tap to start) ── */
     .splash {
       position: fixed; inset: 0; z-index: 50;
+      width: 100%; height: 100%; border-radius: 0;
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
       background: radial-gradient(ellipse at 50% 40%, rgba(60,100,200,0.15), transparent 60%),
                   linear-gradient(180deg, #08081a 0%, #0a0c18 100%);
@@ -200,6 +201,7 @@
       transition: opacity 0.6s ease;
     }
     .splash.hide { opacity: 0; pointer-events: none; }
+    .music-toggle { position: fixed; top: 12px; right: 12px; z-index: 20; }
     .splash-icon {
       width: min(120px, 30vw); height: min(120px, 30vw);
       border-radius: 50%; border: 2px solid rgba(180,210,255,0.3);
@@ -318,12 +320,13 @@
     <div class="swipe-dots" id="swipeDots"></div>
   </main>
 
-  <div class="splash" id="splash">
-    <div class="splash-icon">
+  <button class="splash" id="splash" type="button">
+    <span class="splash-icon" aria-hidden="true">
       <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-    </div>
-    <div class="splash-text">轻触开启</div>
-  </div>
+    </span>
+    <span class="splash-text">轻触开启</span>
+  </button>
+  <button class="secondary small music-toggle" id="musicToggle" type="button" hidden>播放音乐</button>
 
   <div class="overlay" id="lightbox">
     <figure><img id="lightboxImage" alt=""><figcaption id="lightboxCaption"></figcaption></figure>
@@ -345,7 +348,7 @@
       <h3>背景音乐</h3>
       <div class="field"><label for="musicInput">音频直链（或直接上传）</label><input id="musicInput" type="url" placeholder="https://example.com/music.mp3"></div>
       <div class="field"><label for="musicUpload">上传音乐文件</label><input id="musicUpload" type="file" accept="audio/*"></div>
-      <div class="row"><button id="uploadMusicBtn" type="button">上传到云端</button><button id="saveSettingsBtn" type="button">保存</button><button class="secondary" id="musicToggle" type="button" hidden>播放</button></div>
+      <div class="row"><button id="uploadMusicBtn" type="button">上传到云端</button><button id="saveSettingsBtn" type="button">保存</button></div>
       <div class="status" id="settingsStatus"></div>
     </section>
     <section class="panel">
@@ -358,6 +361,7 @@
     </section>
     <section class="panel">
       <h3>图片管理</h3>
+      <button class="secondary small" id="cleanupBtn" type="button" hidden>重试清理</button>
       <div class="manage-list" id="manageList"></div>
       <div class="manage-empty" id="manageEmpty">还没有图片。</div>
       <div class="status" id="manageStatus"></div>
@@ -365,8 +369,6 @@
   </aside>
 
   <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm";
-
     const CONFIG = {
       SUPABASE_URL: "https://pnzbcsnoqrmtdkxyxfms.supabase.co",
       SUPABASE_ANON_KEY: "sb_publishable_BZMrBawoq266rDTBEcIXRQ_yCrQPJ8C",
@@ -412,6 +414,7 @@
     const manageList = document.getElementById("manageList");
     const manageEmpty = document.getElementById("manageEmpty");
     const manageStatus = document.getElementById("manageStatus");
+    const cleanupBtn = document.getElementById("cleanupBtn");
 
     function safeUUID() {
       if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
@@ -422,6 +425,10 @@
     }
 
     let supabase, currentSession, currentImages = [], audioElement;
+    let isAdmin = false, albumBusy = false;
+    let splashDone = false, musicWanted = false;
+    let authRefresh = 0, wallReadVersion = 0, cameraStarted = false;
+    let musicConfigVersion = 0, savingMusic = false;
     let windowStart = 0, cycleTimer = null, resumeTimer = null;
     let tapCount = 0, tapTimer = null, pendingLightboxTimeout = 0, longPressTimer = 0;
     let swipeX0 = 0, swipeY0 = 0, swipeActive = false;
@@ -430,11 +437,28 @@
     // Card elements in order: [col0-top, col0-bot, col1-top, col1-bot, col2-top, col2-bot]
     const cardSlots = Array.from(track.querySelectorAll(".card[data-slot]"));
 
+    bindUi();
+    updateAuthUi();
+    syncMusic(readCachedMusic());
     init();
+
     async function init() {
-      supabase = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-      bindUi(); updateAuthUi();
-      await refreshSession(); await loadSettings(); await loadWall();
+      let timeout;
+      try {
+        const { createClient } = await Promise.race([
+          import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm"),
+          new Promise((_, reject) => { timeout = setTimeout(reject, 12000); }),
+        ]);
+        supabase = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+        await Promise.all([refreshSession(), loadSettings(), loadWall()]);
+        if (isAdmin) retryCleanup();
+      } catch {
+        const msg = "照片墙连接失败，请检查网络后刷新页面。";
+        setAuthStatus(msg);
+        showToast(msg, true);
+      } finally {
+        clearTimeout(timeout);
+      }
     }
 
     function bindUi() {
@@ -456,55 +480,36 @@
         if (e.key === "ArrowRight") manualCycle(1);
       });
       loginForm.addEventListener("submit", async (e) => {
-        e.preventDefault(); setAuthStatus("正在登录...");
+        e.preventDefault();
+        if (!supabase) { setAuthStatus("云端尚未连接，请稍后重试或刷新页面。"); return; }
+        setAuthStatus("正在登录...");
         const { error } = await supabase.auth.signInWithPassword({ email: emailInput.value.trim(), password: passwordInput.value });
         if (error) { setAuthStatus(`登录失败：${error.message}`); return; }
-        passwordInput.value = ""; setAuthStatus("登录成功。"); await refreshSession();
+        passwordInput.value = "";
+        await refreshSession();
+        if (isAdmin) retryCleanup();
       });
       diagBtn.addEventListener("click", runDiagnostic);
       signOutBtn.addEventListener("click", async () => {
-        await supabase.auth.signOut(); currentSession = null; updateAuthUi(); setAuthStatus("已退出登录。");
+        const { error } = await supabase.auth.signOut();
+        if (error) { setAuthStatus(`退出失败：${error.message}`); return; }
+        authRefresh++;
+        currentSession = null;
+        isAdmin = false;
+        updateAuthUi();
+        setAuthStatus("已退出登录。");
       });
       saveSettingsBtn.addEventListener("click", saveSettings);
       uploadBtn.addEventListener("click", uploadImages);
       uploadMusicBtn.addEventListener("click", uploadMusic);
-
-      // Splash: tap once to unlock music
-      let splashDone = false;
-      function unlockAndPlay() {
-        if (splashDone) return;
+      cleanupBtn.addEventListener("click", retryCleanup);
+      splash.addEventListener("click", () => {
         splashDone = true;
+        musicWanted = true;
         splash.classList.add("hide");
         setTimeout(() => splash.remove(), 600);
-        // Unlock AudioContext
-        try {
-          const AC = window.AudioContext || window.webkitAudioContext;
-          if (AC) {
-            const ctx = new AC();
-            const buf = ctx.createBuffer(1, 1, 22050);
-            const src = ctx.createBufferSource();
-            src.buffer = buf;
-            src.connect(ctx.destination);
-            src.start(0);
-            ctx.resume();
-          }
-        } catch(e) {}
-        if (audioElement) {
-          audioElement.muted = false;
-          audioElement.play().then(() => {
-            musicToggle.textContent = "暂停";
-          }).catch(() => {
-            // Retry after delay
-            setTimeout(() => {
-              if (audioElement && audioElement.paused) {
-                audioElement.play().then(() => { musicToggle.textContent = "暂停"; }).catch(() => {});
-              }
-            }, 300);
-          });
-        }
-      }
-      splash.addEventListener("pointerdown", unlockAndPlay, { once: true });
-      splash.addEventListener("click", unlockAndPlay, { once: true });
+        playMusic();
+      }, { once: true });
     }
 
     function onSwipeStart(e) {
@@ -558,35 +563,45 @@
       const p = new Image(); p.src = url;
     }
 
-    let cycling = false;
+    let cancelCycle = null;
 
-    function cycleForward() {
-      if (currentImages.length < 2 || cycling) return;
-      cycling = true;
-
-      const nextStart = (windowStart + 2) % currentImages.length;
+    function manualCycle(dir) {
+      if (currentImages.length < 2 || cancelCycle) return;
+      const nextStart = (windowStart + dir * 2 + currentImages.length) % currentImages.length;
       for (let s = 0; s < 6; s++) {
         const idx = (nextStart + s) % currentImages.length;
-        if (currentImages[idx]) preloadImage(currentImages[idx].wallUrl || currentImages[idx].originalUrl);
+        preloadImage(currentImages[idx].wallUrl || currentImages[idx].originalUrl);
       }
 
-      // 1. Slide track left
-      track.classList.add("scroll-left");
-
-      // 2. After transition, snap cards to new content
-      track.addEventListener("transitionend", function onEnd() {
-        track.removeEventListener("transitionend", onEnd);
-        // Disable transition, update content, reset position
+      const direction = dir > 0 ? "scroll-left" : "scroll-right";
+      let timeout;
+      function settle(advance) {
+        clearTimeout(timeout);
+        track.removeEventListener("transitionend", onTransition);
+        track.removeEventListener("transitioncancel", onTransition);
         track.style.transition = "none";
-        track.classList.remove("scroll-left");
-        windowStart = nextStart;
-        fillAllCards();
-        updateDots();
-        // Force reflow, then re-enable transition
+        track.classList.remove(direction);
+        if (advance) {
+          windowStart = nextStart;
+          fillAllCards();
+          updateDots();
+        }
         track.offsetHeight;
         track.style.transition = "";
-        cycling = false;
-      });
+        cancelCycle = null;
+      }
+      function onTransition(event) {
+        if (event.target === track && event.propertyName === "transform") settle(true);
+      }
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        settle(true);
+        return;
+      }
+      cancelCycle = () => settle(false);
+      track.addEventListener("transitionend", onTransition);
+      track.addEventListener("transitioncancel", onTransition);
+      track.classList.add(direction);
+      timeout = setTimeout(() => settle(true), 650);
     }
 
     function fillCardContent(card, slot) {
@@ -618,34 +633,6 @@
       cap.textContent = currentImages[idx].caption || "";
     }
 
-    function manualCycle(dir) {
-      if (currentImages.length < 2 || cycling) return;
-      if (dir > 0) { cycleForward(); return; }
-
-      cycling = true;
-      const prevStart = (windowStart - 2 + currentImages.length) % currentImages.length;
-      for (let s = 0; s < 6; s++) {
-        const idx = (prevStart + s) % currentImages.length;
-        if (currentImages[idx]) preloadImage(currentImages[idx].wallUrl || currentImages[idx].originalUrl);
-      }
-
-      // 1. Slide track right
-      track.classList.add("scroll-right");
-
-      // 2. After transition, snap cards to new content
-      track.addEventListener("transitionend", function onEnd() {
-        track.removeEventListener("transitionend", onEnd);
-        track.style.transition = "none";
-        track.classList.remove("scroll-right");
-        windowStart = prevStart;
-        fillAllCards();
-        updateDots();
-        track.offsetHeight;
-        track.style.transition = "";
-        cycling = false;
-      });
-    }
-
     // ── Highlight middle column (plane hovers there) ──
     function highlightMiddleColumn() {
       cardSlots.forEach(c => c.classList.remove("highlighted"));
@@ -673,7 +660,7 @@
       function tick() {
         cycleTimer = setTimeout(tick, CYCLE_INTERVAL);
         if (userActive || lightboxOpen || editorPanel.classList.contains("open")) return;
-        cycleForward();
+        manualCycle(1);
       }
       cycleTimer = setTimeout(tick, CYCLE_INTERVAL);
     }
@@ -700,10 +687,14 @@
     // ── Camera oscillation ──
     function startCameraOscillation() {
       const t0 = Date.now();
+      const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
       function loop() {
         const elapsed = (Date.now() - t0) / 1000;
-        const shift = Math.sin(elapsed * 0.35) * 6;
-        camera.style.transform = `translateX(${shift}px)`;
+        if (motion.matches) {
+          camera.style.transform = "";
+        } else {
+          camera.style.transform = `translateX(${Math.sin(elapsed * 0.35) * 6}px)`;
+        }
         requestAnimationFrame(loop);
       }
       requestAnimationFrame(loop);
@@ -735,6 +726,7 @@
 
     // ── Editor ──
     function onStageTap(e) {
+      onStagePressEnd();
       markUserActive();
       if (editorPanel.contains(e.target) || lightbox.contains(e.target)) return;
       tapCount++; clearTimeout(tapTimer); tapTimer = setTimeout(() => { tapCount = 0; }, 700);
@@ -747,109 +739,167 @@
       longPressTimer = setTimeout(() => { longPressTimer = 0; tapCount = 0; cancelPendingLightbox(); openEditorPanel(); }, 650);
     }
     function onStagePressEnd() { clearTimeout(longPressTimer); longPressTimer = 0; }
-    function openEditorPanel() { editorPanel.classList.add("open"); editorPanel.setAttribute("aria-hidden", "false"); }
+    function openEditorPanel() {
+      if (editorPanel.classList.contains("open")) return;
+      editorPanel.classList.add("open");
+      editorPanel.setAttribute("aria-hidden", "false");
+      if (isAdmin) retryCleanup();
+    }
     function closeEditorPanel() { editorPanel.classList.remove("open"); editorPanel.setAttribute("aria-hidden", "true"); }
 
     // ── Auth / Music ──
     async function refreshSession() {
+      const request = ++authRefresh;
       const { data, error } = await supabase.auth.getSession();
+      if (request !== authRefresh) return;
       if (error) { setAuthStatus(`会话读取失败：${error.message}`); return; }
-      currentSession = data.session; updateAuthUi();
+      currentSession = data.session;
+      isAdmin = false;
+      updateAuthUi();
+      if (!currentSession) return;
+      const { data: allowed, error: permissionError } = await readWithTimeout(supabase.rpc("is_album_admin"));
+      if (request !== authRefresh) return;
+      isAdmin = allowed === true;
+      updateAuthUi();
+      setAuthStatus(permissionError ? `管理员权限检查失败：${permissionError.message}`
+        : isAdmin ? "已登录管理员账号。" : "当前账号未获管理员授权。");
     }
     function updateAuthUi() {
-      const ok = Boolean(currentSession?.user);
-      sessionText.textContent = ok ? `当前账号：${currentSession.user.email}` : "未登录";
-      signOutBtn.hidden = !ok; diagBtn.hidden = !ok; loginForm.hidden = ok;
-      saveSettingsBtn.disabled = !ok; uploadBtn.disabled = !ok;
-      uploadInput.disabled = !ok; captionsInput.disabled = !ok;
-      uploadMusicBtn.disabled = !ok; musicUpload.disabled = !ok;
+      const signedIn = Boolean(currentSession?.user);
+      sessionText.textContent = signedIn ? `当前账号：${currentSession.user.email}` : "未登录";
+      signOutBtn.hidden = !signedIn; diagBtn.hidden = !isAdmin; loginForm.hidden = signedIn;
+      saveSettingsBtn.disabled = !isAdmin || savingMusic;
+      uploadInput.disabled = !isAdmin; captionsInput.disabled = !isAdmin;
+      uploadMusicBtn.disabled = !isAdmin; musicUpload.disabled = !isAdmin;
+      cleanupBtn.hidden = !isAdmin;
+      setAlbumBusy(albumBusy);
       renderManageList();
     }
 
-    // Pre-load music from localStorage immediately (before async init)
-    (function initLocalMusic() {
-      try {
-        const localUrl = localStorage.getItem("nfc_wall_music") || "";
-        if (localUrl) {
-          musicInput.value = localUrl;
-          syncMusic(localUrl);
-        }
-      } catch(e) {}
-    })();
+    async function readWithTimeout(query) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+      try { return await query.abortSignal(controller.signal); }
+      finally { clearTimeout(timeout); }
+    }
+
+    function readCachedMusic() {
+      try { return localStorage.getItem("nfc_wall_music") || ""; }
+      catch { return ""; }
+    }
+
+    function cacheMusic(url) {
+      try { localStorage.setItem("nfc_wall_music", url); } catch {}
+    }
 
     async function loadSettings() {
+      const version = musicConfigVersion;
       try {
-        const { data, error } = await supabase.from("album_settings").select("music_url").eq("slug", CONFIG.ALBUM_SLUG).maybeSingle();
-        if (error) { setSettingsStatus(`读取设置失败：${error.message}`); }
-        const cloudUrl = (!error && data?.music_url) ? data.music_url : "";
-        const localUrl = (() => { try { return localStorage.getItem("nfc_wall_music") || ""; } catch(e) { return ""; } })();
-        const finalUrl = cloudUrl || localUrl;
-        musicInput.value = finalUrl;
-        // Only sync if URL changed or no audio playing yet
-        if (finalUrl && (!audioElement || audioElement.src !== new URL(finalUrl, location.href).href)) {
-          syncMusic(finalUrl);
-        }
-      } catch(e) {
-        const localUrl = (() => { try { return localStorage.getItem("nfc_wall_music") || ""; } catch(ex) { return ""; } })();
-        musicInput.value = localUrl;
-        if (localUrl && (!audioElement || audioElement.src !== new URL(localUrl, location.href).href)) {
-          syncMusic(localUrl);
-        }
+        const { data, error } = await readWithTimeout(
+          supabase.from("album_settings").select("music_url").eq("slug", CONFIG.ALBUM_SLUG).maybeSingle()
+        );
+        if (version !== musicConfigVersion) return;
+        if (error) throw error;
+        const url = data?.music_url || "";
+        syncMusic(url);
+        cacheMusic(url);
+      } catch (error) {
+        if (version === musicConfigVersion) setSettingsStatus(`读取设置失败：${error.message}`);
       }
     }
-    function syncMusic(url) {
-      if (audioElement) { audioElement.pause(); audioElement.remove(); audioElement = null; }
-      if (!url) { musicToggle.hidden = true; musicToggle.textContent = "播放"; return; }
-      audioElement = document.createElement("audio");
-      audioElement.src = url; audioElement.loop = true; audioElement.preload = "auto";
-      audioElement.muted = true;
-      document.body.appendChild(audioElement);
-      musicToggle.hidden = false; musicToggle.textContent = "播放";
-    }
-    async function toggleMusicPlayback() {
-      if (!audioElement) return;
-      if (audioElement.paused) {
-        try { await audioElement.play(); musicToggle.textContent = "暂停"; }
-        catch { setSettingsStatus("音频无法播放，请检查链接是否以 .mp3 结尾"); }
-      } else { audioElement.pause(); musicToggle.textContent = "播放"; }
-    }
-    async function saveSettings() {
-      const url = musicInput.value.trim();
-      // Always save to localStorage (works offline, never fails)
-      try { localStorage.setItem("nfc_wall_music", url); } catch(e) {}
-      syncMusic(url);
 
-      if (!currentSession?.user) {
-        setSettingsStatus("已本地保存（登录后可同步到云端）"); showToast("已本地保存");
-        return;
+    function syncMusic(url) {
+      musicInput.value = url;
+      if (!audioElement) {
+        audioElement = document.createElement("audio");
+        audioElement.loop = true;
+        audioElement.preload = "auto";
+        audioElement.addEventListener("playing", updateMusicToggle);
+        audioElement.addEventListener("pause", updateMusicToggle);
+        audioElement.addEventListener("error", updateMusicToggle);
+        document.body.appendChild(audioElement);
       }
-      setSettingsStatus("保存中...");
-      const { error } = await supabase.from("album_settings").upsert({ slug: CONFIG.ALBUM_SLUG, music_url: url }, { onConflict: "slug" });
-      if (error) {
-        setSettingsStatus(`云端同步失败（本地已保存）：${error.message}`);
-        showToast("已本地保存，云端同步失败");
+      musicToggle.hidden = !url;
+      if (url === (audioElement.getAttribute("src") || "")) return;
+      audioElement.pause();
+      if (url) {
+        audioElement.src = url;
+        if (splashDone && musicWanted) playMusic();
       } else {
+        audioElement.removeAttribute("src");
+        audioElement.load();
+      }
+      updateMusicToggle();
+    }
+
+    function updateMusicToggle() {
+      musicToggle.textContent = audioElement.paused || audioElement.error ? "播放音乐" : "暂停音乐";
+    }
+
+    async function playMusic(showError = false) {
+      if (!audioElement?.hasAttribute("src")) return;
+      try {
+        audioElement.muted = false;
+        await audioElement.play();
+      } catch (error) {
+        if (showError && error.name !== "AbortError") showToast("音乐无法播放，请检查音频链接或网络。");
+      } finally {
+        updateMusicToggle();
+      }
+    }
+
+    function toggleMusicPlayback() {
+      musicWanted = audioElement.paused || Boolean(audioElement.error);
+      if (musicWanted) playMusic(true);
+      else audioElement.pause();
+    }
+
+    async function saveSettings() {
+      if (!isAdmin || savingMusic) return;
+      const url = musicInput.value.trim();
+      musicConfigVersion++;
+      savingMusic = true;
+      saveSettingsBtn.disabled = true;
+      setSettingsStatus("保存中...");
+      try {
+        const { error } = await supabase.from("album_settings").upsert({ slug: CONFIG.ALBUM_SLUG, music_url: url }, { onConflict: "slug" });
+        if (error) throw error;
+        cacheMusic(url);
+        syncMusic(url);
         setSettingsStatus("已保存。"); showToast("音乐链接已保存");
+      } catch (error) {
+        setSettingsStatus(`保存失败：${error.message}`);
+      } finally {
+        savingMusic = false;
+        saveSettingsBtn.disabled = !isAdmin;
       }
     }
 
     // ── Wall ──
-    function showToast(msg) { toast.textContent = msg; setTimeout(() => { if (toast.textContent === msg) toast.textContent = ""; }, 8000); }
-    function clearToast() { toast.textContent = ""; }
+    let toastTimer;
+    function showToast(msg, persistent = false) {
+      clearTimeout(toastTimer);
+      toast.textContent = msg;
+      if (!persistent) toastTimer = setTimeout(clearToast, 8000);
+    }
+    function clearToast() { clearTimeout(toastTimer); toast.textContent = ""; }
 
     async function loadWall() {
+      const request = ++wallReadVersion;
       clearToast();
       try {
-        const { data, error } = await supabase.from("album_images")
+        const { data, error } = await readWithTimeout(supabase.from("album_images")
           .select("id, title, file_path, sort_order, created_at")
-          .eq("album_slug", CONFIG.ALBUM_SLUG).order("sort_order").order("created_at");
+          .eq("album_slug", CONFIG.ALBUM_SLUG).order("sort_order").order("created_at").order("id"));
+        if (request !== wallReadVersion) return;
         if (error) {
-          const msg = `连接失败：${error.message}\n请检查 Supabase 项目是否被暂停`;
-          setManageStatus(msg); showToast(msg); return;
+          const msg = `无法加载相册：${error.message}\n请检查网络及 Supabase 部署配置后刷新页面。`;
+          setManageStatus(msg); showToast(msg, true); return;
         }
         if (!data || data.length === 0) {
           showToast("相册为空，请登录后上传照片");
         }
+        cancelCycle?.();
         currentImages = (data || []).map(item => {
           const ou = getPublicUrl(item.file_path);
           return { ...item, caption: item.title || "", originalUrl: ou,
@@ -863,10 +913,13 @@
         renderManageList();
         if (currentImages.length > 0) {
           startAutoCycle();
-          startCameraOscillation();
+          if (!cameraStarted) {
+            cameraStarted = true;
+            startCameraOscillation();
+          }
         }
       } catch(e) {
-        showToast(`加载相册异常：${e.message}`);
+        if (request === wallReadVersion) showToast(`加载相册异常：${e.message}。请刷新页面重试。`, true);
       }
     }
 
@@ -888,7 +941,7 @@
 
     // ── Music upload ──
     async function uploadMusic() {
-      if (!currentSession?.user) { setSettingsStatus("先登录"); return; }
+      if (!isAdmin) { setSettingsStatus("请先登录管理员账号"); return; }
       const file = musicUpload.files[0];
       if (!file) { setSettingsStatus("先选择音乐文件"); return; }
       if (file.size > 20 * 1024 * 1024) { setSettingsStatus("文件不能超过 20MB"); return; }
@@ -904,74 +957,50 @@
 
     // ── Diagnostic ──
     async function runDiagnostic() {
-      const lines = [];
-      const add = (s) => { lines.push(s); setUploadStatus(lines.join("\n")); showToast(s); };
+      if (!isAdmin) return;
+      setUploadStatus("正在检测数据库和存储桶...");
       try {
-        add("1/5 检测 Supabase 连接...");
-        const r1 = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/album_settings?select=slug&limit=1`, { headers: { apikey: CONFIG.SUPABASE_ANON_KEY } });
-        add(r1.ok ? "OK 数据库可访问" : `FAIL 数据库访问失败 HTTP ${r1.status}`);
-
-        add("2/5 检测存储桶...");
-        const r2 = await fetch(`${CONFIG.SUPABASE_URL}/storage/v1/object/${CONFIG.IMAGES_BUCKET}/main/.bucket-check`, { headers: { apikey: CONFIG.SUPABASE_ANON_KEY } });
-        const r2text = await r2.text().catch(() => "");
-        if (r2text.includes("Bucket") && r2text.includes("not found")) {
-          add(`FAIL 存储桶"${CONFIG.IMAGES_BUCKET}"不存在。请在 Supabase → Storage → New bucket 创建`);
-        } else {
-          add("OK 存储桶存在");
-        }
-
-        add("3/5 检测登录状态...");
-        const { data: sd } = await supabase.auth.getSession();
-        add(sd.session ? `OK 已登录 (${sd.session.user.email})` : "FAIL 未登录或登录过期");
-
-        const bucketOk = !r2text.includes("Bucket");
-        if (sd.session && bucketOk) {
-          add("4/5 尝试上传测试文件...");
-          const testFile = new File(["test"], "diag-test.txt", { type: "text/plain" });
-          const { error: upErr } = await supabase.storage.from(CONFIG.IMAGES_BUCKET).upload(`main/diag-${Date.now()}.txt`, testFile, {
-            cacheControl: "31536000",
-            upsert: false,
-          });
-          add(upErr ? `FAIL 上传失败：${upErr.message}` : "OK 上传成功！");
-          if (!upErr) {
-            add("5/5 诊断完成 — 上传功能正常！");
-          } else {
-            add("5/5 上传失败。请将上面 FAIL 信息截图");
-          }
-        } else {
-          add("跳过上传测试（需登录且桶存在）");
-        }
-      } catch(e) {
-        add(`诊断异常：${e.message}`);
+        const [db, storage] = await Promise.all([
+          readWithTimeout(supabase.from("album_settings").select("slug").limit(1)),
+          supabase.storage.from(CONFIG.IMAGES_BUCKET).list(CONFIG.ALBUM_SLUG, { limit: 1 }),
+        ]);
+        setUploadStatus([
+          db.error ? `数据库访问失败：${db.error.message}` : "数据库可读取",
+          storage.error ? `存储桶访问失败：${storage.error.message}` : "存储桶可读取",
+        ].join("\n"));
+      } catch (error) {
+        setUploadStatus(`诊断失败：${error.message}`);
       }
     }
 
     // ── Image Compression ──
     async function compressImage(file) {
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         const img = new Image();
         const url = URL.createObjectURL(file);
         img.onload = () => {
-          let { width, height } = img;
-          const maxEdge = CONFIG.MAX_UPLOAD_EDGE;
-          if (width > maxEdge || height > maxEdge) {
-            const ratio = Math.min(maxEdge / width, maxEdge / height);
-            width = Math.round(width * ratio);
-            height = Math.round(height * ratio);
-          }
-          const canvas = document.createElement("canvas");
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, width, height);
-          URL.revokeObjectURL(url);
-          if (canvas.toBlob) {
-            canvas.toBlob((blob) => {
-              resolve(blob || file);
-            }, "image/jpeg", CONFIG.MAX_UPLOAD_QUALITY);
-          } else {
-            const dataUrl = canvas.toDataURL("image/jpeg", CONFIG.MAX_UPLOAD_QUALITY);
-            fetch(dataUrl).then(r => r.blob()).then(b => resolve(b || file)).catch(() => resolve(file));
+          try {
+            let { width, height } = img;
+            const maxEdge = CONFIG.MAX_UPLOAD_EDGE;
+            if (width > maxEdge || height > maxEdge) {
+              const ratio = Math.min(maxEdge / width, maxEdge / height);
+              width = Math.max(1, Math.round(width * ratio));
+              height = Math.max(1, Math.round(height * ratio));
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+            if (canvas.toBlob) {
+              canvas.toBlob(blob => resolve(blob || file), "image/jpeg", CONFIG.MAX_UPLOAD_QUALITY);
+            } else {
+              const dataUrl = canvas.toDataURL("image/jpeg", CONFIG.MAX_UPLOAD_QUALITY);
+              fetch(dataUrl).then(r => r.blob()).then(b => resolve(b || file)).catch(() => resolve(file));
+            }
+          } catch (error) {
+            reject(error);
+          } finally {
+            URL.revokeObjectURL(url);
           }
         };
         img.onerror = () => {
@@ -983,46 +1012,59 @@
     }
 
     async function uploadImages() {
-      if (!currentSession?.user) { setUploadStatus("请先登录"); showToast("请先登录"); return; }
-      const files = Array.from(uploadInput.files||[]).filter(f=>f.type.startsWith("image/"));
-      if (!files.length) { setUploadStatus("请先选择图片"); return; }
-      const captions = captionsInput.value.split(/\r?\n/).map(l=>l.trim());
-      const bo = currentImages.length ? Math.max(...currentImages.map(it=>it.sort_order||0))+1 : 1;
-      const rows = [];
-      for (const [i, file] of files.entries()) {
-        const msg = `压缩上传 ${i+1}/${files.length}...`;
-        setUploadStatus(msg); showToast(msg);
-        await new Promise(r => setTimeout(r, 50));
-        const compressed = await compressImage(file);
-        const fp = `${CONFIG.ALBUM_SLUG}/${Date.now()}-${safeUUID()}-${sanitizeFileName(file.name)}`;
-        const { error: upErr } = await supabase.storage.from(CONFIG.IMAGES_BUCKET).upload(fp, compressed, {
-          cacheControl: "31536000",
-          upsert: false,
-        });
-        if (upErr) {
-          let hint = upErr.message;
-          if (hint.includes("policy")||hint.includes("violates")) hint += " — 请在 Supabase SQL Editor 重新执行 supabase-setup.sql";
-          if (hint.includes("JWT")||hint.includes("401")) hint += " — 请退出后重新登录";
-          setUploadStatus(hint); showToast(hint); return;
+      await withAlbumWrite(async () => {
+        const files = Array.from(uploadInput.files || []).filter(file => file.type.startsWith("image/"));
+        if (!files.length) {
+          setUploadStatus("请先选择图片。");
+          return;
         }
-        rows.push({ album_slug:CONFIG.ALBUM_SLUG, title:captions[i]||"", file_path:fp, sort_order:bo+i });
-      }
-      setUploadStatus("正在保存记录..."); showToast("正在保存记录...");
-      const { error: insErr } = await supabase.from("album_images").insert(rows);
-      if (insErr) {
-        await supabase.storage.from(CONFIG.IMAGES_BUCKET).remove(rows.map(r=>r.file_path));
-        const m = `数据库写入失败：${insErr.message}`; setUploadStatus(m); showToast(m); return;
-      }
-      uploadInput.value = ""; captionsInput.value = "";
-      const done = `已上传 ${files.length} 张图片`;
-      setUploadStatus(done); showToast(done); await loadWall();
+        const captions = captionsInput.value.split(/\r?\n/).map(line => line.trim());
+        const batch = safeUUID();
+        const entries = files.map((file, index) => ({
+          name: `${index}-${sanitizeFileName(file.name).slice(-180)}`,
+          title: captions[index] || "",
+        }));
+        setUploadStatus("正在准备上传...");
+        try {
+          await albumRpc("begin_album_upload", { p_batch: batch, p_files: entries });
+          for (const [index, file] of files.entries()) {
+            setUploadStatus(`压缩上传 ${index + 1}/${files.length}...`);
+            const compressed = await compressImage(file);
+            const path = `${CONFIG.ALBUM_SLUG}/photos/${batch}/${entries[index].name}`;
+            const { error } = await supabase.storage.from(CONFIG.IMAGES_BUCKET).upload(path, compressed, {
+              cacheControl: "31536000", upsert: false,
+            });
+            if (error) throw error;
+          }
+          setUploadStatus("正在发布照片...");
+          await albumRpc("finish_album_upload", { p_batch: batch, p_publish: true });
+        } catch (error) {
+          let result;
+          try {
+            result = await albumRpc("finish_album_upload", { p_batch: batch, p_publish: false });
+            if (result !== "ready") await cleanupQueuedPhotos();
+          } catch (cleanupError) {
+            setManageStatus(`云端清理待重试：${cleanupError.message}`);
+          }
+          if (result !== "ready") {
+            setUploadStatus(result
+              ? `上传失败，照片未发布：${error.message}`
+              : `无法确认上传结果，请刷新相册确认后再上传：${error.message}`);
+            await loadWall();
+            return;
+          }
+        }
+        uploadInput.value = ""; captionsInput.value = "";
+        await loadWall();
+        setUploadStatus(`已上传 ${files.length} 张图片。`);
+      }, setUploadStatus);
     }
     function sanitizeFileName(n) { return n.replace(/[^a-zA-Z0-9._-]/g,"-"); }
 
     // ── Manage ──
     function renderManageList() {
       manageList.innerHTML = "";
-      if (!Boolean(currentSession?.user)) { manageEmpty.hidden=false; manageEmpty.textContent="先登录"; return; }
+      if (!isAdmin) { manageEmpty.hidden=false; manageEmpty.textContent="请先登录管理员账号"; return; }
       if (!currentImages.length) { manageEmpty.hidden=false; manageEmpty.textContent="还没有图片。"; return; }
       manageEmpty.hidden=true;
       currentImages.forEach((img,i)=>{
@@ -1037,17 +1079,92 @@
         const sb=document.createElement("button"); sb.className="secondary small"; sb.type="button"; sb.textContent="保存句子";
         sb.addEventListener("click",async()=>{await updateImage(img.id,{title:inp.value.trim()},"已保存");});
         const ub=document.createElement("button"); ub.className="secondary small"; ub.type="button"; ub.textContent="前移"; ub.disabled=i===0;
-        ub.addEventListener("click",async()=>{await moveImage(i,i-1);});
+        ub.addEventListener("click", () => moveImage(img.id, currentImages[i-1]?.id, -1));
         const db=document.createElement("button"); db.className="secondary small"; db.type="button"; db.textContent="后移"; db.disabled=i===currentImages.length-1;
-        db.addEventListener("click",async()=>{await moveImage(i,i+1);});
+        db.addEventListener("click", () => moveImage(img.id, currentImages[i+1]?.id, 1));
         const del=document.createElement("button"); del.className="small"; del.type="button"; del.textContent="删除";
         del.addEventListener("click",async()=>{await deleteImage(img);});
         row.append(sb,ub,db,del); right.append(fld,row); card.append(pv,right); manageList.appendChild(card);
       });
     }
-    async function updateImage(id,patch,msg) { if(!currentSession?.user){setManageStatus("先登录");return;} setManageStatus("保存中..."); const{error}=await supabase.from("album_images").update(patch).eq("id",id); if(error){setManageStatus(`失败：${error.message}`);return;} setManageStatus(msg); await loadWall(); }
-    async function moveImage(from,to) { if(!currentSession?.user){setManageStatus("先登录");return;} const src=currentImages[from],tgt=currentImages[to]; if(!src||!tgt)return; setManageStatus("调整中..."); const so=src.sort_order||from+1, to_=tgt.sort_order||to+1; const f=await supabase.from("album_images").update({sort_order:to_}).eq("id",src.id); if(f.error){setManageStatus(`失败：${f.error.message}`);return;} const s=await supabase.from("album_images").update({sort_order:so}).eq("id",tgt.id); if(s.error){setManageStatus(`失败：${s.error.message}`);return;} setManageStatus("已更新"); await loadWall(); }
-    async function deleteImage(image) { if(!currentSession?.user){setManageStatus("先登录");showToast("请先登录");return;} if(!window.confirm("确认删除？"))return; setManageStatus("删除中..."); const r=await supabase.storage.from(CONFIG.IMAGES_BUCKET).remove([image.file_path]); if(r.error){const m=`删除失败：${r.error.message}`; setManageStatus(m);showToast(m);return;} const d=await supabase.from("album_images").delete().eq("id",image.id); if(d.error){const m=`删除失败：${d.error.message}`; setManageStatus(m);showToast(m);return;} setManageStatus("已删除");showToast("图片已删除"); await loadWall(); }
+    function setAlbumBusy(busy) {
+      albumBusy = busy;
+      uploadBtn.disabled = busy || !isAdmin;
+      uploadInput.disabled = busy || !isAdmin;
+      captionsInput.disabled = busy || !isAdmin;
+      cleanupBtn.disabled = busy || !isAdmin;
+      manageList.inert = busy;
+    }
+
+    async function withAlbumWrite(action, setStatus = setManageStatus) {
+      if (!isAdmin || albumBusy) return;
+      setAlbumBusy(true);
+      try { await action(); }
+      catch (error) { setStatus(`操作未完成：${error.message}`); }
+      finally { setAlbumBusy(false); }
+    }
+
+    async function albumRpc(name, params) {
+      const { data, error } = await supabase.rpc(name, { p_album: CONFIG.ALBUM_SLUG, ...params });
+      if (error) throw error;
+      return data;
+    }
+
+    async function cleanupQueuedPhotos(photoId = null) {
+      let processed = 0;
+      while (true) {
+        const jobs = await albumRpc("queue_album_cleanup", { p_id: photoId });
+        if (!jobs.length) return processed;
+        const { error } = await supabase.storage.from(CONFIG.IMAGES_BUCKET).remove(jobs.map(job => job.file_path));
+        const done = await albumRpc("finish_album_cleanup", { p_ids: jobs.map(job => job.id) });
+        if (!done) throw error || new Error("存储中的文件尚未清除，请点击「重试清理」。");
+        processed += jobs.length;
+      }
+    }
+
+    function retryCleanup() {
+      return withAlbumWrite(async () => {
+        const processed = await cleanupQueuedPhotos();
+        if (processed) setManageStatus("已清理待删除文件。");
+      });
+    }
+
+    function updateImage(id, patch, message) {
+      return withAlbumWrite(async () => {
+        setManageStatus("保存中...");
+        const { data, error } = await supabase.from("album_images").update(patch).eq("id", id).select("id").maybeSingle();
+        if (error) throw error;
+        await loadWall();
+        setManageStatus(data ? message : "照片已变更，请在刷新后的列表中重试。");
+      });
+    }
+
+    function moveImage(id, neighbor, direction) {
+      if (!neighbor) return;
+      return withAlbumWrite(async () => {
+        setManageStatus("调整中...");
+        let moved;
+        try {
+          moved = await albumRpc("move_album_image", { p_id: id, p_neighbor: neighbor, p_direction: direction });
+        } finally {
+          await loadWall();
+        }
+        setManageStatus(moved ? "已更新顺序。" : "顺序已变更，请在刷新后的列表中重试。");
+      });
+    }
+
+    function deleteImage(image) {
+      if (!isAdmin || albumBusy || !window.confirm("确认删除？")) return;
+      return withAlbumWrite(async () => {
+        setManageStatus("删除中...");
+        try {
+          await cleanupQueuedPhotos(image.id);
+        } finally {
+          await loadWall();
+        }
+        setManageStatus("已删除。");
+      });
+    }
 
     function setAuthStatus(m){authStatus.textContent=m;}
     function setSettingsStatus(m){settingsStatus.textContent=m;}
